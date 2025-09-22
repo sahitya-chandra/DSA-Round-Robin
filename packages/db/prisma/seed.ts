@@ -1,11 +1,10 @@
+//Seed for question-set only
 import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 
 const prisma = new PrismaClient();
-
-// Direct relative path
-const filePath = path.join(process.cwd(), 'prisma', 'questions.json');
+const filePath = path.join(__dirname, '..', '..', 'questions-set', 'questions.json');
 
 async function main() {
   const jsonData = fs.readFileSync(filePath, 'utf-8');
