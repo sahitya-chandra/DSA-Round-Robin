@@ -55,6 +55,15 @@ importers:
         specifier: 5.9.2
         version: 5.9.2
 
+  apps/server:
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+
   apps/web:
     dependencies:
       '@repo/ui':
@@ -97,6 +106,15 @@ importers:
       typescript:
         specifier: ^5
         version: 5.9.2
+
+  apps/worker:
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
 
   packages/db:
     dependencies:
