@@ -1,9 +1,7 @@
-//Seed for question-set only
-import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
+import prisma from '../src';
 
-const prisma = new PrismaClient();
 const filePath = path.join(__dirname, '..', '..', 'questions-set', 'questions.json');
 
 async function main() {

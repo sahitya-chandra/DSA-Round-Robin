@@ -1,3 +1,9 @@
 {
-      "extends": "../typescript-config/base.json"
+  "extends": "@repo/typescript-config/base.json",
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "src"],
+  "exclude": ["node_modules", "dist"],
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  }
 }
