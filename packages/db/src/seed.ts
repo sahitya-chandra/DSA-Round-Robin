@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import prisma from '../src';
+import prisma from '.';
 
 const filePath = path.join(__dirname, '..', '..', 'questions-set', 'questions.json');
 
