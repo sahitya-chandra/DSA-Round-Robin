@@ -16,5 +16,9 @@
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*"
+  },
+  "dependencies": {
+    "@repo/queue": "workspace:*",
+    "dotenv": "^17.2.2"
   }
 }

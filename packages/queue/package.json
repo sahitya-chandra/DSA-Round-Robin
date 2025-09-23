@@ -1,0 +1,24 @@
+{
+  "name": "@repo/queue",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3"
+  },
+  "dependencies": {
+    "bullmq": "^5.58.7",
+    "ioredis": "^5.8.0"
+  }
+}

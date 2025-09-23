@@ -16,9 +16,9 @@ int main() {
   const [result, setResult] = useState<string | null>(null);
 
 	const handleSubmit = async () => {
-		const res = await axios.post('', {
-				problemId: "two-sum",
-        language,
+		const res = await axios.post('http://localhost:5000/api/submit', {
+				// problemId: "two-sum",
+        // language,
         code,
 			}, 
 			{
@@ -29,7 +29,7 @@ int main() {
 		)
 
 		console.log(res.data)
-		setResult(code);
+		setResult(res.data);
 	}
 
   return (

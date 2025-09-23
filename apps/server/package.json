@@ -21,6 +21,7 @@
     "@types/node": "^24.5.2"
   },
   "dependencies": {
+    "@repo/queue": "workspace:*",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0"
