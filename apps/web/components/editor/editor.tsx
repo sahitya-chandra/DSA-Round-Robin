@@ -3,7 +3,13 @@ import CodeMirror from "@uiw/react-codemirror";
 import { vscodeDark, vscodeLight } from "@uiw/codemirror-theme-vscode";
 import { cpp } from "@codemirror/lang-cpp";
 
-export default function CodeEditor({ code, setCode }: { code: string, setCode: (val: string) => void}) {
+export default function CodeEditor({ 
+	code, 
+	setCode 
+}: { 
+	code: string, 
+	setCode: (val: string) => void
+}) {
 
   return (
     <div className="container mx-auto p-4">
