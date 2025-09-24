@@ -1,4 +1,4 @@
-import { Queue, Worker, Job } from "bullmq";
+import { Queue, Worker, Job, QueueEvents } from "bullmq";
 import IORedis from "ioredis";
 
 const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", {
@@ -14,3 +14,6 @@ export function createCodeWorker(
 ) {
   return new Worker<CodeJob>("code-execution", processFn, { connection });
 }
+
+export const queueEvents = new QueueEvents("code-execution", { connection });
+

@@ -8,7 +8,7 @@ dotenv.config();
 createCodeWorker(async (job) => {
   const { code } = job.data;
 
-	const tempDir = path.join(process.env.HOME || "/tmp", "docker_temp");
+	const tempDir = path.join(process.env.HOME || "", "docker_temp");
 	if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
 	const filePath = path.join(tempDir, `job-${job.id}.cpp`);
