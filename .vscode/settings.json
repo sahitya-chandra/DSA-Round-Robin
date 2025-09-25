@@ -3,5 +3,7 @@
     {
       "mode": "auto"
     }
-  ]
+  ],
+  "editor.tabSize": 2,
+  "editor.insertSpaces": false
 }
