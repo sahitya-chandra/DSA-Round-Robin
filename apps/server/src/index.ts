@@ -13,7 +13,7 @@ app.use(
 app.use(express.json());
 
 app.post("/api/submit", async (req, res) => {
-	const { code } = req.body
+	const { code , language } = req.body
 	if (!code) {
     return res.status(400).json({ error: "Code are required" });
   }
@@ -21,10 +21,10 @@ app.post("/api/submit", async (req, res) => {
 	// return res.json({jobId: job.id, status: "queued" })
   
   try {
-    const job = await codeQueue.add("run-code", { code })
+    const job = await codeQueue.add("run-code", { code , language })
 
     queueEvents.waitUntilReady().then(() => {
-      console.log("QueueEvents is ready");
+      console.log("QueueEvents is ready" , code , language);
     }).catch((err) => {
       console.error("Failed to connect QueueEvents:", err);
     });
