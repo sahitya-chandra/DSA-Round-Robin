@@ -44,12 +44,14 @@ int main() {
     setIsLoading(false);
   };
   const handleSubmit = async () => {
+    console.log("Submitting code:", code, "Language:", selectedLang);
     setLoading(true);
     try {
       const res = await axios.post(
         "http://localhost:5000/api/submit",
         {
           code,
+          language: selectedLang,
         },
         {
           headers: {
@@ -145,7 +147,6 @@ int main() {
               <option value="javascript">JavaScript</option>
               <option value="python">Python</option>
               <option value="cpp">C++</option>
-              <option value="java">Java</option>
             </select>
           </div>
         </div>
