@@ -36,6 +36,29 @@ app.post("/api/submit", async (req, res) => {
   }
 })
 
+// app.get("/api/result/:id", async (req, res) => {
+//   const job = await codeQueue.getJob(req.params.id);
+
+//   if (!job) {
+//     return res.status(404).json({ error: "Job not found" });
+//   }
+
+//   const state = await job.getState();
+//   const result = await job.returnvalue;
+
+//   return res.json({ state, result });
+
+  // if (await job.isCompleted()) {
+  //   return res.json({ status: "completed", result: await job.returnvalue });
+  // }
+
+  // if (await job.isFailed()) {
+  //   return res.json({ status: "failed", error: job.failedReason });
+  // }
+
+  // return res.json({ status: "pending" });
+// });
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 })
