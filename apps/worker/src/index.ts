@@ -10,15 +10,10 @@ createCodeWorker(async (job) => {
   console.log(`language: ${language}`);
 
   const tempDir = path.join(String(process.env.HOME), "docker_temp");
-  // if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
-  // const filePath = path.join(tempDir, `job-${job.id}.cpp`);
-  // fs.writeFileSync(filePath, code as string);
+  console.log("Mount directory:", tempDir);
 
-  // console.log("Mount directory:", tempDir);
-  // console.log("C++ file created at:", filePath);
-
-  // const dockerCmd = `docker run --rm -v ${tempDir}:/code --memory=128m --cpus=0.5 gcc:latest bash -c "g++ /code/job-${job.id}.cpp -o /code/main && /code/main"`;
   let fileExt, dockerImage, runCmd;
 
   switch (language) {
@@ -47,16 +42,21 @@ createCodeWorker(async (job) => {
   const filePath = path.join(tempDir, `job-${job.id}.${fileExt}`);
   fs.writeFileSync(filePath, code as string);
 
+  console.log("C++ file created at:", filePath);
+
   const dockerCmd = `docker run --rm -v ${tempDir}:/code --memory=128m --cpus=0.5 ${dockerImage} bash -c "${runCmd}"`;
 
   try {
     const result = await new Promise<string>((resolve, reject) => {
-      exec(dockerCmd, { timeout: 10000 }, (err, stdout, stderr) => {
-        console.log("STDOUT:", stdout);
-        console.log("STDERR:", stderr);
-        if (err) return reject(stderr || err.message);
-        resolve(stdout || stderr);
-      });
+      exec(dockerCmd, 
+        { timeout: 10000 }, 
+        (err, stdout, stderr) => {
+          console.log("STDOUT:", stdout);
+          console.log("STDERR:", stderr);
+          if (err) return reject(stderr || err.message);
+          resolve(stdout || stderr);
+        }
+      );
     });
     console.log("=== Full Output ===\n", result);
     return result;
