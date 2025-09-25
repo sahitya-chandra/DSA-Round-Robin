@@ -12,7 +12,8 @@ const testCases = [
 ];
 
 const App = () => {
-   const [selectedLang, setSelectedLang] = useState("cpp");
+  const [selectedLang, setSelectedLang] = useState("cpp");
+  const [loading, setLoading] = useState(false);
   const [results, setResults] = useState(testCases.map(() => null));
   const [timer, setTimer] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,24 +44,28 @@ int main() {
     setIsLoading(false);
   };
   const handleSubmit = async () => {
-    const res = await axios.post(
-      "http://localhost:5000/api/submit",
-      {
-        // problemId: "two-sum",
-        // language,
-        code,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/submit",
+        {
+          code,
         },
-      }
-    );
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    console.log(res.data);
-    setResult(res.data);
+      console.log(res.data);
+      setResult(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
-
   const submitAll = async () => {
     setIsLoading(true);
     for (let i = 0; i < testCases.length; i++) {
@@ -127,24 +132,23 @@ int main() {
 
       {/* Right Column */}
       <div className="flex-[2] p-4 flex flex-col space-y-4 relative">
-       <div className="flex items-center justify-between mb-3">
-  <h2 className="text-lg font-semibold text-white">Code Editor</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-white">Code Editor</h2>
 
- <div className="flex items-center gap-3 animate-fade-in">
-  {/* Language Selector */}
-  <select
-    className="bg-[#071a2a] text-white border border-[#083049] rounded px-2 py-1 text-sm"
-    value={selectedLang}
-    onChange={(e) => setSelectedLang(e.target.value)}
-  >
-    <option value="javascript">JavaScript</option>
-    <option value="python">Python</option>
-    <option value="cpp">C++</option>
-    <option value="java">Java</option>
-  </select>
-</div>
-
-</div>
+          <div className="flex items-center gap-3 animate-fade-in">
+            {/* Language Selector */}
+            <select
+              className="bg-[#071a2a] text-white border border-[#083049] rounded px-2 py-1 text-sm"
+              value={selectedLang}
+              onChange={(e) => setSelectedLang(e.target.value)}
+            >
+              <option value="javascript">JavaScript</option>
+              <option value="python">Python</option>
+              <option value="cpp">C++</option>
+              <option value="java">Java</option>
+            </select>
+          </div>
+        </div>
 
         <div>
           <CodeEditor code={code} setCode={setCode} />
@@ -153,11 +157,14 @@ int main() {
 
         <div className="flex flex-wrap items-center gap-2">
           <button
-            className="px-3 py-1 bg-[#00F6FF] text-[#041425] rounded"
+            className="px-3 py-1 bg-[#00F6FF] text-[#041425] rounded 
+             disabled:bg-[#00c4cc] disabled:cursor-not-allowed"
             onClick={handleSubmit}
+            disabled={loading}
           >
-            Run Code
+            {loading ? "Compiling..." : "Run Code"}
           </button>
+
           {/* <button
             onClick={submitAll}
             disabled={isLoading}
