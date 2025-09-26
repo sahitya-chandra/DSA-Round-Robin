@@ -11,6 +11,36 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+
+
+.custom-scrollbar {
+  scrollbar-width: thin;            
+  scrollbar-color: #00f6ff #071a2a;
+}
+
+/* Chrome, Edge, Safari */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #071a2a;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #00f6ff; 
+  border-radius: 10px;
+  border: 2px solid #071a2a; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #00cce0; /* hover effect */
+}
+
+
 @keyframes fade-in {
   0% {
     opacity: 0;

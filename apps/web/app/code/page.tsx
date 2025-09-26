@@ -19,9 +19,8 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [opponentSolved, setOpponentSolved] = useState(2);
   const [chatMessages, setChatMessages] = useState([]);
-  const [chatVisible, setChatVisible] = useState(true);
-  const [language, setLanguage] = useState("cpp");
-  const [result, setResult] = useState<string | null>(null);
+  const [chatVisible, setChatVisible] = useState(false);
+  const [result, setResult] = useState<any>(null);
   const [code, setCode] = useState<string>(`#include <bits/stdc++.h>
 using namespace std;
 
@@ -29,6 +28,8 @@ int main() {
     cout << "Hello, world!" << endl;
     return 0;
 }`);
+  const [userSolved, setUserSolved] = useState(0); // Added to track user's solved tests
+
   useEffect(() => {
     const id = setInterval(() => setTimer((t) => t + 1), 1000);
     return () => clearInterval(id);
@@ -41,39 +42,29 @@ int main() {
     const newResults = [...results];
     newResults[index] = { passed };
     setResults(newResults);
+    if (passed) {
+      setUserSolved((prev) => prev + 1);
+    }
     setIsLoading(false);
   };
+
   const handleSubmit = async () => {
-    console.log("Submitting code:", code, "Language:", selectedLang);
     setLoading(true);
     try {
-      const res = await axios.post(
-        "http://localhost:5000/api/submit",
-        {
-          code,
-          language: selectedLang,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log(res.data);
+      const res = await axios.post("http://localhost:5000/api/submit", {
+        code,
+        language: selectedLang,
+      });
       setResult(res.data);
+      // Simulate updating results based on submission (in real app, parse res)
+      const newResults = testCases.map(() => ({ passed: Math.random() > 0.3 }));
+      setResults(newResults);
+      setUserSolved(newResults.filter((r) => r.passed).length);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  };
-  const submitAll = async () => {
-    setIsLoading(true);
-    for (let i = 0; i < testCases.length; i++) {
-      await runTest(i);
-    }
-    setIsLoading(false);
   };
 
   const sendChat = (msg: string) =>
@@ -82,153 +73,235 @@ int main() {
       { id: Date.now(), sender: "You", message: msg },
     ]);
 
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-[#03061a] text-gray-100">
-      {/* Left Column */}
-      <div className="flex-1 p-4 space-y-4 bg-[#071028]">
-        <h2 className="text-xl font-bold text-white">DSA Round_Robin</h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 text-gray-100 font-sans relative overflow-hidden">
+      {/* Left Column - Scrollable on mobile */}
+      <div className="col-span-1 p-6 space-y-6 bg-slate-900 border-r border-slate-800 overflow-y-auto md:overflow-visible">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-extrabold tracking-tight text-cyan-400">
+            ⚔️ DSA Round Robin
+          </h2>
+          <div className="text-purple-400 font-semibold text-lg">
+            ⏱️ {formatTime(timer)}
+          </div>{" "}
+          {/* Added timer display */}
+        </div>
 
-        <div className="p-3 bg-[#07172a] rounded border border-[#083049]">
-          <h3 className="text-[#00F6FF]">💻 Problem</h3>
-          <p>
-            Write <code className="text-[#00F6FF]">isPalindrome</code> that
-            checks palindromes ignoring punctuation/case/spacing.
+        {/* Problem - Improved readability */}
+        <section className="p-4 bg-slate-800 rounded-xl shadow">
+          <h3 className="text-cyan-300 font-semibold mb-2">💻 Problem</h3>
+          <p className="text-gray-300 leading-6 tracking-wide">
+            Write a function{" "}
+            <code className="text-emerald-400 font-mono">isPalindrome</code>{" "}
+            that checks if a string is a palindrome, ignoring punctuation, case,
+            and spacing.
           </p>
-        </div>
+          <p className="text-sm text-gray-400 mt-2">
+            Example: "A man, a plan, a canal: Panama" → true
+          </p>
+        </section>
 
-        <div className="p-3 bg-[#07172a] rounded border border-[#083049]">
-          <h3 className="text-[#00F6FF]">✅ Test Cases</h3>
-          <ul className="mt-2 space-y-1 text-sm text-gray-300">
-            {testCases.map((t, i) => (
-              <li key={i}>
-                Input: "{t.input}" — Out: {JSON.stringify(t.expected)}
-              </li>
-            ))}
-          </ul>
-        </div>
+        {/* Test Cases - Made expandable/collapsible for better UX on mobile */}
+        <section className="p-4 bg-slate-800 rounded-xl shadow">
+          <details open>
+            <summary className="text-cyan-300 font-semibold mb-2 cursor-pointer">
+              ✅ Test Cases
+            </summary>
+            <ul className="space-y-2 text-sm text-gray-300 font-mono mt-2">
+              {testCases.map((t, i) => (
+                <li key={i} className="flex items-center justify-between">
+                  <span>
+                    Input: "{t.input}" → Expected: {JSON.stringify(t.expected)}
+                  </span>
+                  <button
+                    onClick={() => runTest(i)}
+                    className="px-2 py-1 text-xs bg-cyan-500/20 text-cyan-300 rounded hover:bg-cyan-500/40 transition duration-200"
+                    disabled={isLoading}
+                  >
+                    Run
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </details>
+        </section>
 
-        <div className="p-3 bg-[#071a2a] rounded border border-[#083049] space-y-2">
-          <h3 className="text-[#00F6FF] font-semibold">🏆 Opponent</h3>
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-[#00F6FF] rounded-full flex items-center justify-center text-[#021428]">
-              👤
-            </div>
-            <div>
-              <div className="font-bold text-white">ID: OPP123</div>
-              <div className="text-sm text-gray-300">
-                Solved: {opponentSolved}/5
+        <section className="p-4 bg-slate-800 rounded-xl shadow space-y-3">
+          <h3 className="text-cyan-300 font-semibold">🏆 Progress</h3>
+
+          <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl shadow-lg hover:shadow-cyan-500/20 transition duration-300">
+            {/* Avatar */}
+            <div className="relative group">
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-emerald-400 rounded-full flex items-center justify-center text-slate-900 text-xl font-bold shadow-md group-hover:scale-105 transition duration-200">
+                👤
               </div>
+              {/* Online dot */}
+              <span className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-400 border-2 border-slate-800 rounded-full"></span>
+            </div>
+
+            {/* Opponent Info */}
+            <div className="flex-1">
+              <p className="font-bold text-white">
+                Opponent: <span className="text-cyan-400">OPP123</span>
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                Solved: {opponentSolved}/5
+              </p>
+
+              {/* Add Friend Button */}
+              <button className="mt-2 px-3 py-1.5 text-sm bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-900 font-semibold rounded-lg shadow-md hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200">
+                ➕ Add Friend
+              </button>
             </div>
           </div>
-          <div className="flex gap-2 mt-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setOpponentSolved(i + 1)}
-                className={`w-4 h-4 rounded-full ${i < opponentSolved ? "bg-[#ff4d4d]" : "bg-gray-700"}`}
-              />
-            ))}
-          </div>
-        </div>
+        </section>
       </div>
 
-      {/* Right Column */}
-      <div className="flex-[2] p-4 flex flex-col space-y-4 relative">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-white">Code Editor</h2>
-
-          <div className="flex items-center gap-3 animate-fade-in">
-            {/* Language Selector */}
-            <select
-              className="bg-[#071a2a] text-white border border-[#083049] rounded px-2 py-1 text-sm"
-              value={selectedLang}
-              onChange={(e) => setSelectedLang(e.target.value)}
-            >
-              <option value="javascript">JavaScript</option>
-              <option value="python">Python</option>
-              <option value="cpp">C++</option>
-            </select>
-          </div>
+      {/* Right Column - Improved spacing and responsiveness */}
+      <div className="col-span-1 md:col-span-2 p-6 flex flex-col space-y-6">
+        {/* Header - Added language icons or better selector */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Code Editor</h2>
+          <select
+            className="bg-slate-800 text-white border border-slate-700 rounded px-3 py-1 text-sm focus:outline-none focus:border-cyan-400 transition duration-200"
+            value={selectedLang}
+            onChange={(e) => setSelectedLang(e.target.value)}
+          >
+            <option value="javascript">JavaScript</option>
+            <option value="python">Python</option>
+            <option value="cpp">C++</option>
+          </select>
         </div>
 
-        <div>
+
+        <div className="flex-1 min-h-[50vh] md:min-h-[60vh] custom-scrollbar">
           <CodeEditor code={code} setCode={setCode} />
-          {result && <pre>{JSON.stringify(result, null, 2)}</pre>}
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            className="px-3 py-1 bg-[#00F6FF] text-[#041425] rounded 
-             disabled:bg-[#00c4cc] disabled:cursor-not-allowed"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
-            {loading ? "Compiling..." : "Run Code"}
-          </button>
-
-          {/* <button
-            onClick={submitAll}
-            disabled={isLoading}
-            className="px-3 py-1 bg-[#ff4d4d] text-white rounded"
-          >
-            Submit All
-          </button> */}
-          {/* <span>{timer}s</span> */}
+     
+        <div className="bg-slate-900 p-5 rounded-xl shadow border border-slate-800 min-h-[200px] max-h-[400px] overflow-y-auto custom-scrollbar">
+          {result ? (
+            <>
+              <div className="flex justify-between mb-3 items-center">
+                <span className="text-emerald-400 font-semibold">
+                  Status: {result.status}
+                </span>
+                <span className="text-gray-400 text-sm">
+                  Job ID: {result.jobId}
+                </span>
+              </div>
+              <pre className="whitespace-pre-wrap bg-slate-800 p-4 rounded-lg text-gray-100 font-mono text-sm leading-relaxed overflow-x-auto">
+                {result.result}
+              </pre>
+            </>
+          ) : (
+            <div className="p-4 bg-slate-800 rounded-xl shadow-md mt-4">
+              <h3 className="text-cyan-300 font-semibold mb-3">
+                📜 Battle Rules
+              </h3>
+              <ol className="list-decimal list-inside space-y-2 text-gray-300 text-sm">
+                <li>
+                  <span className="text-white font-medium">No Cheating:</span>{" "}
+                  Use only your own logic and skills.
+                </li>
+                <li>
+                  <span className="text-white font-medium">Speed Matters:</span>{" "}
+                  Faster solutions earn more points.
+                </li>
+                <li>
+                  <span className="text-white font-medium">
+                    Accuracy First:
+                  </span>{" "}
+                  Wrong submissions reduce chances.
+                </li>
+                <li>
+                  <span className="text-white font-medium">
+                    Chat Respectfully:
+                  </span>{" "}
+                  Use chat to discuss, not distract.
+                </li>
+                <li>
+                  <span className="text-white font-medium">Make Friends:</span>{" "}
+                  Add opponents as friends after the battle.
+                </li>
+              </ol>
+            </div>
+          )}
         </div>
 
-        <div className="flex gap-1 mt-2">
+        <div className="flex gap-3 mt-2">
           {results.map((r, i) => (
             <div
               key={i}
-              className={`w-6 h-6 rounded flex items-center justify-center ${r ? (r.passed ? "bg-green-500" : "bg-red-500") : "bg-gray-700"}`}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold transition duration-200 shadow relative group hover:scale-110 ${
+                r ? (r.passed ? "bg-emerald-500" : "bg-red-500") : "bg-gray-700"
+              }`}
+              title={`Test ${i + 1}: ${r ? (r.passed ? "Passed" : "Failed") : "Not Run"}`}
             >
               {r ? (r.passed ? "✔️" : "❌") : i + 1}
+              <div className="absolute bottom-full mb-2 hidden group-hover:block bg-slate-800 px-2 py-1 rounded text-xs">
+                Input: "{testCases[i].input}"
+              </div>
             </div>
           ))}
         </div>
+      </div>
 
-        {/* Floating Chat Widget */}
-        {chatVisible ? (
-          <div className="fixed bottom-4 right-4 w-80 p-3 bg-[#071a2a] rounded-2xl border border-[#083049] shadow-xl z-50 animate-fade-in">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-[#00F6FF] font-semibold flex items-center gap-1">
-                💬 Chat
-              </h3>
-              <button
-                onClick={() => setChatVisible(false)}
-                className="px-2 py-1 rounded bg-[#00F6FF] text-black text-sm hover:bg-[#00c9d9] active:scale-95 transition"
-              >
-                Hide
-              </button>
-            </div>
-
-            {/* Messages */}
-            <div className="bg-[#021428] max-h-56 overflow-y-auto p-2 text-sm rounded mb-2 space-y-1 scrollbar-thin scrollbar-thumb-[#083049] scrollbar-track-transparent">
+      <div
+        className="fixed bottom-4 left-4 w-106 bg-slate-900 border border-slate-800 rounded-xl shadow-lg text-sm z-40 transition-all duration-300"
+        style={{ height: chatVisible ? "22rem" : "4rem" }}
+      >
+        <div
+          className="flex justify-between items-center px-4 py-2 cursor-pointer bg-slate-800 rounded-t-xl"
+          onClick={() => setChatVisible((v) => !v)}
+        >
+          <h3 className="text-cyan-300 font-semibold">💬 Chat</h3>
+          <span className="text-gray-400 text-2xl">
+            {chatVisible ? "−" : "+"}
+          </span>
+        </div>
+        {chatVisible && (
+          <div className="p-4 space-y-3">
+            <div className="bg-slate-800 max-h-48 overflow-y-auto p-3 rounded-lg scrollbar-thin scrollbar-thumb-cyan-400">
               {chatMessages.length ? (
                 chatMessages.map((m) => (
-                  <div key={m.id}>
-                    <b className="text-[#00F6FF]">{m.sender}:</b>{" "}
-                    <span className="text-gray-200">{m.message}</span>
+                  <div
+                    key={m.id}
+                    className={`p-2 rounded-lg mb-2 text-sm max-w-[80%] ${
+                      m.sender === "You"
+                        ? "bg-cyan-500/20 text-cyan-100 ml-auto rounded-bl-xl"
+                        : "bg-purple-500/20 text-purple-100 rounded-br-xl"
+                    }`}
+                  >
+                    <b>{m.sender}:</b> {m.message}
                   </div>
                 ))
               ) : (
-                <div className="text-gray-400 italic">No messages yet.</div>
+                <div className="text-gray-400 italic text-center">
+                  No messages yet.
+                </div>
               )}
             </div>
-
-            {/* Input */}
             <ChatInput onSend={sendChat} />
           </div>
-        ) : (
-          <button
-            onClick={() => setChatVisible(true)}
-            className="fixed bottom-4 right-4 px-3 py-2 bg-[#00F6FF] text-black rounded-full shadow-lg text-sm hover:bg-[#00c9d9] active:scale-95 transition"
-          >
-            Open Chat 💬
-          </button>
         )}
       </div>
+
+      {/* Run Button - Larger, more prominent */}
+      <button
+        onClick={handleSubmit}
+        disabled={loading || isLoading}
+        className="fixed bottom-4 right-4 px-6 py-3 bg-gradient-to-r from-cyan-400 to-purple-400 
+          text-slate-900 font-semibold rounded-xl shadow-lg hover:from-cyan-300 hover:to-purple-300 hover:scale-105 active:scale-95 transition duration-200 disabled:opacity-50 text-base"
+      >
+        {loading ? "⏳ Compiling..." : "🚀 Run All Tests"}
+      </button>
     </div>
   );
 };
@@ -243,16 +316,16 @@ const ChatInput = ({ onSend }: { onSend: (msg: string) => void }) => {
     }
   };
   return (
-    <form onSubmit={submit} className="flex gap-2 mt-2">
+    <form onSubmit={submit} className="flex gap-2">
       <input
         value={val}
         onChange={(e) => setVal(e.target.value)}
-        className="flex-1 px-2 py-1 bg-[#021428] text-gray-200 rounded border border-[#083049]"
-        placeholder="Type a message..."
+        className="flex-1 px-3 py-2 bg-slate-800 text-gray-200 rounded border border-slate-700 text-md focus:outline-none focus:border-cyan-400 transition duration-200"
+        placeholder="Type your message..."
       />
       <button
         type="submit"
-        className="px-3 py-1 bg-[#00F6FF] text-[#041425] rounded"
+        className="px-4 py-2 bg-cyan-400 text-slate-900 font-semibold rounded hover:bg-cyan-300 hover:scale-105 transition duration-200"
       >
         Send
       </button>
