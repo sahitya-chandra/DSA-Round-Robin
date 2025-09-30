@@ -158,8 +158,10 @@ int main() {
                     className="flex items-center justify-between"
                   >
                     <span>
-                      Input: "{t.input}" → Expected:{" "}
-                      {JSON.stringify(t.expected)}
+                      Input: "{t.input}"
+                      <br />
+                      Expected:{" "}
+                      {JSON.stringify(t.expected_output)}
                     </span>
                     <button
                       onClick={() => runTest(i)}
