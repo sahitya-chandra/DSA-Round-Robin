@@ -2,23 +2,18 @@
 import React, { useState, useEffect } from "react";
 import CodeEditor from "@/components/editor/editor";
 import axios from "axios";
-
-const testCases = [
-  { input: "madam", expected: true },
-  { input: "hello", expected: false },
-  { input: "racecar", expected: true },
-  { input: "A man, a plan, a canal: Panama", expected: true },
-  { input: "No lemon, no melon", expected: true },
-];
+import { questionSchema } from "@repo/types";
 
 const App = () => {
   const [selectedLang, setSelectedLang] = useState("cpp");
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState(testCases.map(() => null));
+  const [results, setResults] = useState<any[]>([]);
   const [timer, setTimer] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [opponentSolved, setOpponentSolved] = useState(2);
-  const [chatMessages, setChatMessages] = useState([]);
+  const [questions, setQuestions] = useState<questionSchema[]>([]);
+  const [currentQIndex, setCurrentQIndex] = useState(0);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [chatVisible, setChatVisible] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [code, setCode] = useState<string>(`#include <bits/stdc++.h>
@@ -28,14 +23,36 @@ int main() {
     cout << "Hello, world!" << endl;
     return 0;
 }`);
-  const [userSolved, setUserSolved] = useState(0); // Added to track user's solved tests
+  const [userSolved, setUserSolved] = useState(0);
+  const [loadingQuestions, setLoadingQuestions] = useState(true);
 
+  // Timer
   useEffect(() => {
     const id = setInterval(() => setTimer((t) => t + 1), 1000);
     return () => clearInterval(id);
   }, []);
 
+  // Fetch questions
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/set-questions");
+        const data = await response.json();
+        setQuestions(data.questions || []);
+        if (data.questions && data.questions.length > 0) {
+          setResults(data.questions[0].testcases.map(() => null));
+        }
+      } catch (err) {
+        console.error("Failed to fetch questions", err);
+      } finally {
+        setLoadingQuestions(false);
+      }
+    };
+    fetchQuestions();
+  }, []);
+
   const runTest = async (index: number) => {
+    if (!questions.length) return;
     setIsLoading(true);
     await new Promise((r) => setTimeout(r, 500));
     const passed = Math.random() > 0.3;
@@ -49,6 +66,7 @@ int main() {
   };
 
   const handleSubmit = async () => {
+    if (!questions.length) return;
     setLoading(true);
     try {
       const res = await axios.post("http://localhost:5000/api/submit", {
@@ -56,8 +74,10 @@ int main() {
         language: selectedLang,
       });
       setResult(res.data);
-      // Simulate updating results based on submission (in real app, parse res)
-      const newResults = testCases.map(() => ({ passed: Math.random() > 0.3 }));
+
+      const newResults = questions[currentQIndex].testcases.map(() => ({
+        passed: Math.random() > 0.3,
+      }));
       setResults(newResults);
       setUserSolved(newResults.filter((r) => r.passed).length);
     } catch (err) {
@@ -76,12 +96,16 @@ int main() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
   };
+
+  const currentQuestion = questions[currentQIndex];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 text-gray-100 font-sans relative overflow-hidden">
-      {/* Left Column - Scrollable on mobile */}
+      {/* Left Column */}
       <div className="col-span-1 p-6 space-y-6 bg-slate-900 border-r border-slate-800 overflow-y-auto md:overflow-visible">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-extrabold tracking-tight text-cyan-400">
@@ -89,63 +113,80 @@ int main() {
           </h2>
           <div className="text-purple-400 font-semibold text-lg">
             ⏱️ {formatTime(timer)}
-          </div>{" "}
-          {/* Added timer display */}
+          </div>
         </div>
 
-        {/* Problem - Improved readability */}
+        {/* Problem */}
         <section className="p-4 bg-slate-800 rounded-xl shadow">
           <h3 className="text-cyan-300 font-semibold mb-2">💻 Problem</h3>
-          <p className="text-gray-300 leading-6 tracking-wide">
-            Write a function{" "}
-            <code className="text-emerald-400 font-mono">isPalindrome</code>{" "}
-            that checks if a string is a palindrome, ignoring punctuation, case,
-            and spacing.
-          </p>
-          <p className="text-sm text-gray-400 mt-2">
-            Example: "A man, a plan, a canal: Panama" → true
-          </p>
+          {loadingQuestions ? (
+            <div className="animate-pulse space-y-3">
+              <div className="h-6 bg-slate-700 rounded w-3/4"></div>
+              <div className="h-4 bg-slate-700 rounded w-1/2"></div>
+              <div className="h-4 bg-slate-700 rounded w-2/3"></div>
+            </div>
+          ) : currentQuestion ? (
+            <>
+              <p className="text-gray-300 leading-6 tracking-wide">
+                {currentQuestion.question}
+              </p>
+              <p className="text-sm text-gray-400 mt-2">
+                Difficulty: {currentQuestion.difficulty}
+              </p>
+            </>
+          ) : (
+            <p className="text-gray-400">No questions available</p>
+          )}
         </section>
 
-        {/* Test Cases - Made expandable/collapsible for better UX on mobile */}
+        {/* Test Cases */}
         <section className="p-4 bg-slate-800 rounded-xl shadow">
           <details open>
             <summary className="text-cyan-300 font-semibold mb-2 cursor-pointer">
               ✅ Test Cases
             </summary>
-            <ul className="space-y-2 text-sm text-gray-300 font-mono mt-2">
-              {testCases.map((t, i) => (
-                <li key={i} className="flex items-center justify-between">
-                  <span>
-                    Input: "{t.input}" → Expected: {JSON.stringify(t.expected)}
-                  </span>
-                  <button
-                    onClick={() => runTest(i)}
-                    className="px-2 py-1 text-xs bg-cyan-500/20 text-cyan-300 rounded hover:bg-cyan-500/40 transition duration-200"
-                    disabled={isLoading}
+            {loadingQuestions ? (
+              <div className="animate-pulse space-y-2">
+                <div className="h-4 bg-slate-700 rounded w-1/2"></div>
+                <div className="h-4 bg-slate-700 rounded w-2/3"></div>
+              </div>
+            ) : currentQuestion ? (
+              <ul className="space-y-2 text-sm text-gray-300 font-mono mt-2">
+                {currentQuestion.testcases.map((t, i) => (
+                  <li
+                    key={i}
+                    className="flex items-center justify-between"
                   >
-                    Run
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    <span>
+                      Input: "{t.input}" → Expected:{" "}
+                      {JSON.stringify(t.expected)}
+                    </span>
+                    <button
+                      onClick={() => runTest(i)}
+                      className="px-2 py-1 text-xs bg-cyan-500/20 text-cyan-300 rounded hover:bg-cyan-500/40 transition duration-200"
+                      disabled={isLoading}
+                    >
+                      Run
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-400">No test cases available</p>
+            )}
           </details>
         </section>
 
+        {/* Opponent / Progress */}
         <section className="p-4 bg-slate-800 rounded-xl shadow space-y-3">
           <h3 className="text-cyan-300 font-semibold">🏆 Progress</h3>
-
-          <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl shadow-lg hover:shadow-cyan-500/20 transition duration-300">
-            {/* Avatar */}
+          <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl shadow-lg">
             <div className="relative group">
-              <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-emerald-400 rounded-full flex items-center justify-center text-slate-900 text-xl font-bold shadow-md group-hover:scale-105 transition duration-200">
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-emerald-400 rounded-full flex items-center justify-center text-slate-900 text-xl font-bold shadow-md">
                 👤
               </div>
-              {/* Online dot */}
               <span className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-400 border-2 border-slate-800 rounded-full"></span>
             </div>
-
-            {/* Opponent Info */}
             <div className="flex-1">
               <p className="font-bold text-white">
                 Opponent: <span className="text-cyan-400">OPP123</span>
@@ -153,23 +194,44 @@ int main() {
               <p className="text-sm text-gray-400 mt-1">
                 Solved: {opponentSolved}/5
               </p>
-
-              {/* Add Friend Button */}
-              <button className="mt-2 px-3 py-1.5 text-sm bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-900 font-semibold rounded-lg shadow-md hover:opacity-90 hover:scale-105 active:scale-95 transition-all duration-200">
+              <button className="mt-2 px-3 py-1.5 text-sm bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-900 font-semibold rounded-lg shadow-md">
                 ➕ Add Friend
               </button>
             </div>
           </div>
         </section>
+
+        {/* Navigation */}
+        {questions.length > 0 && (
+          <div className="flex justify-between mt-4">
+            <button
+              onClick={() =>
+                setCurrentQIndex(
+                  (i) => (i > 0 ? i - 1 : questions.length - 1)
+                )
+              }
+              className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600"
+            >
+              ⬅ Prev
+            </button>
+            <button
+              onClick={() =>
+                setCurrentQIndex((i) => (i + 1) % questions.length)
+              }
+              className="px-3 py-1 bg-slate-700 rounded hover:bg-slate-600"
+            >
+              Next ➡
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Right Column - Improved spacing and responsiveness */}
+       {/* Right Column */}
       <div className="col-span-1 md:col-span-2 p-6 flex flex-col space-y-6">
-        {/* Header - Added language icons or better selector */}
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold">Code Editor</h2>
           <select
-            className="bg-slate-800 text-white border border-slate-700 rounded px-3 py-1 text-sm focus:outline-none focus:border-cyan-400 transition duration-200"
+            className="bg-slate-800 text-white border border-slate-700 rounded px-3 py-1 text-sm"
             value={selectedLang}
             onChange={(e) => setSelectedLang(e.target.value)}
           >
@@ -179,13 +241,11 @@ int main() {
           </select>
         </div>
 
-
         <div className="flex-1 min-h-[50vh] md:min-h-[60vh] custom-scrollbar">
           <CodeEditor code={code} setCode={setCode} />
         </div>
 
-     
-        <div className="bg-slate-900 p-5 rounded-xl shadow border border-slate-800 min-h-[200px] max-h-[400px] overflow-y-auto custom-scrollbar">
+        <div className="bg-slate-900 p-5 rounded-xl shadow border border-slate-800 min-h-[200px] max-h-[400px] overflow-y-auto">
           {result ? (
             <>
               <div className="flex justify-between mb-3 items-center">
@@ -196,7 +256,7 @@ int main() {
                   Job ID: {result.jobId}
                 </span>
               </div>
-              <pre className="whitespace-pre-wrap bg-slate-800 p-4 rounded-lg text-gray-100 font-mono text-sm leading-relaxed overflow-x-auto">
+              <pre className="whitespace-pre-wrap bg-slate-800 p-4 rounded-lg text-gray-100 font-mono text-sm">
                 {result.result}
               </pre>
             </>
@@ -239,22 +299,22 @@ int main() {
           {results.map((r, i) => (
             <div
               key={i}
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold transition duration-200 shadow relative group hover:scale-110 ${
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold transition duration-200 shadow ${
                 r ? (r.passed ? "bg-emerald-500" : "bg-red-500") : "bg-gray-700"
               }`}
-              title={`Test ${i + 1}: ${r ? (r.passed ? "Passed" : "Failed") : "Not Run"}`}
+              title={`Test ${i + 1}: ${
+                r ? (r.passed ? "Passed" : "Failed") : "Not Run"
+              }`}
             >
               {r ? (r.passed ? "✔️" : "❌") : i + 1}
-              <div className="absolute bottom-full mb-2 hidden group-hover:block bg-slate-800 px-2 py-1 rounded text-xs">
-                Input: "{testCases[i].input}"
-              </div>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Chat Box */}
       <div
-        className="fixed bottom-4 left-4 w-106 bg-slate-900 border border-slate-800 rounded-xl shadow-lg text-sm z-40 transition-all duration-300"
+        className="fixed bottom-4 left-4 w-106 bg-slate-900 border border-slate-800 rounded-xl shadow-lg text-sm"
         style={{ height: chatVisible ? "22rem" : "4rem" }}
       >
         <div
@@ -268,15 +328,15 @@ int main() {
         </div>
         {chatVisible && (
           <div className="p-4 space-y-3">
-            <div className="bg-slate-800 max-h-48 overflow-y-auto p-3 rounded-lg scrollbar-thin scrollbar-thumb-cyan-400">
+            <div className="bg-slate-800 max-h-48 overflow-y-auto p-3 rounded-lg">
               {chatMessages.length ? (
                 chatMessages.map((m) => (
                   <div
                     key={m.id}
                     className={`p-2 rounded-lg mb-2 text-sm max-w-[80%] ${
                       m.sender === "You"
-                        ? "bg-cyan-500/20 text-cyan-100 ml-auto rounded-bl-xl"
-                        : "bg-purple-500/20 text-purple-100 rounded-br-xl"
+                        ? "bg-cyan-500/20 text-cyan-100 ml-auto"
+                        : "bg-purple-500/20 text-purple-100"
                     }`}
                   >
                     <b>{m.sender}:</b> {m.message}
@@ -293,12 +353,12 @@ int main() {
         )}
       </div>
 
-      {/* Run Button - Larger, more prominent */}
+      {/* Run Button */}
       <button
         onClick={handleSubmit}
         disabled={loading || isLoading}
         className="fixed bottom-4 right-4 px-6 py-3 bg-gradient-to-r from-cyan-400 to-purple-400 
-          text-slate-900 font-semibold rounded-xl shadow-lg hover:from-cyan-300 hover:to-purple-300 hover:scale-105 active:scale-95 transition duration-200 disabled:opacity-50 text-base"
+          text-slate-900 font-semibold rounded-xl shadow-lg"
       >
         {loading ? "⏳ Compiling..." : "🚀 Run All Tests"}
       </button>
@@ -320,12 +380,12 @@ const ChatInput = ({ onSend }: { onSend: (msg: string) => void }) => {
       <input
         value={val}
         onChange={(e) => setVal(e.target.value)}
-        className="flex-1 px-3 py-2 bg-slate-800 text-gray-200 rounded border border-slate-700 text-md focus:outline-none focus:border-cyan-400 transition duration-200"
+        className="flex-1 px-3 py-2 bg-slate-800 text-gray-200 rounded border border-slate-700"
         placeholder="Type your message..."
       />
       <button
         type="submit"
-        className="px-4 py-2 bg-cyan-400 text-slate-900 font-semibold rounded hover:bg-cyan-300 hover:scale-105 transition duration-200"
+        className="px-4 py-2 bg-cyan-400 text-slate-900 font-semibold rounded"
       >
         Send
       </button>
