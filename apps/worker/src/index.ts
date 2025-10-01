@@ -5,8 +5,6 @@ import path from "path";
 import dotenv from "dotenv";
 dotenv.config();
 
-type Testcase = { input: string; expected_output: string };
-
 createCodeWorker(async (job) => {
   const { code, language, testcases } = job.data;
   if (!code || !language || !testcases) throw new Error("Missing data");
@@ -60,6 +58,7 @@ createCodeWorker(async (job) => {
 
         if (proc.stdin) {
           proc.stdin.write(tc.input);
+          proc.stdin.end()
         }
       });
 
