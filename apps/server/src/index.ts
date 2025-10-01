@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { PORT } from "./config/config";
-import { codeQueue, queueEvents } from "@repo/queue";
+import { codeQueue, queueEvents, Testcase } from "@repo/queue";
 import prisma from "@repo/db";
 import { questionSchema } from "@repo/types";
 
@@ -16,27 +16,34 @@ app.use(
 app.use(express.json());
 
 app.post("/api/submit", async (req, res) => {
-  const { code, language } = req.body;
-  if (!code) {
-    return res.status(400).json({ error: "Code are required" });
+  const {id, code, language } = req.body;
+  if (!code || !id) {
+    return res.status(400).json({ error: "Code or id are missing" });
   }
 
   // return res.json({jobId: job.id, status: "queued" })
 
   try {
-    const job = await codeQueue.add("run-code", { code, language });
+    const question = await prisma.question.findUnique({
+      where: { id },
+    });
+
+    if (!question) return res.status(404).json({ error: "Question not found" });
+
+    const job = await codeQueue.add("run-code", {
+      code,
+      language,
+      testcases: question?.testcases as Testcase[],
+    });
 
     queueEvents
       .waitUntilReady()
-      .then(() => {
-        console.log("QueueEvents is ready", code, language);
-      })
-      .catch((err) => {
-        console.error("Failed to connect QueueEvents:", err);
-      });
-    const result = await job.waitUntilFinished(queueEvents);
+      .then(() => console.log("QueueEvents is ready"))
+      .catch((err) => console.error("QueueEvents failed:", err));
 
-    return res.json({ status: "completed", jobId: job.id, result });
+    const result = await job.waitUntilFinished(queueEvents);
+    console.log("resuslet", result)
+    return res.json({ status: "completed", jobId: job.id, results: result });
   } catch (err: any) {
     res.status(500).json({ status: "failed", error: err.message });
   }
@@ -44,16 +51,18 @@ app.post("/api/submit", async (req, res) => {
 
 app.get("/set-questions", async (req, res) => {
   //easy
-  let a = Math.floor(Math.random() * 210) + 1;
-  let b = Math.floor(Math.random() * 210) + 1;
-  console.log("a  and b ", a, " ", b);
-  //medium
-  let c = Math.floor(Math.random() * 60) + 1 + 210;
-  let d = Math.floor(Math.random() * 60) + 1 + 210;
-  console.log("c and d ", c, " ", d);
-  //hard
-  let e = Math.floor(Math.random() * 30) + 1 + 270;
-  console.log("e ", e);
+  // let a = Math.floor(Math.random() * 210) + 1;
+  // let b = Math.floor(Math.random() * 210) + 1;
+  // console.log("a  and b ", a, " ", b);
+  // //medium
+  // let c = Math.floor(Math.random() * 60) + 1 + 210;
+  // let d = Math.floor(Math.random() * 60) + 1 + 210;
+  // console.log("c and d ", c, " ", d);
+  // //hard
+  // let e = Math.floor(Math.random() * 30) + 1 + 270;
+  // console.log("e ", e);
+
+  let a = 301, b = 302, c = 303, d = 304, e = 305
   let ids: number[] = [a, b, c, d, e];
   try {
     let questions: questionSchema[] = [];

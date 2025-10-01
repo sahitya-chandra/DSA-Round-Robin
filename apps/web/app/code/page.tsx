@@ -70,6 +70,7 @@ int main() {
     setLoading(true);
     try {
       const res = await axios.post("http://localhost:5000/api/submit", {
+        id: questions[currentQIndex].id,
         code,
         language: selectedLang,
       });
@@ -158,7 +159,7 @@ int main() {
                     className="flex items-center justify-between"
                   >
                     <span>
-                      Input: "{t.input}"
+                      Input: {t.input}
                       <br />
                       Expected:{" "}
                       {JSON.stringify(t.expected_output)}

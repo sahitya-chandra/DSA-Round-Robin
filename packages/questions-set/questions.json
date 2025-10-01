@@ -3903,5 +3903,60 @@
       {"input": "[[0]]", "expected_output": "0"},
       {"input": "[[0,1],[1,0]]", "expected_output": "0"}
     ]
+  },
+  {
+    "id": 301,
+    "category": "math",
+    "difficulty": "easy",
+    "question": "Return the same number that was given as input.",
+    "testcases": [
+      { "input": "5\n", "expected_output": "5\n" },
+      { "input": "42\n", "expected_output": "42\n" },
+      { "input": "-7\n", "expected_output": "-7\n" }
+    ]
+  },
+  {
+    "id": 302,
+    "category": "math",
+    "difficulty": "easy",
+    "question": "Return the number plus 1.",
+    "testcases": [
+      { "input": "1\n", "expected_output": "2\n" },
+      { "input": "10\n", "expected_output": "11\n" },
+      { "input": "-3\n", "expected_output": "-2\n" }
+    ]
+  },
+  {
+    "id": 303,
+    "category": "strings",
+    "difficulty": "easy",
+    "question": "Return the same string given as input.",
+    "testcases": [
+      { "input": "hello\n", "expected_output": "hello\n" },
+      { "input": "abc\n", "expected_output": "abc\n" },
+      { "input": "\n", "expected_output": "\n" }
+    ]
+  },
+  {
+    "id": 304,
+    "category": "logic",
+    "difficulty": "easy",
+    "question": "Return true if the number is positive, otherwise false.",
+    "testcases": [
+      { "input": "5\n", "expected_output": "true\n" },
+      { "input": "-1\n", "expected_output": "false\n" },
+      { "input": "0\n", "expected_output": "false\n" }
+    ]
+  },
+  {
+    "id": 305,
+    "category": "arrays",
+    "difficulty": "easy",
+    "question": "Return the length of the array.",
+    "testcases": [
+      { "input": "3\n1 2 3\n", "expected_output": "3\n" },
+      { "input": "0\n\n", "expected_output": "0\n" },
+      { "input": "1\n42\n", "expected_output": "1\n" }
+    ]
   }
 ]

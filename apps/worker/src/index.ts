@@ -5,64 +5,89 @@ import path from "path";
 import dotenv from "dotenv";
 dotenv.config();
 
+type Testcase = { input: string; expected_output: string };
+
 createCodeWorker(async (job) => {
-  const { code, language } = job.data;
-  console.log(`language: ${language}`);
+  const { code, language, testcases } = job.data;
+  if (!code || !language || !testcases) throw new Error("Missing data");
 
   const tempDir = path.join(String(process.env.HOME), "docker_temp");
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
   console.log("Mount directory:", tempDir);
 
-  let fileExt, dockerImage, runCmd;
+  const fileExtMap: Record<string, string> = { cpp: "cpp", python: "py", javascript: "js" };
+  const dockerImageMap: Record<string, string> = { cpp: "gcc:latest", python: "python:3.11", javascript: "node:18" };
 
-  switch (language) {
-    case "cpp":
-      fileExt = "cpp";
-      dockerImage = "gcc:latest";
-      runCmd = `g++ /code/job-${job.id}.cpp -o /code/main && /code/main`;
-      break;
-
-    case "python":
-      fileExt = "py";
-      dockerImage = "python:3.11";
-      runCmd = `python /code/job-${job.id}.py`;
-      break;
-
-    case "javascript":
-      fileExt = "js";
-      dockerImage = "node:18";
-      runCmd = `node /code/job-${job.id}.js`;
-      break;
-
-    default:
-      throw new Error(`Unsupported language: ${language}`);
-  }
+  const fileExt = fileExtMap[language];
+  const dockerImage = dockerImageMap[language];
+  if (!fileExt || !dockerImage) throw new Error(`Unsupported language: ${language}`);
 
   const filePath = path.join(tempDir, `job-${job.id}.${fileExt}`);
-  fs.writeFileSync(filePath, code as string);
+  fs.writeFileSync(filePath, code);
 
-  console.log("C++ file created at:", filePath);
+  console.log(`Source file created at: ${filePath}`);
 
-  const dockerCmd = `docker run --rm -v ${tempDir}:/code --memory=128m --cpus=0.5 ${dockerImage} bash -c "${runCmd}"`;
+  const runCmdMap: Record<string, string> = {
+    cpp: `g++ /code/job-${job.id}.cpp -o /code/main && /code/main`,
+    python: `python /code/job-${job.id}.py`,
+    javascript: `node /code/job-${job.id}.js`,
+  };
+
+  const dockerBase = `docker run --rm -i -v ${tempDir}:/code --memory=128m --cpus=0.5 ${dockerImage} bash -c`;
+
+  const results: {
+    input: string;
+    expected: string;
+    output: string;
+    passed: boolean;
+  }[] = [];
 
   try {
-    const result = await new Promise<string>((resolve, reject) => {
-      exec(dockerCmd, 
-        { timeout: 10000 }, 
-        (err, stdout, stderr) => {
+    for (const [i, tc] of testcases.entries()) {
+      console.log(`\n--- Running testcase ${i + 1} ---`);
+      console.log("Input:", JSON.stringify(tc.input));
+
+      const dockerCmd = `${dockerBase} "${runCmdMap[language]}"`;
+
+      const output = await new Promise<string>((resolve, reject) => {
+        const proc = exec(dockerCmd, { timeout: 5000 }, (err, stdout, stderr) => {
           console.log("STDOUT:", stdout);
           console.log("STDERR:", stderr);
           if (err) return reject(stderr || err.message);
-          resolve(stdout || stderr);
+          resolve(stdout.trim());
+        });
+
+        if (proc.stdin) {
+          proc.stdin.write(tc.input);
         }
-      );
-    });
-    console.log("=== Full Output ===\n", result);
-    return result;
+      });
+
+      const cleanedOutput = output.trim();
+      const expected = tc.expected_output.trim();
+
+      const passed = cleanedOutput === expected;
+      console.log("Expected:", JSON.stringify(expected));
+      console.log("Got     :", JSON.stringify(cleanedOutput));
+      console.log("Passed? :", passed);
+
+      results.push({
+        input: tc.input,
+        expected,
+        output: cleanedOutput,
+        passed,
+      });
+    }
+
+    return results;
   } catch (err) {
-    console.log("Error during execution:", err);
-    throw err;
+    console.error("Error during execution:", err);
+    return testcases.map(tc => ({
+      input: tc.input,
+      expected: tc.expected_output,
+      output: String(err),
+      passed: false,
+    }));
   } finally {
     try {
       fs.unlinkSync(filePath);

@@ -5,7 +5,12 @@ const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379"
   maxRetriesPerRequest: null
 });
 
-type CodeJob = { code: string | null , language?: string };
+export type Testcase = {
+  input: string;
+  expected_output: string;
+};
+
+type CodeJob = { code: string | null , language?: string, testcases: Testcase[]};
 
 export const codeQueue = new Queue<CodeJob>("code-execution", { connection });
 
