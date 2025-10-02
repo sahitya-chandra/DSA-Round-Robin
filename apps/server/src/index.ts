@@ -3,7 +3,7 @@ import cors from "cors";
 import { PORT } from "./config/config";
 import { codeQueue, queueEvents } from "@repo/queue";
 import prisma from "@repo/db";
-import { questionSchema, Testcase } from "@repo/types";
+import { Testcase } from "@repo/types";
 
 
 const app = express();
@@ -39,7 +39,7 @@ app.post("/api/submit", async (req, res) => {
     queueEvents
       .waitUntilReady()
       .then(() => console.log("QueueEvents is ready"))
-      .catch((err) => console.error("QueueEvents failed:", err));
+      .catch((err: any) => console.error("QueueEvents failed:", err));
 
     const result = await job.waitUntilFinished(queueEvents);
     console.log("resuslet", result)
@@ -65,14 +65,16 @@ app.get("/set-questions", async (req, res) => {
   let a = 301, b = 302, c = 303, d = 304, e = 305
   let ids: number[] = [a, b, c, d, e];
   try {
-    let questions: questionSchema[] = [];
-    questions = await prisma.question.findMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
+    const questionsFromDb = await prisma.question.findMany({
+      where: { id: { in: ids } },
     });
+
+    const questions: any[] = questionsFromDb.map(q => ({
+      ...q,
+      testcases: q.testcases ?? [],
+    }));
+
+    console.log("questions", questions)
     res.status(200).json({ status: "success", questions });
   } catch (err: any) {
    res.status(500).json({ status: "failed in getting questions", error: err.message });
