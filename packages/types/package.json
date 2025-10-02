@@ -1,15 +1,19 @@
 {
   "name": "@repo/types",
   "version": "1.0.0",
+  "private": true,
     "exports": {
-    ".": "./types.ts"
+    ".": "./src/types.ts"
   },
   "description": "",
-  "main": "index.ts",
+  "main": "dist/types.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*"
+  }
 }

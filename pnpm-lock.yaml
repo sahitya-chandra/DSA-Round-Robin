@@ -251,6 +251,9 @@ importers:
 
   packages/queue:
     dependencies:
+      '@repo/types':
+        specifier: workspace:*
+        version: link:../types
       bullmq:
         specifier: ^5.58.7
         version: 5.58.7
@@ -265,7 +268,11 @@ importers:
         specifier: ^22.15.3
         version: 22.15.3
 
-  packages/types: {}
+  packages/types:
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
 
   packages/typescript-config: {}
 

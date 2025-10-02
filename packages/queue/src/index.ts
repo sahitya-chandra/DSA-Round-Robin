@@ -1,14 +1,10 @@
+import { Testcase } from "@repo/types";
 import { Queue, Worker, Job, QueueEvents } from "bullmq";
 import IORedis from "ioredis";
 
 const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", {
   maxRetriesPerRequest: null
 });
-
-export type Testcase = {
-  input: string;
-  expected_output: string;
-};
 
 type CodeJob = { code: string | null , language?: string, testcases: Testcase[]};
 

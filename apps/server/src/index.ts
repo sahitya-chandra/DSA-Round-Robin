@@ -1,9 +1,9 @@
 import express from "express";
 import cors from "cors";
 import { PORT } from "./config/config";
-import { codeQueue, queueEvents, Testcase } from "@repo/queue";
+import { codeQueue, queueEvents } from "@repo/queue";
 import prisma from "@repo/db";
-import { questionSchema } from "@repo/types";
+import { questionSchema, Testcase } from "@repo/types";
 
 
 const app = express();
