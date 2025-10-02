@@ -50,20 +50,19 @@ app.post("/api/submit", async (req, res) => {
 });
 
 app.get("/set-questions", async (req, res) => {
-  //easy
-  // let a = Math.floor(Math.random() * 210) + 1;
-  // let b = Math.floor(Math.random() * 210) + 1;
-  // console.log("a  and b ", a, " ", b);
+ //easy
+  const a = Math.floor(Math.random() * 34) + 1;
+  const b = Math.floor(Math.random() * 34) + 1;
+  console.log("a  and b ", a, " ", b);
   // //medium
-  // let c = Math.floor(Math.random() * 60) + 1 + 210;
-  // let d = Math.floor(Math.random() * 60) + 1 + 210;
-  // console.log("c and d ", c, " ", d);
+  const c = Math.floor(Math.random() * 34) + 1;
+  const d = Math.floor(Math.random() * 34) + 1;
+  console.log("c and d ", c, " ", d);
   // //hard
-  // let e = Math.floor(Math.random() * 30) + 1 + 270;
-  // console.log("e ", e);
-
-  let a = 301, b = 302, c = 303, d = 304, e = 305
-  let ids: number[] = [a, b, c, d, e];
+  const e = Math.floor(Math.random() * 30);
+  console.log("e ", e);
+  //Duplicate NOT CHECKED ---------
+  const ids: number[] = [a, b, c, d, e];
   try {
     let questions: questionSchema[] = [];
     questions = await prisma.question.findMany({
