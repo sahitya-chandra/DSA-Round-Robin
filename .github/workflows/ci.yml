@@ -47,5 +47,8 @@ jobs:
       - name: Type Check
         run: pnpm run check-types
 
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
       - name: Build
         run: pnpm run build
