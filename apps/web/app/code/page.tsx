@@ -3,17 +3,32 @@ import React, { useState, useEffect } from "react";
 import CodeEditor from "@/components/editor/editor";
 import axios from "axios";
 import { questionSchema } from "@repo/types";
-import ChatBox from "../components/chat";
+import ChatBox from "../../components/chat";
 
-const App = () => {
+// Type for chat messages
+type ChatMessage = { id: number; sender: string; message: string };
+
+// Type for result from API
+type TestResult = {
+  input: string;
+  expected: string;
+  output: string;
+  passed: boolean;
+};
+
+type SubmissionResult = {
+  jobId: string;
+  results: TestResult[];
+  status: string;
+};
+
+const App: React.FC = () => {
   const [selectedLang, setSelectedLang] = useState("cpp");
   const [loading, setLoading] = useState(false);
-  const [timer, setTimer] = useState(0);
-  const [chatMessages, setChatMessages] = useState<any[]>([]);
-  const [opponentSolved, setOpponentSolved] = useState(2);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [questions, setQuestions] = useState<questionSchema[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<SubmissionResult | null>(null);
   const [code, setCode] = useState<string>(`#include <bits/stdc++.h>
 using namespace std;
 
@@ -21,14 +36,7 @@ int main() {
     cout << "Hello, world!" << endl;
     return 0;
 }`);
-  const [userSolved, setUserSolved] = useState(0);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
-
-  // // Timer
-  // useEffect(() => {
-  //   const id = setInterval(() => setTimer((t) => t + 1), 1000);
-  //   return () => clearInterval(id);
-  // }, []);
 
   // Fetch questions
   useEffect(() => {
@@ -46,43 +54,33 @@ int main() {
     fetchQuestions();
   }, []);
 
+  const currentQuestion = questions[currentQIndex];
+
   const handleSubmit = async () => {
-    if (!questions.length) return;
+    if (!currentQuestion) return; // Guard against undefined
     setLoading(true);
+
     try {
       const res = await axios.post("http://localhost:5000/api/submit", {
-        id: questions[currentQIndex].id,
+        id: currentQuestion.id,
         code,
         language: selectedLang,
       });
 
-      setResult(res.data);
-      console.log(res.data);
-      const newResults = questions[currentQIndex].testcases.map(() => ({
-        passed: Math.random() > 0.3,
-      }));
-      setUserSolved(newResults.filter((r) => r.passed).length);
+      setResult(res.data as SubmissionResult);
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
   };
-  const sendChat = (msg: string) =>
+
+  const sendChat = (msg: string) => {
     setChatMessages((prev) => [
       ...prev,
       { id: Date.now(), sender: "You", message: msg },
     ]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs
-      .toString()
-      .padStart(2, "0")}`;
   };
-
-  const currentQuestion = questions[currentQIndex];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 text-gray-100 font-sans relative overflow-hidden">
@@ -92,9 +90,6 @@ int main() {
           <h2 className="text-3xl font-extrabold tracking-tight text-cyan-400">
             ⚔️ DSA Round Robin
           </h2>
-          <div className="text-purple-400 font-semibold text-lg">
-            {/* ⏱️ {formatTime(timer)} */}
-          </div>
         </div>
 
         {/* Problem */}
@@ -126,20 +121,12 @@ int main() {
             <summary className="text-cyan-300 font-semibold mb-2 cursor-pointer">
               ✅ Test Cases
             </summary>
-            {loadingQuestions ? (
-              <div className="animate-pulse space-y-2">
-                <div className="h-4 bg-slate-700 rounded w-1/2"></div>
-                <div className="h-4 bg-slate-700 rounded w-2/3"></div>
-              </div>
-            ) : currentQuestion ? (
+            {currentQuestion ? (
               <ul className="space-y-2 text-sm text-gray-300 font-mono mt-2">
                 {currentQuestion.testcases.map((t, i) => (
-                  <li key={i} className="flex items-center justify-between">
-                    <span>
-                      Input: {t.input}
-                      <br />
-                      Expected: {JSON.stringify(t.expected_output)}
-                    </span>
+                  <li key={i} className="flex flex-col">
+                    <div>Input: {t.input}</div>
+                    <div>Expected: {JSON.stringify(t.expected_output)}</div>
                   </li>
                 ))}
               </ul>
@@ -147,30 +134,6 @@ int main() {
               <p className="text-gray-400">No test cases available</p>
             )}
           </details>
-        </section>
-
-        {/* Opponent / Progress */}
-        <section className="p-4 bg-slate-800 rounded-xl shadow space-y-3">
-          <h3 className="text-cyan-300 font-semibold">🏆 Progress</h3>
-          <div className="flex items-center gap-4 p-4 bg-slate-800 rounded-xl shadow-lg">
-            <div className="relative group">
-              <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-emerald-400 rounded-full flex items-center justify-center text-slate-900 text-xl font-bold shadow-md">
-                👤
-              </div>
-              <span className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-400 border-2 border-slate-800 rounded-full"></span>
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-white">
-                Opponent: <span className="text-cyan-400">OPP123</span>
-              </p>
-              <p className="text-sm text-gray-400 mt-1">
-                Solved: {opponentSolved}/5
-              </p>
-              <button className="mt-2 px-3 py-1.5 text-sm bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-900 font-semibold rounded-lg shadow-md">
-                ➕ Add Friend
-              </button>
-            </div>
-          </div>
         </section>
 
         {/* Navigation */}
@@ -215,6 +178,7 @@ int main() {
           <CodeEditor code={code} setCode={setCode} />
         </div>
 
+        {/* Result / Rules */}
         <div className="bg-slate-900 p-5 rounded-xl shadow border border-slate-800 min-h-[200px] max-h-[400px] overflow-y-auto">
           {result ? (
             <>
@@ -222,12 +186,10 @@ int main() {
                 <span className="text-emerald-400 font-semibold">
                   Status: {result.status}
                 </span>
-                <span className="text-gray-400 text-sm">
-                  Job ID: {result.jobId}
-                </span>
+                <span className="text-gray-400 text-sm">Job ID: {result.jobId}</span>
               </div>
               <ul className="space-y-2 text-sm font-mono">
-                {result.results.map((r: any, i: number) => (
+                {result.results.map((r, i) => (
                   <li
                     key={i}
                     className={`p-2 rounded-lg ${
@@ -246,22 +208,41 @@ int main() {
             </>
           ) : (
             <div className="p-4 bg-slate-800 rounded-xl shadow-md mt-4">
-              <h3 className="text-cyan-300 font-semibold mb-3">
-                📜 Battle Rules
-              </h3>
-              ...
+              <h3 className="text-cyan-300 font-semibold mb-3">📜 Battle Rules</h3>
+              <ol className="list-decimal list-inside space-y-2 text-gray-300 text-sm">
+                <li>
+                  <span className="text-white font-medium">No Cheating:</span> Use only your
+                  own logic and skills.
+                </li>
+                <li>
+                  <span className="text-white font-medium">Speed Matters:</span> Faster
+                  solutions earn more points.
+                </li>
+                <li>
+                  <span className="text-white font-medium">Accuracy First:</span> Wrong
+                  submissions reduce chances.
+                </li>
+                <li>
+                  <span className="text-white font-medium">Chat Respectfully:</span> Use
+                  chat to discuss, not distract.
+                </li>
+                <li>
+                  <span className="text-white font-medium">Make Friends:</span> Add
+                  opponents as friends after the battle.
+                </li>
+              </ol>
             </div>
           )}
         </div>
       </div>
 
       <ChatBox messages={chatMessages} onSend={sendChat} />
+
       {/* Run Button */}
       <button
         onClick={handleSubmit}
         disabled={loading}
-        className="fixed bottom-4 right-4 px-6 py-3 bg-gradient-to-r from-cyan-400 to-purple-400 
-          text-slate-900 font-semibold rounded-xl shadow-lg"
+        className="fixed bottom-4 right-4 px-6 py-3 bg-gradient-to-r from-cyan-400 to-purple-400 text-slate-900 font-semibold rounded-xl shadow-lg"
       >
         {loading ? "⏳ Compiling..." : "🚀 Run All Tests"}
       </button>
