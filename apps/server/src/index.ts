@@ -68,7 +68,7 @@ app.get("/set-questions", async (req, res) => {
       where: { id: { in: ids } },
     });
 
-    const questions: any[] = questionsFromDb.map(q => ({
+    const questions: any[] = questionsFromDb.map((q: any) => ({
       ...q,
       testcases: q.testcases ?? [],
     }));
