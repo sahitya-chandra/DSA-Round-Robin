@@ -68,13 +68,12 @@ int main() {
         language: selectedLang,
       });
 
-
       setResult(res.data as SubmissionResult);
-      const newResults = currentQuestion.testcases.map(() => ({
-        passed: Math.random() > 0.3,
-      }));
-      setResults(newResults);
-      setUserSolved(newResults.filter((r) => r.passed).length);
+      
+      const newResults =
+        questions[currentQIndex]?.testcases.map(() => ({
+          passed: Math.random() > 0.3,
+        })) || [];
     } catch (err) {
       console.error(err);
     } finally {
@@ -193,7 +192,9 @@ int main() {
                 <span className="text-emerald-400 font-semibold">
                   Status: {result.status}
                 </span>
-                <span className="text-gray-400 text-sm">Job ID: {result.jobId}</span>
+                <span className="text-gray-400 text-sm">
+                  Job ID: {result.jobId}
+                </span>
               </div>
               <ul className="space-y-2 text-sm font-mono">
                 {result.results.map((r, i) => (
@@ -215,27 +216,33 @@ int main() {
             </>
           ) : (
             <div className="p-4 bg-slate-800 rounded-xl shadow-md mt-4">
-              <h3 className="text-cyan-300 font-semibold mb-3">📜 Battle Rules</h3>
+              <h3 className="text-cyan-300 font-semibold mb-3">
+                📜 Battle Rules
+              </h3>
               <ol className="list-decimal list-inside space-y-2 text-gray-300 text-sm">
                 <li>
-                  <span className="text-white font-medium">No Cheating:</span> Use only your
-                  own logic and skills.
+                  <span className="text-white font-medium">No Cheating:</span>{" "}
+                  Use only your own logic and skills.
                 </li>
                 <li>
-                  <span className="text-white font-medium">Speed Matters:</span> Faster
-                  solutions earn more points.
+                  <span className="text-white font-medium">Speed Matters:</span>{" "}
+                  Faster solutions earn more points.
                 </li>
                 <li>
-                  <span className="text-white font-medium">Accuracy First:</span> Wrong
-                  submissions reduce chances.
+                  <span className="text-white font-medium">
+                    Accuracy First:
+                  </span>{" "}
+                  Wrong submissions reduce chances.
                 </li>
                 <li>
-                  <span className="text-white font-medium">Chat Respectfully:</span> Use
-                  chat to discuss, not distract.
+                  <span className="text-white font-medium">
+                    Chat Respectfully:
+                  </span>{" "}
+                  Use chat to discuss, not distract.
                 </li>
                 <li>
-                  <span className="text-white font-medium">Make Friends:</span> Add
-                  opponents as friends after the battle.
+                  <span className="text-white font-medium">Make Friends:</span>{" "}
+                  Add opponents as friends after the battle.
                 </li>
               </ol>
             </div>
