@@ -66,17 +66,18 @@ int main() {
   };
 
   const handleSubmit = async () => {
-    if (!questions.length) return;
+    const currentQuestion = questions[currentQIndex];
+    if (!currentQuestion) return;
     setLoading(true);
     try {
       const res = await axios.post("http://localhost:5000/api/submit", {
-        id: questions[currentQIndex].id,
+        id: currentQuestion.id,
         code,
         language: selectedLang,
       });
       setResult(res.data);
 
-      const newResults = questions[currentQIndex].testcases.map(() => ({
+      const newResults = currentQuestion.testcases.map(() => ({
         passed: Math.random() > 0.3,
       }));
       setResults(newResults);
