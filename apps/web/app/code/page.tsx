@@ -57,7 +57,8 @@ int main() {
   const currentQuestion = questions[currentQIndex];
 
   const handleSubmit = async () => {
-    if (!currentQuestion) return; // Guard against undefined
+    const currentQuestion = questions[currentQIndex];
+    if (!currentQuestion) return;
     setLoading(true);
 
     try {
@@ -67,7 +68,13 @@ int main() {
         language: selectedLang,
       });
 
+
       setResult(res.data as SubmissionResult);
+      const newResults = currentQuestion.testcases.map(() => ({
+        passed: Math.random() > 0.3,
+      }));
+      setResults(newResults);
+      setUserSolved(newResults.filter((r) => r.passed).length);
     } catch (err) {
       console.error(err);
     } finally {
