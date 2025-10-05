@@ -10,6 +10,7 @@
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
     "studio": "prisma studio",
+    "deploy": "prisma migrate deploy",
     "seed": "ts-node src/seed.ts"
   },
   "keywords": [],

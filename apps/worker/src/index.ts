@@ -3,13 +3,14 @@ import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
 import dotenv from "dotenv";
-dotenv.config();
+
+dotenv.config({ path: "../../.env" });
 
 createCodeWorker(async (job) => {
   const { code, language, testcases } = job.data;
   if (!code || !language || !testcases) throw new Error("Missing data");
 
-  const tempDir = path.join(String(process.env.HOME), "docker_temp");
+  const tempDir = path.join(String(process.env.HOME_DIR), "docker_temp");
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
   console.log("Mount directory:", tempDir);

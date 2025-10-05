@@ -4,17 +4,24 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "start": "turbo run start",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "db:migrate": "pnpm --filter @repo/db run migrate",
-    "db:studio": "pnpm --filter @repo/db run studio",
-    "db:generate": "pnpm --filter @repo/db run generate",
-    "db:migrate:reset": "pnpm --filter @repo/db run migrate:reset",
-    "db:deploy": "pnpm --filter @repo/db run deploy",
-    "db:seed": "pnpm --filter @repo/db run seed"
+    "db:migrate": "dotenv -e .env -- pnpm --filter @repo/db run migrate",
+    "db:studio": "dotenv -e .env -- pnpm --filter @repo/db run studio",
+    "db:generate": "dotenv -e .env -- pnpm --filter @repo/db run generate",
+    "db:migrate:reset": "dotenv -e .env -- pnpm --filter @repo/db run migrate:reset",
+    "db:deploy": "dotenv -e .env -- pnpm --filter @repo/db run deploy",
+    "db:seed": "dotenv -e .env -- pnpm --filter @repo/db run seed",
+    "redis:start": "docker compose up -d redis",
+    "db:start": "docker compose up -d postgres",
+    "services:start": "docker compose up -d",
+    "services:stop": "docker compose down",
+    "services:reset": "docker compose down -v"
   },
   "devDependencies": {
+    "dotenv-cli": "^10.0.0",
     "prettier": "^3.6.2",
     "tsx": "^4.20.5",
     "turbo": "^2.5.6",
@@ -23,5 +30,8 @@
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2"
   }
 }

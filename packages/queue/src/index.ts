@@ -1,8 +1,11 @@
 import { Testcase } from "@repo/types";
 import { Queue, Worker, Job, QueueEvents } from "bullmq";
 import IORedis from "ioredis";
+import dotenv from "dotenv";
 
-const connection = new IORedis(process.env.REDIS_URL || "redis://localhost:6379", {
+dotenv.config({ path: "../../.env" });
+
+const connection = new IORedis(String(process.env.REDIS_URL), {
   maxRetriesPerRequest: null
 });
 
