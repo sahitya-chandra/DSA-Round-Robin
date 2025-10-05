@@ -2,7 +2,7 @@
   "name": "@repo/types",
   "version": "1.0.0",
   "private": true,
-    "exports": {
+  "exports": {
     ".": "./src/types.ts"
   },
   "description": "",
@@ -15,5 +15,8 @@
   "license": "ISC",
   "devDependencies": {
     "@repo/typescript-config": "workspace:*"
+  },
+  "dependencies": {
+    "zod": "^4.1.11"
   }
 }

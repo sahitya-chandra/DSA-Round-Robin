@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 const Page = () => {
   return (
@@ -16,6 +17,18 @@ const Page = () => {
       >
         Get Started
       </Link>
+      <div>
+        <Link href={"/signup"}>
+          <Button className='mt-5 w-[100px] bg-blue-500'>
+            Sign Up
+          </Button>
+        </Link>
+        <Link href={"/signin"}>
+        <Button className='mt-5 ml-5 w-[100px] bg-blue-500'>
+          Sign In
+        </Button>
+      </Link>
+      </div>
     </div>
   );
 };
