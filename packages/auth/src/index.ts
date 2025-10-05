@@ -5,7 +5,7 @@ import prisma from "@repo/db";
 
 export const auth = betterAuth({
 	database: prismaAdapter(prisma, {
-		provider: "postgresql", 
+		provider: "postgresql",
 	}),
 	emailAndPassword: { 
     enabled: true, 
@@ -14,3 +14,4 @@ export const auth = betterAuth({
 });
 
 export const nextHandler = toNextJsHandler(auth);
+export * from "./auth-client";

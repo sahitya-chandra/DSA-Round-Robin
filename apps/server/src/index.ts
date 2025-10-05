@@ -62,7 +62,7 @@ app.get("/set-questions", async (req, res) => {
   const e = Math.floor(Math.random() * 30);
   console.log("e ", e);
   //Duplicate NOT CHECKED ---------
-  const ids: number[] = [a, b, c, d, e];
+  const ids: number[] = [1, 2, 3, 4, 5];
   try {
     const questionsFromDb = await prisma.question.findMany({
       where: { id: { in: ids } },

@@ -29,7 +29,7 @@ const App: React.FC = () => {
   const [questions, setQuestions] = useState<questionSchema[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [result, setResult] = useState<SubmissionResult | null>(null);
-  const [code, setCode] = useState<string>(`#include <bits/stdc++.h>
+  const [code, setCode] = useState<string>(`#include <iostream>
 using namespace std;
 
 int main() {
