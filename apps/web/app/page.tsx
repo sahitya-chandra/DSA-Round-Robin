@@ -1,35 +1,36 @@
-import React from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import UserProfile from "@/components/UserProfile/userProfile";
 
 const Page = () => {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-black via-gray-900 to-purple-900 text-white">
-      <h1 className="text-5xl font-extrabold mb-8 tracking-wider text-cyan-400 drop-shadow-[0_0_10px_#00fff7]">
-        Welcome to DSA Round_Robin
+    <main className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white px-4">
+     
+      <h1 className="text-4xl sm:text-5xl font-bold mb-3 text-center text-cyan-300">
+        Welcome to <span className="text-pink-400">DSA Round_Robin</span>
       </h1>
-      <p className="mb-12 text-lg text-gray-400">
-        Dive into challenges, code battles, and DSA duels in a cyber-themed world.
+
+     
+      <p className="text-gray-300 text-center max-w-md mb-8">
+        Practice data structures, algorithms, and compete in DSA rounds.
       </p>
-      <Link
-        href="/code"
-        className="px-8 py-4 bg-pink-600 text-black font-bold rounded-lg shadow-[0_0_10px_#ff00ff] hover:scale-105 transition-transform"
-      >
-        Get Started
-      </Link>
-      <div>
-        <Link href={"/signup"}>
-          <Button className='mt-5 w-[100px] bg-blue-500'>
-            Sign Up
-          </Button>
-        </Link>
-        <Link href={"/signin"}>
-        <Button className='mt-5 ml-5 w-[100px] bg-blue-500'>
-          Sign In
+
+      
+      <div className="w-full max-w-sm mb-10">
+        <UserProfile />
+      </div>
+
+      {/* CTA Button */}
+      <Link href="/code">
+        <Button
+          variant="secondary"
+          className="bg-gray-800 hover:bg-gray-700 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-200"
+        >
+          Get Started
         </Button>
       </Link>
-      </div>
-    </div>
+    </main>
   );
 };
 

@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@codemirror/lang-cpp": "^6.0.3",
+    "@prisma/client": "6.16.2",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@repo/auth": "workspace:*",
