@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,51 +8,60 @@ datasource db {
 }
 
 model User {
-  id             String    @id @default(cuid())
-  name           String
-  email          String    @unique
-  emailVerified  Boolean   @default(true)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
+  accounts         Account[]
+  sessions         Session[]
+
+  
+  SentRequests     FriendRequest[] @relation("SentRequests")
+  ReceivedRequests FriendRequest[] @relation("ReceivedRequests")
+  FriendsA         Friend[]        @relation("FriendsA")
+  FriendsB         Friend[]        @relation("FriendsB")
+  SentMessages     Message[]       @relation("SentMessages")
+  ReceivedMessages Message[]       @relation("ReceivedMessages")
+  Submissions      Submission[]    @relation("Submissions")
 }
 
 model Account {
-  id                String   @id @default(cuid())
-  userId            String
-  accountId         String
-  providerId        String
-  password          String
-  access_token      String?
-  refresh_token     String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id            String   @id @default(cuid())
+  userId        String
+  accountId     String
+  providerId    String
+  password      String
+  access_token  String?
+  refresh_token String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id])
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  userId       String
-  token        String   @unique
-  expiresAt    DateTime
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  ipAddress    String?
-  userAgent    String?
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
 
-  user         User    @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model Verification {
-  id           String   @id @default(cuid())
-  identifier   String
-  value        String
-  expiresAt    DateTime
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Question {
@@ -62,5 +70,58 @@ model Question {
   difficulty String
   question   String
   testcases  Json
+  createdAt  DateTime @default(now())
+
+  submissions Submission[] @relation("Questions")
+}
+
+
+model Submission {
+  id         String   @id @default(cuid())
+  user       User     @relation("Submissions", fields: [userId], references: [id])
+  userId     String
+  question   Question @relation("Questions", fields: [questionId], references: [id])
+  questionId Int
+  code       String
+  status     String
+  createdAt  DateTime @default(now())
+}
+
+
+model FriendRequest {
+  id          String        @id @default(cuid())
+  requester   User          @relation("SentRequests", fields: [requesterId], references: [id])
+  requesterId String
+  addressee   User          @relation("ReceivedRequests", fields: [addresseeId], references: [id])
+  addresseeId String
+  status      RequestStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model Friend {
+  id        String   @id @default(cuid())
+  userA     User     @relation("FriendsA", fields: [userAId], references: [id])
+  userAId   String
+  userB     User     @relation("FriendsB", fields: [userBId], references: [id])
+  userBId   String
+  createdAt DateTime @default(now())
+
+  @@unique([userAId, userBId])
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  senderId   String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  receiverId String
+  content    String
   createdAt  DateTime @default(now())
 }
