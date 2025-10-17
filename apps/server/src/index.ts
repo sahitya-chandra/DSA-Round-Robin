@@ -4,7 +4,7 @@ import { PORT } from "./config/config";
 import { codeQueue, queueEvents } from "@repo/queue";
 import prisma from "@repo/db";
 import { Testcase } from "@repo/types";
-
+import { socialRouter } from "./routes/socialRouter";
 
 const app = express();
 app.use(
@@ -14,6 +14,8 @@ app.use(
   })
 );
 app.use(express.json());
+
+app.use("/social" , socialRouter )
 
 app.post("/api/submit", async (req, res) => {
   const {id, code, language } = req.body;
