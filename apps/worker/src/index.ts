@@ -33,7 +33,7 @@ createCodeWorker(async (job) => {
     javascript: `node /code/job-${job.id}.js`,
   };
 
-  const dockerBase = `docker run --rm -i -v ${tempDir}:/code --memory=128m --cpus=0.5 ${dockerImage} bash -c`;
+  const dockerBase = `docker run --rm -i -v ${tempDir}:/code --memory=128m --cpus=0.5 --log-opt max-size=10m --log-opt max-file=3 ${dockerImage} bash -c`;
 
   const results: {
     input: string;
@@ -82,7 +82,7 @@ createCodeWorker(async (job) => {
     return results;
   } catch (err) {
     console.error("Error during execution:", err);
-    return testcases.map(tc => ({
+    return testcases.map((tc: any) => ({
       input: tc.input,
       expected: tc.expected_output,
       output: String(err),
