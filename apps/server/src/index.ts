@@ -1,4 +1,7 @@
 import express from "express";
+import http from "http";
+import { initIo } from './utils/socketInstance';
+import { setupSockets } from './sockets/index';
 import cors from "cors";
 import { PORT } from "./config/config";
 import { codeQueue, queueEvents } from "@repo/queue";
@@ -83,7 +86,12 @@ app.get("/set-questions", async (req, res) => {
 });
 
 
+const server = http.createServer(app);
+export const io = initIo(server);
 
-app.listen(PORT, () => {
+setupSockets(io);
+
+
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
