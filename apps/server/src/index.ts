@@ -1,10 +1,13 @@
 import express from "express";
+import http from "http";
+import { initIo } from './utils/socketInstance';
+import { setupSockets } from './sockets/index';
 import cors from "cors";
 import { PORT } from "./config/config";
 import { codeQueue, queueEvents } from "@repo/queue";
 import prisma from "@repo/db";
 import { Testcase } from "@repo/types";
-
+import friendRouter from "./routes/socialRouter";
 
 const app = express();
 app.use(
@@ -14,6 +17,8 @@ app.use(
   })
 );
 app.use(express.json());
+
+app.use("/api/social" , friendRouter )
 
 app.post("/api/submit", async (req, res) => {
   const {id, code, language } = req.body;
@@ -81,7 +86,12 @@ app.get("/set-questions", async (req, res) => {
 });
 
 
+const server = http.createServer(app);
+export const io = initIo(server);
 
-app.listen(PORT, () => {
+setupSockets(io);
+
+
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
