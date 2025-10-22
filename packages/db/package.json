@@ -9,6 +9,7 @@
     "build": "tsc",
     "generate": "prisma generate",
     "migrate": "prisma migrate dev",
+    "migrate:reset": "prisma migrate reset",
     "studio": "prisma studio",
     "deploy": "prisma migrate deploy",
     "seed": "ts-node src/seed.ts"
