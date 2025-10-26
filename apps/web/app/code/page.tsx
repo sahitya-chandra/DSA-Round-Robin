@@ -42,7 +42,7 @@ int main() {
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
-        const response = await fetch("http://localhost:5000/set-questions");
+        const response = await fetch("http://localhost:5000/api/setquestions");
         const data = await response.json();
         setQuestions(data.questions || []);
       } catch (err) {

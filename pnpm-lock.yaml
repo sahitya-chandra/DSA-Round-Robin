@@ -195,6 +195,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@repo/queue':
         specifier: workspace:*
         version: link:../../packages/queue
