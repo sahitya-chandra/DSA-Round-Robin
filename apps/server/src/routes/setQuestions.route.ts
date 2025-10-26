@@ -3,6 +3,6 @@ import { setQuestions } from "../controllers/setQuestions.controller"
 
 const router: express.Router = express.Router()
 
-router.get("/", setQuestions)
+router.get("/setquestions", setQuestions)
 
 export default router

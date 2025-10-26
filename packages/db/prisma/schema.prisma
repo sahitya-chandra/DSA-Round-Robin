@@ -8,83 +8,123 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  emailVerified Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                String              @id @default(cuid())
+  name              String
+  email             String              @unique
+  emailVerified     Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
 
-  accounts         Account[]
-  sessions         Session[]
-
+  accounts          Account[]
+  sessions          Session[]
   
-  SentRequests     FriendRequest[] @relation("SentRequests")
-  ReceivedRequests FriendRequest[] @relation("ReceivedRequests")
-  FriendsA         Friend[]        @relation("FriendsA")
-  FriendsB         Friend[]        @relation("FriendsB")
-  SentMessages     Message[]       @relation("SentMessages")
-  ReceivedMessages Message[]       @relation("ReceivedMessages")
-  Submissions      Submission[]    @relation("Submissions")
+  SentRequests      FriendRequest[]     @relation("SentRequests")
+  ReceivedRequests  FriendRequest[]     @relation("ReceivedRequests")
+  FriendsA          Friend[]            @relation("FriendsA")
+  FriendsB          Friend[]            @relation("FriendsB")
+  SentMessages      Message[]           @relation("SentMessages")
+  ReceivedMessages  Message[]           @relation("ReceivedMessages")
+  Submissions       Submission[]        @relation("Submissions")
+  Matches           MatchParticipant[]
 }
 
 model Account {
-  id            String   @id @default(cuid())
-  userId        String
-  accountId     String
-  providerId    String
-  password      String
-  access_token  String?
-  refresh_token String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                String        @id @default(cuid())
+  userId            String
+  accountId         String
+  providerId        String
+  password          String
+  access_token      String?
+  refresh_token     String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user              User          @relation(fields: [userId], references: [id])
 }
 
 model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  ipAddress String?
-  userAgent String?
+  id                String        @id @default(cuid())
+  userId            String
+  token             String        @unique
+  expiresAt         DateTime
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  ipAddress         String?
+  userAgent         String?
 
-  user User @relation(fields: [userId], references: [id])
+  user              User          @relation(fields: [userId], references: [id])
 }
 
 model Verification {
-  id         String   @id @default(cuid())
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                String        @id @default(cuid())
+  identifier        String
+  value             String
+  expiresAt         DateTime
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 }
 
 model Question {
-  id         Int      @id @default(autoincrement())
-  category   String
-  difficulty String
-  question   String
-  testcases  Json
-  createdAt  DateTime @default(now())
-
-  submissions Submission[] @relation("Questions")
+  id                Int           @id @default(autoincrement())
+  category          String
+  difficulty        String
+  question          String
+  testcases         Json
+  createdAt         DateTime      @default(now())
 }
 
-
 model Submission {
-  id         String   @id @default(cuid())
-  user       User     @relation("Submissions", fields: [userId], references: [id])
+  id                String     @id @default(cuid())
+  userId            String
+  questionId        Int
+  matchId           String
+  code              String
+  status            String
+  createdAt         DateTime   @default(now())
+
+  user              User       @relation("Submissions", fields: [userId], references: [id])
+  match             Match      @relation(fields: [matchId], references: [id])
+  
+  @@index([matchId, questionId])
+}
+
+enum MatchStatus {
+  PENDING
+  RUNNING 
+  FINISHED
+}
+
+model Match {
+  id              String              @id @default(uuid())
+  status          MatchStatus         
+  winnerId        String?
+  startedAt       DateTime?
+  endedAt         DateTime?
+
+  questions       MatchQuestion[]
+  submissions     Submission[]
+  participants    MatchParticipant[]
+}
+
+model MatchParticipant {
+  matchId    String
   userId     String
-  question   Question @relation("Questions", fields: [questionId], references: [id])
+  joinedAt   DateTime @default(now())
+
+  match      Match @relation(fields: [matchId], references: [id])
+  user       User  @relation(fields: [userId], references: [id])
+
+  @@unique([matchId, userId])
+  @@index([userId])
+}
+
+model MatchQuestion {
+  id         String     @id @default(uuid())
+  matchId    String
   questionId Int
-  code       String
-  status     String
-  createdAt  DateTime @default(now())
+  order      Int        
+
+  match      Match      @relation(fields: [matchId], references: [id])
 }
 
 

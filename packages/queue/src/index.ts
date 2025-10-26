@@ -12,6 +12,7 @@ const connection = new IORedis(String(process.env.REDIS_URL), {
 type CodeJob = { code: string | null , language?: string, testcases: Testcase[]};
 
 export const codeQueue = new Queue<CodeJob>("code-execution", { connection });
+export const matchQueue = new Queue("create-match", { connection })
 
 export function createCodeWorker(
   processFn: (job: Job<CodeJob>) => Promise<any>
@@ -19,5 +20,13 @@ export function createCodeWorker(
   return new Worker<CodeJob>("code-execution", processFn, { connection });
 }
 
+export function createMatchWorker(
+  processFn: (job: Job) => Promise<any>
+) {
+  return new Worker("create-match", processFn, { connection })
+}
+
 export const queueEvents = new QueueEvents("code-execution", { connection });
+export const matchEvents = new QueueEvents("create-match", { connection });
+
 
