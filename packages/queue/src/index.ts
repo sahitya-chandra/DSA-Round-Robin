@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: "../../.env" });
 
-const connection = new IORedis(String(process.env.REDIS_URL), {
+export const connection = new IORedis(String(process.env.REDIS_URL), {
   maxRetriesPerRequest: null
 });
 

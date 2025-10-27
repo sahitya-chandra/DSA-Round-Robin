@@ -1,19 +1,52 @@
-import express from 'express';
-import http from 'http';
 import { Server, Socket } from 'socket.io';
-import cors from 'cors';
 import prisma from '@repo/db';
 import { userSockets } from '../utils/utils';
+import { connection as redis } from '@repo/queue';
 
-interface AuthSocket extends Socket {
-  userId?: string;
-}
+// interface AuthSocket extends Socket {
+//   userId?: string;
+// }
 
 export function setupSockets(io: Server) {
-  io.on('connection', (socket: AuthSocket) => {
-    // TODO: handle authentication
-    // TODO: handle sendMessage event
-    // TODO: handle typing event
-    // TODO: handle disconnect event
+  io.on('connection', (socket: Socket) => {
+    console.log("Client connected:", socket.id);
+
+    socket.on('register', ({ userId }) => {
+      userSockets.set(userId, socket.id)
+      socket.join(userId);
+      console.log(`User ${userId} registered with socket ${socket.id}`);
+    })
+
+    socket.on('disconnect', () => {
+      for(const [uid, sid] of userSockets.entries()) {
+        if (sid === socket.id) userSockets.delete(uid)
+      }
+      console.log("Client disconnected:", socket.id);
+    })
   });
+
+  redis.subscribe("match_created")
+  redis.on("message", (channel, message) => {
+    const { event, data } = JSON.parse(message)
+
+    if (event === "match_started") {
+      const { matchId, status, requesterId, opponentId, questions } = data;
+
+      io.to(requesterId).emit("match_started", {
+        matchId,
+        status,
+        opponentId,
+        questions
+      })
+
+      if (status === "RUNNING" && opponentId) {
+        io.to(opponentId).emit("match_started", {
+          matchId,
+          status,
+          opponentId: requesterId,
+          questions
+        })
+      }
+    }
+  })
 }

@@ -1,12 +1,12 @@
 import prisma, { MatchStatus, Question } from "@repo/db";
-import { createMatchWorker } from "@repo/queue";
+import { connection as redis, createMatchWorker } from "@repo/queue";
 
 createMatchWorker(async (job) => {
 	const { id: requesterId } = job.data
 
 	const pendingMatch = await prisma.match.findFirst({
 		where: {
-			status: MatchStatus.PENDING
+			status: MatchStatus.WAITING
 		},
 		include: {
 			participants: {
@@ -45,7 +45,7 @@ createMatchWorker(async (job) => {
 	} else {
 		const newMatch = await prisma.match.create({
 			data: {
-				status: MatchStatus.PENDING
+				status: MatchStatus.WAITING
 			}
 		})
 	
@@ -93,13 +93,21 @@ createMatchWorker(async (job) => {
 
 	// still not sure to directly return
 	// also improve error handeling
-	return {
-		matchId, 
-		status: match?.status ?? MatchStatus.PENDING,
-		opponentId,
-		questions: questionsPayload.map((q) => ({
-			questionId: q.questionId,
-			order: q.order
-		}))
+	const payload = {
+		event: "match_started",
+		data: {
+			matchId, 
+			status: match?.status ?? MatchStatus.WAITING,
+			requesterId,
+			opponentId,
+			questions: questionsPayload.map((q) => ({
+				questionId: q.questionId,
+				order: q.order
+			}))
+		}
 	}
+
+	await redis.publish("match_created", JSON.stringify(payload))
+
+	return payload
 })

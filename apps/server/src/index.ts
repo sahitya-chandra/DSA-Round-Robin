@@ -28,7 +28,6 @@ export const io = initIo(server);
 
 setupSockets(io);
 
-
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
