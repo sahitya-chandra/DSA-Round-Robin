@@ -19,10 +19,9 @@ app.use(
 app.use(express.json());
 
 app.use("/api/social", friendRouter)
-app.use("/api", submitRouter);
-app.use("/api", setQuestions);
-app.use("/api", matchRouter)
-
+app.use("/api/submit", submitRouter);
+app.use("/api/setquestions", setQuestions);
+app.use("/api/match", matchRouter)
 const server = http.createServer(app);
 export const io = initIo(server);
 

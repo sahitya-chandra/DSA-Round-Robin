@@ -3,6 +3,6 @@ import { submitCode } from "../controllers/submit.controller"
 
 const router: express.Router = express.Router()
 
-router.post("/submit", submitCode)
+router.post("/", submitCode)
 
 export default router

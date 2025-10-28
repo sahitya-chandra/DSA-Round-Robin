@@ -9,6 +9,9 @@ export const connection = new IORedis(String(process.env.REDIS_URL), {
   maxRetriesPerRequest: null
 });
 
+export const subscriberClient = connection.duplicate();
+export const publisherClient = connection.duplicate();
+
 type CodeJob = { code: string | null , language?: string, testcases: Testcase[]};
 
 export const codeQueue = new Queue<CodeJob>("code-execution", { connection });

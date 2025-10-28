@@ -4,6 +4,6 @@ import { isActiveSession } from "../middleware/middleware"
 
 const router: express.Router = express.Router()
 
-router.post("/match", isActiveSession, matchController)
+router.post("/", isActiveSession, matchController)
 
 export default router

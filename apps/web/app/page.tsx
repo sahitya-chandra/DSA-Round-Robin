@@ -2,8 +2,16 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import UserProfile from "@/components/UserProfile/userProfile";
+import { auth } from "@repo/auth";
+import { headers } from "next/headers";
+import { Btn } from "@/components/Btn";
 
-const Page = () => {
+const Page = async () => {
+
+  const session = await auth.api.getSession({
+    headers: await headers()
+  })
+
   return (
     <main className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white px-4">
      
@@ -15,6 +23,8 @@ const Page = () => {
       <p className="text-gray-300 text-center max-w-md mb-8">
         Practice data structures, algorithms, and compete in DSA rounds.
       </p>
+
+      <Btn userId={session?.user.id} />
 
       
       <div className="w-full max-w-sm mb-10">

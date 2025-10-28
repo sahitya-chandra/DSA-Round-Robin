@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import prisma from '@repo/db';
 import { userSockets } from '../utils/utils';
-import { connection as redis } from '@repo/queue';
+import { subscriberClient } from '@repo/queue';
 
 // interface AuthSocket extends Socket {
 //   userId?: string;
@@ -9,6 +9,7 @@ import { connection as redis } from '@repo/queue';
 
 export function setupSockets(io: Server) {
   io.on('connection', (socket: Socket) => {
+    // console.log('New socket:', socket.id, socket.handshake.headers.cookie);
     console.log("Client connected:", socket.id);
 
     socket.on('register', ({ userId }) => {
@@ -25,8 +26,8 @@ export function setupSockets(io: Server) {
     })
   });
 
-  redis.subscribe("match_created")
-  redis.on("message", (channel, message) => {
+  subscriberClient.subscribe("match_created")
+  subscriberClient.on("message", (channel, message) => {
     const { event, data } = JSON.parse(message)
 
     if (event === "match_started") {
@@ -38,6 +39,8 @@ export function setupSockets(io: Server) {
         opponentId,
         questions
       })
+
+      console.log("Received event from channel:", channel, "Payload:", message);
 
       if (status === "RUNNING" && opponentId) {
         io.to(opponentId).emit("match_started", {

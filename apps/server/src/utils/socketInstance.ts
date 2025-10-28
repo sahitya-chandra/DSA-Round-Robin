@@ -3,13 +3,13 @@ import http from 'http';
 
 let io: Server;
 
-export const initIo = (
-  server: http.Server<typeof http.IncomingMessage, typeof http.ServerResponse>
-) => {
+export const initIo = (server: http.Server) => {
   io = new Server(server, {
     cors: {
-      origin: '*',
+      origin: "http://localhost:3000",
+      credentials: true,
     },
+    allowEIO3: true,
   });
   return io;
 };
