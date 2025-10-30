@@ -1,18 +1,29 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { AuthRequest } from "../types/types";
-import { matchQueue } from "@repo/queue";
+import { connection as redis, USER_MATCH_PREFIX, WAITING_LIST } from "@repo/queue";
 
-export const matchController = async(req: AuthRequest, res: Response) => {
-	const data = req.user
+export const matchController = async (req: AuthRequest, res: Response) => {
+  const user = req.user;
+  if (!user?.id) return res.status(401).json({ error: "unauthenticated" });
 
-	if(!data || !data.id) return res.status(400).json({error: "user obj is empty"})
+  const userId = user.id;
 
-	try {
-		const { id: userId } = data
-		await matchQueue.add("match_queue", { userId })
-		return res.json({ status: "searching" })
-	} catch (err: any) {
-    res.status(500).json({ status: "failed", error: err.message });
-	}
-	
-}
+  try {
+    const activeMatch = await redis.get(`${USER_MATCH_PREFIX}${userId}`);
+    if (activeMatch) {
+      return res.status(200).json({ status: "already_in_match", matchId: activeMatch });
+    }
+
+    const pos = await redis.lpos(WAITING_LIST, userId);
+    if (pos !== null) {
+      return res.status(200).json({ status: "already_queued" });
+    }
+
+    await redis.lpush(WAITING_LIST, userId);
+
+    return res.json({ status: "queued" });
+  } catch (err) {
+    console.error("matchController error:", err);
+    return res.status(500).json({ error: "internal_error" });
+  }
+};

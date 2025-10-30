@@ -1,4 +1,3 @@
-// apps/web/hooks/useSocket.ts
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
@@ -11,13 +10,11 @@ export function useSocket(userId: string): Socket | null {
   useEffect(() => {
     if (!userId) return;
 
-    // Reuse existing connected socket
     if (socket?.connected) {
       socket.emit("register", { userId });
       return;
     }
 
-    // Create new socket
     socket = io("http://localhost:5000", {
       withCredentials: true,
       reconnection: true,
@@ -33,7 +30,7 @@ export function useSocket(userId: string): Socket | null {
 
     const onMatchStarted = (data: any) => {
       console.log("Match started:", data);
-      router.push(`/code`);
+      router.push(`/code/${data.matchId}`);
     };
 
     socket.on("connect", onConnect);

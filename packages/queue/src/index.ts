@@ -15,21 +15,14 @@ export const publisherClient = connection.duplicate();
 type CodeJob = { code: string | null , language?: string, testcases: Testcase[]};
 
 export const codeQueue = new Queue<CodeJob>("code-execution", { connection });
-export const matchQueue = new Queue("create-match", { connection })
 
 export function createCodeWorker(
   processFn: (job: Job<CodeJob>) => Promise<any>
 ) {
   return new Worker<CodeJob>("code-execution", processFn, { connection });
 }
-
-export function createMatchWorker(
-  processFn: (job: Job) => Promise<any>
-) {
-  return new Worker("create-match", processFn, { connection })
-}
-
 export const queueEvents = new QueueEvents("code-execution", { connection });
-export const matchEvents = new QueueEvents("create-match", { connection });
 
-
+export const WAITING_LIST = "waiting_users";
+export const USER_MATCH_PREFIX = "user_match:";
+export const ACTIVE_MATCH_PREFIX = "active_match:";

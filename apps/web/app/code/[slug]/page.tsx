@@ -3,7 +3,9 @@ import React, { useState, useEffect } from "react";
 import CodeEditor from "@/components/editor/editor";
 import axios from "axios";
 import { questionSchema } from "@repo/types";
-import ChatBox from "../../components/chat";
+import ChatBox from "../../../components/chat";
+import { Button } from "@/components/ui/button";
+import { useParams } from "next/navigation";
 
 // Type for chat messages
 type ChatMessage = { id: number; sender: string; message: string };
@@ -23,6 +25,7 @@ type SubmissionResult = {
 };
 
 const App: React.FC = () => {
+  const params = useParams()
   const [selectedLang, setSelectedLang] = useState("cpp");
   const [loading, setLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
@@ -88,6 +91,23 @@ int main() {
     ]);
   };
 
+  const finish = async () => {
+    const matchId = params.slug
+    console.log("matchIO", matchId)
+    if (!matchId) return
+    setLoading(true);
+    try {
+      await fetch(`http://localhost:5000/api/match/finish/${matchId}`, {
+        method: "POST",
+        credentials: "include"
+      });
+    } catch (err) {
+      console.error("Cancel error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 text-gray-100 font-sans relative overflow-hidden">
       {/* Left Column */}
@@ -96,6 +116,7 @@ int main() {
           <h2 className="text-3xl font-extrabold tracking-tight text-cyan-400">
             ⚔️ DSA Round Robin
           </h2>
+          <Button onClick={finish}>Finsih Match</Button>
         </div>
 
         {/* Problem */}
