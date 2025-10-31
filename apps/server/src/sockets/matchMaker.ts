@@ -66,6 +66,8 @@ export function startMatchMaker(io: Server) {
           order: i + 1,
         }));
 
+        const startedAt = new Date().getTime()
+
         await redis.hmset(
           `${ACTIVE_MATCH_PREFIX}${matchId}`,
           "status",
@@ -75,7 +77,9 @@ export function startMatchMaker(io: Server) {
           "opponentId",
           opponentId,
           "questions",
-          JSON.stringify(mqPayload)
+          JSON.stringify(mqPayload),
+          "startedAt",
+          startedAt
         );
         await redis.expire(`${ACTIVE_MATCH_PREFIX}${matchId}`, MATCH_TTL);
 

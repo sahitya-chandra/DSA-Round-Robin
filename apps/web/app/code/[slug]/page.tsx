@@ -6,6 +6,7 @@ import { questionSchema } from "@repo/types";
 import ChatBox from "../../../components/chat";
 import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
+import { authClient } from "@repo/auth";
 
 // Type for chat messages
 type ChatMessage = { id: number; sender: string; message: string };
@@ -32,6 +33,7 @@ const App: React.FC = () => {
   const [questions, setQuestions] = useState<questionSchema[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [result, setResult] = useState<SubmissionResult | null>(null);
+  const { data: session, error } = authClient.useSession()
   const [code, setCode] = useState<string>(`#include <iostream>
 using namespace std;
 
@@ -99,7 +101,11 @@ int main() {
     try {
       await fetch(`http://localhost:5000/api/match/finish/${matchId}`, {
         method: "POST",
-        credentials: "include"
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ winnerId: session?.user.id})
       });
     } catch (err) {
       console.error("Cancel error:", err);

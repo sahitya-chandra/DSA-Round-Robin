@@ -17,6 +17,7 @@ export const finishMatchController = async (req: AuthRequest, res: Response) => 
     const requesterId = raw.requesterId;
     const opponentId = raw.opponentId;
     const questions = raw.questions ? JSON.parse(raw.questions as string) : [];
+    const startedAt = raw.startedAt
 
     await prisma.$transaction(async (tx) => {
       await tx.match.create({
@@ -24,7 +25,7 @@ export const finishMatchController = async (req: AuthRequest, res: Response) => 
           id: matchId,
           status: "FINISHED",
           winnerId: winnerId ?? null,
-          startedAt: new Date(),
+          startedAt,
           endedAt: new Date(),
           participants: {
             create: [

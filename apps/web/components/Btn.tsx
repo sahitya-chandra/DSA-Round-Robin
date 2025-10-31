@@ -71,7 +71,7 @@ export const Btn = ({userId}: {userId: string | undefined}) => {
           {queued ? "Searching for opponent..." : "Start Match"}
         </Button>
         {queued && (
-          <Button variant="ghost" onClick={cancel} disabled={loading}>
+          <Button variant="ghost" onClick={cancel}>
             Cancel
           </Button>
         )}
