@@ -7,6 +7,7 @@ import ChatBox from "../../../components/chat";
 import { Button } from "@/components/ui/button";
 import { useParams } from "next/navigation";
 import { authClient } from "@repo/auth";
+import { useMatchStore } from "@/store/matchStore";
 
 // Type for chat messages
 type ChatMessage = { id: number; sender: string; message: string };
@@ -27,13 +28,15 @@ type SubmissionResult = {
 
 const App: React.FC = () => {
   const params = useParams()
+  const { questions } = useMatchStore();
+  const [questionData, setQuestionData] = useState<questionSchema[]>([]);
   const [selectedLang, setSelectedLang] = useState("cpp");
   const [loading, setLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [questions, setQuestions] = useState<questionSchema[]>([]);
+  // const [questions, setQuestions] = useState<questionSchema[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [result, setResult] = useState<SubmissionResult | null>(null);
-  const { data: session, error } = authClient.useSession()
+  const { data: session } = authClient.useSession()
   const [code, setCode] = useState<string>(`#include <iostream>
 using namespace std;
 
@@ -43,26 +46,44 @@ int main() {
 }`);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
 
+  useEffect(() => {
+    console.log("questions", questions)
+  })
+
   // Fetch questions
   useEffect(() => {
     const fetchQuestions = async () => {
+      if (!questions.length) return;
+
+      const ids = questions.map((q) => q.questionId);
+
       try {
-        const response = await fetch("http://localhost:5000/api/setquestions");
-        const data = await response.json();
-        setQuestions(data.questions || []);
+        const res = await fetch("http://localhost:5000/api/setquestions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids }),
+        });
+        const data = await res.json();
+
+        const sorted = questions.map(
+          (q) => data.questions.find((d: any) => d.id === q.questionId)
+        );
+
+        setQuestionData(sorted);
       } catch (err) {
         console.error("Failed to fetch questions", err);
       } finally {
         setLoadingQuestions(false);
       }
     };
-    fetchQuestions();
-  }, []);
 
-  const currentQuestion = questions[currentQIndex];
+    fetchQuestions();
+  }, [questions]);
+
+  const currentQuestion = questionData[currentQIndex];
 
   const handleSubmit = async () => {
-    const currentQuestion = questions[currentQIndex];
+    const currentQuestion = questionData[currentQIndex];
     if (!currentQuestion) return;
     setLoading(true);
 
@@ -76,7 +97,7 @@ int main() {
       setResult(res.data as SubmissionResult);
       
       const newResults =
-        questions[currentQIndex]?.testcases.map(() => ({
+        questionData[currentQIndex]?.testcases.map(() => ({
           passed: Math.random() > 0.3,
         })) || [];
     } catch (err) {
@@ -170,7 +191,7 @@ int main() {
         </section>
 
         {/* Navigation */}
-        {questions.length > 0 && (
+        {questionData.length > 0 && (
           <div className="flex justify-between mt-4">
             <button
               onClick={() =>

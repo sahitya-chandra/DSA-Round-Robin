@@ -1,3 +1,4 @@
+import { useMatchStore } from "@/store/matchStore";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
@@ -6,6 +7,7 @@ let socket: Socket | null = null;
 
 export function useSocket(userId: string): Socket | null {
   const router = useRouter();
+  const { setMatchData } = useMatchStore.getState();
 
   useEffect(() => {
     if (!userId) return;
@@ -30,6 +32,11 @@ export function useSocket(userId: string): Socket | null {
 
     const onMatchStarted = (data: any) => {
       console.log("Match started:", data);
+      setMatchData({
+        matchId: data.matchId,
+        opponentId: data.opponentId,
+        questions: data.questions,
+      });
       router.push(`/code/${data.matchId}`);
     };
 

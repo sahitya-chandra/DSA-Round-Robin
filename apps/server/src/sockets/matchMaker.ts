@@ -66,7 +66,7 @@ export function startMatchMaker(io: Server) {
           order: i + 1,
         }));
 
-        const startedAt = new Date().getTime()
+        const startedAt = new Date().toISOString()
 
         await redis.hmset(
           `${ACTIVE_MATCH_PREFIX}${matchId}`,
