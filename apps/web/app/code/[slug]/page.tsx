@@ -28,12 +28,11 @@ type SubmissionResult = {
 
 const App: React.FC = () => {
   const params = useParams()
-  const { questions } = useMatchStore();
-  const [questionData, setQuestionData] = useState<questionSchema[]>([]);
+  const { questions, hydrated } = useMatchStore();
+  const [questionData, setQuestionData] = useState<any[]>(questions);
   const [selectedLang, setSelectedLang] = useState("cpp");
   const [loading, setLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  // const [questions, setQuestions] = useState<questionSchema[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [result, setResult] = useState<SubmissionResult | null>(null);
   const { data: session } = authClient.useSession()
@@ -48,28 +47,20 @@ int main() {
 
   useEffect(() => {
     console.log("questions", questions)
+    console.log("questionData", questionData)
+
   })
 
-  // Fetch questions
   useEffect(() => {
-    const fetchQuestions = async () => {
+    if (!hydrated) return;
+
+    const fetchMatch = async () => {
       if (!questions.length) return;
-
-      const ids = questions.map((q) => q.questionId);
-
       try {
-        const res = await fetch("http://localhost:5000/api/setquestions", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ids }),
-        });
+        const res = await fetch(`http://localhost:5000/api/match/getmatch/${params.slug}`);
         const data = await res.json();
-
-        const sorted = questions.map(
-          (q) => data.questions.find((d: any) => d.id === q.questionId)
-        );
-
-        setQuestionData(sorted);
+        console.log("data.questions", data.questions);
+        setQuestionData(Object.values(data.questions));
       } catch (err) {
         console.error("Failed to fetch questions", err);
       } finally {
@@ -77,13 +68,13 @@ int main() {
       }
     };
 
-    fetchQuestions();
-  }, [questions]);
+    fetchMatch();
+  }, [hydrated, questions]);
 
-  const currentQuestion = questionData[currentQIndex];
+  const currentQuestion = questionData[currentQIndex]?.questionData || null;
 
   const handleSubmit = async () => {
-    const currentQuestion = questionData[currentQIndex];
+    const currentQuestion = questionData[currentQIndex]?.questionData;
     if (!currentQuestion) return;
     setLoading(true);
 
@@ -97,7 +88,7 @@ int main() {
       setResult(res.data as SubmissionResult);
       
       const newResults =
-        questionData[currentQIndex]?.testcases.map(() => ({
+        questionData[currentQIndex]?.questionData?.testcases.map(() => ({
           passed: Math.random() > 0.3,
         })) || [];
     } catch (err) {

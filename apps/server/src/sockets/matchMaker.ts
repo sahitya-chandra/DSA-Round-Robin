@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
-import prisma from "@repo/db";
+import prisma, { Question } from "@repo/db";
 import { connection as redis, publisherClient, WAITING_LIST, USER_MATCH_PREFIX, ACTIVE_MATCH_PREFIX } from "@repo/queue";
 
 const MATCH_TTL = 60 * 60;
@@ -48,8 +48,8 @@ export function startMatchMaker(io: Server) {
         }
 
         const questions = await prisma.$queryRaw<
-          Array<{ id: number }>
-        >`SELECT id FROM "Question" ORDER BY RANDOM() LIMIT 5`;
+          Question[]
+        >`SELECT * FROM "Question" ORDER BY RANDOM() LIMIT 5`;
 
         if (!questions || questions.length === 0) {
           await redis.lpush(WAITING_LIST, requesterId);
@@ -62,7 +62,7 @@ export function startMatchMaker(io: Server) {
         const matchId = uuidv4();
 
         const mqPayload = questions.map((q, i) => ({
-          questionId: q.id,
+          questionData: q,
           order: i + 1,
         }));
 

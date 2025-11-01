@@ -7,9 +7,7 @@ import { PORT } from "./config/config";
 import friendRouter from "./routes/social.route";
 import submitRouter from "./routes/submit.route"
 import setQuestions from "./routes/setQuestions.route"
-import matchRouter from "./routes/createMatch.route"
-import finishRouter from "./routes/finishMatch.route";
-import cancelRouter from "./routes/cancelMatch.route";
+import matchRouter from "./routes/match.route"
 
 const app = express();
 app.use(
@@ -24,8 +22,6 @@ app.use("/api/social", friendRouter)
 app.use("/api/submit", submitRouter);
 app.use("/api/setquestions", setQuestions);
 app.use("/api/match", matchRouter)
-app.use("/api/match/finish", finishRouter);
-app.use("/api/match/cancel", cancelRouter);
 
 const server = http.createServer(app);
 export const io = initIo(server);
