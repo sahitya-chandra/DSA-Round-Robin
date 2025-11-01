@@ -2,25 +2,17 @@ import prisma from "@repo/db";
 import { Request, Response } from "express";
 
 export const setQuestions = async (req: Request, res: Response) => {
-	//easy
-  const a = Math.floor(Math.random() * 34) + 1;
-  const b = Math.floor(Math.random() * 34) + 1;
-  console.log("a  and b ", a, " ", b);
-  // //medium
-  const c = Math.floor(Math.random() * 34) + 1;
-  const d = Math.floor(Math.random() * 34) + 1;
-  console.log("c and d ", c, " ", d);
-  // //hard
-  const e = Math.floor(Math.random() * 30);
-  console.log("e ", e);
-  //Duplicate NOT CHECKED ---------
-  const ids: number[] = [1, 2, 3, 4, 5];
+  const { ids } = req.body;
+  if (!ids || !Array.isArray(ids)) {
+    return res.status(400).json({ error: "ids must be an array" });
+  }
+
   try {
     const questionsFromDb = await prisma.question.findMany({
       where: { id: { in: ids } },
     });
 
-    const questions: any[] = questionsFromDb.map((q: any) => ({
+    const questions = questionsFromDb.map((q) => ({
       ...q,
       testcases: q.testcases ?? [],
     }));
@@ -28,6 +20,6 @@ export const setQuestions = async (req: Request, res: Response) => {
     console.log("questions", questions)
     res.status(200).json({ status: "success", questions });
   } catch (err: any) {
-   res.status(500).json({ status: "failed in getting questions", error: err.message });
+    res.status(500).json({ status: "failed in getting questions", error: err.message });
   }
 }

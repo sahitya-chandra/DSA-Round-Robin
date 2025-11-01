@@ -3,7 +3,11 @@ import React, { useState, useEffect } from "react";
 import CodeEditor from "@/components/editor/editor";
 import axios from "axios";
 import { questionSchema } from "@repo/types";
-import ChatBox from "../../components/chat";
+import ChatBox from "../../../components/chat";
+import { Button } from "@/components/ui/button";
+import { useParams } from "next/navigation";
+import { authClient } from "@repo/auth";
+import { useMatchStore } from "@/store/matchStore";
 
 // Type for chat messages
 type ChatMessage = { id: number; sender: string; message: string };
@@ -23,12 +27,15 @@ type SubmissionResult = {
 };
 
 const App: React.FC = () => {
+  const params = useParams()
+  const { questions, hydrated } = useMatchStore();
+  const [questionData, setQuestionData] = useState<any[]>(questions);
   const [selectedLang, setSelectedLang] = useState("cpp");
   const [loading, setLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
-  const [questions, setQuestions] = useState<questionSchema[]>([]);
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [result, setResult] = useState<SubmissionResult | null>(null);
+  const { data: session } = authClient.useSession()
   const [code, setCode] = useState<string>(`#include <iostream>
 using namespace std;
 
@@ -38,26 +45,36 @@ int main() {
 }`);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
 
-  // Fetch questions
   useEffect(() => {
-    const fetchQuestions = async () => {
+    console.log("questions", questions)
+    console.log("questionData", questionData)
+
+  })
+
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const fetchMatch = async () => {
+      if (!questions.length) return;
       try {
-        const response = await fetch("http://localhost:5000/set-questions");
-        const data = await response.json();
-        setQuestions(data.questions || []);
+        const res = await fetch(`http://localhost:5000/api/match/getmatch/${params.slug}`);
+        const data = await res.json();
+        console.log("data.questions", data.questions);
+        setQuestionData(Object.values(data.questions));
       } catch (err) {
         console.error("Failed to fetch questions", err);
       } finally {
         setLoadingQuestions(false);
       }
     };
-    fetchQuestions();
-  }, []);
 
-  const currentQuestion = questions[currentQIndex];
+    fetchMatch();
+  }, [hydrated, questions]);
+
+  const currentQuestion = questionData[currentQIndex]?.questionData || null;
 
   const handleSubmit = async () => {
-    const currentQuestion = questions[currentQIndex];
+    const currentQuestion = questionData[currentQIndex]?.questionData;
     if (!currentQuestion) return;
     setLoading(true);
 
@@ -71,7 +88,7 @@ int main() {
       setResult(res.data as SubmissionResult);
       
       const newResults =
-        questions[currentQIndex]?.testcases.map(() => ({
+        questionData[currentQIndex]?.questionData?.testcases.map(() => ({
           passed: Math.random() > 0.3,
         })) || [];
     } catch (err) {
@@ -88,6 +105,27 @@ int main() {
     ]);
   };
 
+  const finish = async () => {
+    const matchId = params.slug
+    console.log("matchIO", matchId)
+    if (!matchId) return
+    setLoading(true);
+    try {
+      await fetch(`http://localhost:5000/api/match/finish/${matchId}`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ winnerId: session?.user.id})
+      });
+    } catch (err) {
+      console.error("Cancel error:", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 text-gray-100 font-sans relative overflow-hidden">
       {/* Left Column */}
@@ -96,6 +134,7 @@ int main() {
           <h2 className="text-3xl font-extrabold tracking-tight text-cyan-400">
             ⚔️ DSA Round Robin
           </h2>
+          <Button onClick={finish}>Finsih Match</Button>
         </div>
 
         {/* Problem */}
@@ -143,7 +182,7 @@ int main() {
         </section>
 
         {/* Navigation */}
-        {questions.length > 0 && (
+        {questionData.length > 0 && (
           <div className="flex justify-between mt-4">
             <button
               onClick={() =>

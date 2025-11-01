@@ -51,7 +51,7 @@ export default function Page() {
         return;
       }
 			console.log("data", data)
-			router.push("/code");
+			router.push("/");
       setSuccessMsg("Account created successfully!");
       e.currentTarget?.reset();
     } catch (err) {

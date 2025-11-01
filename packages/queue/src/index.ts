@@ -5,9 +5,12 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: "../../.env" });
 
-const connection = new IORedis(String(process.env.REDIS_URL), {
+export const connection = new IORedis(String(process.env.REDIS_URL), {
   maxRetriesPerRequest: null
 });
+
+export const subscriberClient = connection.duplicate();
+export const publisherClient = connection.duplicate();
 
 type CodeJob = { code: string | null , language?: string, testcases: Testcase[]};
 
@@ -18,6 +21,8 @@ export function createCodeWorker(
 ) {
   return new Worker<CodeJob>("code-execution", processFn, { connection });
 }
-
 export const queueEvents = new QueueEvents("code-execution", { connection });
 
+export const WAITING_LIST = "waiting_users";
+export const USER_MATCH_PREFIX = "user_match:";
+export const ACTIVE_MATCH_PREFIX = "active_match:";
