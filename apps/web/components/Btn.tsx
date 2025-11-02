@@ -1,19 +1,24 @@
-"use client"
-import { useEffect, useState } from "react";
-import { Button } from "./ui/button"
-import { useSocket } from "@/hooks/useSocket"
+"use client";
 
-export const Btn = ({userId}: {userId: string | undefined}) => {
+import { useEffect, useState } from "react";
+import { Button } from "./ui/button";
+import { useSocket } from "@/hooks/useSocket";
+import { useRouter } from "next/navigation";
+
+export const Btn = ({ userId }: { userId: string | undefined }) => {
   const [loading, setLoading] = useState(false);
   const [queued, setQueued] = useState(false);
-  const socket = useSocket(userId || "")
+  const socket = useSocket(userId || "");
+  const router = useRouter();
 
   useEffect(() => {
     if (!socket) return;
 
-    const handleMatchStarted = () => {
+    const handleMatchStarted = (data: any) => {
+      console.log("match_started → redirecting to", data.matchId);
       setLoading(false);
       setQueued(false);
+      router.push(`/code/${data.matchId}`);
     };
 
     socket.on("match_started", handleMatchStarted);
@@ -21,7 +26,7 @@ export const Btn = ({userId}: {userId: string | undefined}) => {
     return () => {
       socket.off("match_started", handleMatchStarted);
     };
-  }, [socket]);
+  }, [socket, router]);
 
   const match = async () => {
     if (!userId) return;
@@ -30,29 +35,30 @@ export const Btn = ({userId}: {userId: string | undefined}) => {
     try {
       const res = await fetch("http://localhost:5000/api/match", {
         method: "POST",
-        credentials: 'include'
+        credentials: "include",
       });
 
       const data = await res.json();
-      console.log("Response data:", data);
+      console.log("Match API response:", data);
 
       if (data.status === "queued" || data.status === "already_queued") {
         setQueued(true);
+        setLoading(false);
       } else if (data.status === "already_in_match" && data.matchId) {
-        window.location.href = `/code/${data.matchId}`;
+        router.push(`/code/${data.matchId}`);
       }
     } catch (error) {
       console.error("Match error:", error);
       setLoading(false);
     }
-  }
+  };
 
   const cancel = async () => {
     setLoading(true);
     try {
       const res = await fetch("http://localhost:5000/api/match/cancel", {
         method: "POST",
-        credentials: "include"
+        credentials: "include",
       });
       if (res.ok) {
         setQueued(false);
@@ -62,16 +68,16 @@ export const Btn = ({userId}: {userId: string | undefined}) => {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="flex flex-col items-center space-y-3">
       <div className="flex space-x-2">
         <Button onClick={match} disabled={loading || queued}>
-          {queued ? "Searching for opponent..." : "Start Match"}
+          {queued ? "Searching..." : "Start Match"}
         </Button>
         {queued && (
-          <Button variant="ghost" onClick={cancel}>
+          <Button variant="ghost" onClick={cancel} disabled={loading}>
             Cancel
           </Button>
         )}
@@ -79,9 +85,9 @@ export const Btn = ({userId}: {userId: string | undefined}) => {
 
       {queued && (
         <div className="text-gray-400 text-sm animate-pulse">
-          Waiting for another player to join...
+          Waiting for opponent...
         </div>
       )}
     </div>
-  )
-}
+  );
+};

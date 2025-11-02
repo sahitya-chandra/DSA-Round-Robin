@@ -12,7 +12,7 @@ export const connection = new IORedis(String(process.env.REDIS_URL), {
 export const subscriberClient = connection.duplicate();
 export const publisherClient = connection.duplicate();
 
-type CodeJob = { code: string | null , language?: string, testcases: Testcase[]};
+type CodeJob = { code: string | null , language?: string, testcases: Testcase[], matchId: string, submissionId: string, userId: string, questionId: number};
 
 export const codeQueue = new Queue<CodeJob>("code-execution", { connection });
 

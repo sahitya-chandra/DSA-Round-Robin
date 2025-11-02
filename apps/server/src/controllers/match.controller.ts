@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../types/types";
 import { ACTIVE_MATCH_PREFIX, connection as redis, USER_MATCH_PREFIX, WAITING_LIST } from "@repo/queue";
-import prisma from "@repo/db";
+import { finishMatchById } from "../helpers/finishMatch.helper";
 
 export const matchController = async (req: AuthRequest, res: Response) => {
   const user = req.user;
@@ -15,12 +15,22 @@ export const matchController = async (req: AuthRequest, res: Response) => {
       return res.status(200).json({ status: "already_in_match", matchId: activeMatch });
     }
 
-    const pos = await redis.lpos(WAITING_LIST, userId);
-    if (pos !== null) {
+    const LUA_ADD_IF_NOT_EXISTS = `
+      if redis.call('lpos', KEYS[1], ARGV[1]) == false then
+        redis.call('lpush', KEYS[1], ARGV[1])
+        return 1
+      end
+      return 0
+    `;
+    const added = await redis.eval(
+      LUA_ADD_IF_NOT_EXISTS,
+      1,                 
+      WAITING_LIST,      
+      userId            
+    );
+    if (added === 0) {
       return res.status(200).json({ status: "already_queued" });
     }
-
-    await redis.lpush(WAITING_LIST, userId);
 
     return res.json({ status: "queued" });
   } catch (err) {
@@ -45,51 +55,15 @@ export const cancelMatchController = async (req: Request, res: Response) => {
 export const finishMatchController = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
   const { matchId } = req.params;
-  const { winnerId } = req.body;
 
   if (!userId || !matchId) return res.status(400).json({ error: "bad request" });
 
   try {
     const raw = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${matchId}`);
-    if (!raw || !raw.status) return res.status(404).json({ error: "match not found" });
-
-    const requesterId = raw.requesterId;
-    const opponentId = raw.opponentId;
-    const questions = raw.questions ? JSON.parse(raw.questions as string) : [];
-    const startedAt = new Date(String(raw.startedAt))
-
-    await prisma.$transaction(async (tx) => {
-      await tx.match.create({
-        data: {
-          id: matchId,
-          status: "FINISHED",
-          winnerId: winnerId ?? null,
-          startedAt,
-          endedAt: new Date(),
-          participants: {
-            create: [
-              { userId: requesterId! },
-              { userId: opponentId! },
-            ],
-          },
-          questions: {
-            createMany: {
-              data: questions.map((q: any) => ({
-                questionId: q.questionData.id,
-                order: q.order,
-              })),
-            },
-          },
-        },
-      });
-
-      // persist submissions from Redis here (omitted) optional
-    });
-
-    await redis.del(`${ACTIVE_MATCH_PREFIX}${matchId}`);
-    if (requesterId) await redis.del(`${USER_MATCH_PREFIX}${requesterId}`);
-    if (opponentId) await redis.del(`${USER_MATCH_PREFIX}${opponentId}`);
-
+    if (!raw || (raw.requesterId !== userId && raw.opponentId !== userId)) {
+      return res.status(403).json({ error: "not a participant" });
+    }
+    await finishMatchById(matchId, { winnerId: raw.opponentId === userId ? raw.requesterId : raw.opponentId });
     return res.json({ ok: true });
   } catch (err) {
     console.error("finishMatch error:", err);
@@ -97,11 +71,17 @@ export const finishMatchController = async (req: AuthRequest, res: Response) => 
   }
 };
 
-export const getMatch = async (req: Request, res: Response) => {
+export const getMatch = async (req: AuthRequest, res: Response) => {
   const { matchId } = req.params;
+  const userId = req.user?.id
+
   try {
     const matchKey = `${ACTIVE_MATCH_PREFIX}${matchId}`;
     const data = await redis.hgetall(matchKey);
+
+    if (data.requesterId !== userId && data.opponentId !== userId) {
+      return res.status(403).json({ error: "forbidden" });
+    }
 
     if (!data || Object.keys(data).length === 0)
       return res.status(404).json({ error: "Match not found" });

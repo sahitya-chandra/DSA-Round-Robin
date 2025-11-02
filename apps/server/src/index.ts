@@ -8,6 +8,7 @@ import friendRouter from "./routes/social.route";
 import submitRouter from "./routes/submit.route"
 import setQuestions from "./routes/setQuestions.route"
 import matchRouter from "./routes/match.route"
+import { matchSweeper } from "./sockets/matchSweeper";
 
 const app = express();
 app.use(
@@ -30,4 +31,5 @@ setupSockets(io);
 
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  matchSweeper()
 });

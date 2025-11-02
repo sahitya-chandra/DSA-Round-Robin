@@ -3,7 +3,8 @@ import { v4 as uuidv4 } from "uuid";
 import prisma, { Question } from "@repo/db";
 import { connection as redis, publisherClient, WAITING_LIST, USER_MATCH_PREFIX, ACTIVE_MATCH_PREFIX } from "@repo/queue";
 
-const MATCH_TTL = 60 * 60;
+const MATCH_DURATION_SECONDS = 10 * 60;
+const MATCH_TTL = MATCH_DURATION_SECONDS + 120;
 const LOCK_KEY = "matchmaker_lock";
 const LOCK_TTL_MS = 2000;
 
@@ -67,6 +68,7 @@ export function startMatchMaker(io: Server) {
         }));
 
         const startedAt = new Date().toISOString()
+        const expiresAt = new Date(Date.now() + MATCH_DURATION_SECONDS * 1000).toISOString();
 
         await redis.hmset(
           `${ACTIVE_MATCH_PREFIX}${matchId}`,
@@ -79,12 +81,28 @@ export function startMatchMaker(io: Server) {
           "questions",
           JSON.stringify(mqPayload),
           "startedAt",
-          startedAt
+          startedAt,
+          "duration",
+          `${MATCH_DURATION_SECONDS}`,
+          "expiresAt",
+          expiresAt
         );
         await redis.expire(`${ACTIVE_MATCH_PREFIX}${matchId}`, MATCH_TTL);
 
         await redis.set(`${USER_MATCH_PREFIX}${requesterId}`, matchId, "EX", MATCH_TTL);
         await redis.set(`${USER_MATCH_PREFIX}${opponentId}`, matchId, "EX", MATCH_TTL);
+
+        // setTimeout(async () => {
+        //   try {
+        //     const raw = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${matchId}`)
+        //     if (!raw || raw.status !== "RUNNING") return
+        //     console.log(`Auto-finishing match ${matchId} due to timeout`)
+
+        //     // await autoFinishMatch(matchId);
+        //   } catch (err) {
+        //     console.error("Auto-finish error:", err);
+        //   }
+        // }, MATCH_DURATION_SECONDS * 1000)
 
         const payload = {
           event: "match_started",
@@ -94,6 +112,9 @@ export function startMatchMaker(io: Server) {
             requesterId,
             opponentId,
             questions: mqPayload,
+            startedAt,
+            expiresAt,
+            duration: MATCH_DURATION_SECONDS
           },
         };
         await publisherClient.publish("match_created", JSON.stringify(payload));

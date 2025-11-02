@@ -1,4 +1,4 @@
-import { createCodeWorker } from "@repo/queue";
+import { createCodeWorker, publisherClient, connection as redis } from "@repo/queue";
 import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: "../../.env" });
 
 createCodeWorker(async (job) => {
-  const { code, language, testcases } = job.data;
+  const { code, language, testcases, submissionId, matchId, userId, questionId } = job.data;
   if (!code || !language || !testcases) throw new Error("Missing data");
 
   const tempDir = path.join(String(process.env.HOME_DIR), "docker_temp");
@@ -35,12 +35,16 @@ createCodeWorker(async (job) => {
 
   const dockerBase = `docker run --rm -i -v ${tempDir}:/code --memory=128m --cpus=0.5 --log-opt max-size=10m --log-opt max-file=3 ${dockerImage} bash -c`;
 
-  const results: {
+  const detailedResults: {
     input: string;
     expected: string;
     output: string;
     passed: boolean;
   }[] = [];
+
+  let passedCount = 0;
+  const total = testcases.length;
+  const startTime = Date.now();
 
   try {
     for (const [i, tc] of testcases.entries()) {
@@ -59,35 +63,70 @@ createCodeWorker(async (job) => {
 
         if (proc.stdin) {
           proc.stdin.write(tc.input);
-          proc.stdin.end()
+          proc.stdin.end();
         }
       });
 
       const cleanedOutput = output.trim();
       const expected = tc.expected_output.trim();
-
       const passed = cleanedOutput === expected;
-      console.log("Expected:", JSON.stringify(expected));
-      console.log("Got     :", JSON.stringify(cleanedOutput));
-      console.log("Passed? :", passed);
 
-      results.push({
+      if (passed) passedCount++;
+
+      detailedResults.push({
         input: tc.input,
         expected,
         output: cleanedOutput,
         passed,
       });
+
+      console.log("Expected:", JSON.stringify(expected));
+      console.log("Got     :", JSON.stringify(cleanedOutput));
+      console.log("Passed? :", passed);
     }
 
-    return results;
+    const endTime = Date.now();
+    const timeMs = endTime - startTime;
+
+    const summaryResult = {
+      passed: passedCount === total,
+      passedCount,
+      total,
+      timeMs,
+    };
+
+    const subHashKey = `match_submissions:${matchId}:${userId}`;
+    const stored = await redis.hget(subHashKey, submissionId);
+    if (stored) {
+      const s = JSON.parse(stored);
+      s.status = "DONE";
+      s.result = summaryResult;
+      s.detailedResults = detailedResults;
+      await redis.hset(subHashKey, submissionId, JSON.stringify(s));
+    }
+
+    publisherClient.publish("match_events", JSON.stringify({
+      event: "submission_result",
+      data: {
+        matchId,
+        userId,
+        submissionId,
+        questionId,
+        result: summaryResult,
+        details: detailedResults,
+      },
+    }));
+
+    return summaryResult;
   } catch (err) {
     console.error("Error during execution:", err);
-    return testcases.map((tc: any) => ({
-      input: tc.input,
-      expected: tc.expected_output,
-      output: String(err),
+    return {
       passed: false,
-    }));
+      passedCount: 0,
+      total: testcases.length,
+      timeMs: 0,
+      error: String(err),
+    };
   } finally {
     try {
       fs.unlinkSync(filePath);
