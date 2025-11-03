@@ -16,6 +16,7 @@
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@repo/auth": "workspace:*",
+    "@repo/db": "workspace:*",
     "@repo/ui": "workspace:*",
     "@uiw/codemirror-theme-vscode": "^4.25.2",
     "@uiw/react-codemirror": "^4.25.2",
@@ -28,7 +29,9 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "socket.io-client": "^4.8.1",
-    "tailwind-merge": "^3.3.1"
+
+    "tailwind-merge": "^3.3.1",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

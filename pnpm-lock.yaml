@@ -67,6 +67,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@repo/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -85,6 +88,9 @@ importers:
       socket.io:
         specifier: ^4.8.1
         version: 4.8.1
+      uuid:
+        specifier: ^13.0.0
+        version: 13.0.0
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
@@ -119,6 +125,9 @@ importers:
       '@repo/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@repo/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -158,6 +167,9 @@ importers:
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
+      zustand:
+        specifier: ^5.0.8
+        version: 5.0.8(@types/react@19.1.0)(react@19.1.0)
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
@@ -195,6 +207,9 @@ importers:
 
   apps/worker:
     dependencies:
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@repo/queue':
         specifier: workspace:*
         version: link:../../packages/queue
@@ -2982,6 +2997,10 @@ packages:
     resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
     hasBin: true
 
+  uuid@13.0.0:
+    resolution: {integrity: sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==}
+    hasBin: true
+
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
 
@@ -3049,6 +3068,24 @@ packages:
 
   zod@4.1.11:
     resolution: {integrity: sha512-WPsqwxITS2tzx1bzhIKsEs19ABD5vmCVa4xBo2tq/SrV4RNZtfws1EnCWQXM6yh8bD08a1idvkB5MZSBiZsjwg==}
+
+  zustand@5.0.8:
+    resolution: {integrity: sha512-gyPKpIaxY9XcO2vSMrLbiER7QMAMGOQZVRdJ6Zi782jkbzZygq5GI9nG8g+sMgitRtndwaBSl7uiqC49o1SSiw==}
+    engines: {node: '>=12.20.0'}
+    peerDependencies:
+      '@types/react': '>=18.0.0'
+      immer: '>=9.0.6'
+      react: '>=18.0.0'
+      use-sync-external-store: '>=1.2.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+      immer:
+        optional: true
+      react:
+        optional: true
+      use-sync-external-store:
+        optional: true
 
 snapshots:
 
@@ -5944,6 +5981,8 @@ snapshots:
 
   uuid@11.1.0: {}
 
+  uuid@13.0.0: {}
+
   v8-compile-cache-lib@3.0.1: {}
 
   vary@1.1.2: {}
@@ -6010,3 +6049,8 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zod@4.1.11: {}
+
+  zustand@5.0.8(@types/react@19.1.0)(react@19.1.0):
+    optionalDependencies:
+      '@types/react': 19.1.0
+      react: 19.1.0
