@@ -1,169 +1,207 @@
-import prisma from "@repo/db";
-import { Request , Response  } from "express";
+import PrismaClient from "@repo/db";
+import { Request, Response } from "express";
 
+const prisma = PrismaClient;
 
-export async function searchFriend(req: Request, res: Response) {
-  const { userId } = req.body;
-  if (!userId) return res.status(400).json({ message: "User ID required" });
-
+/**
+ * 🔍 Search Friend by name
+ * Query: ?userName=div&userId=abc123
+ */
+export const searchFriend = async (req: Request, res: Response) => {
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) return res.status(404).json({ message: "User not found" });
-    res.status(200).json(user);
-  } catch (error) {
-    console.error("Error searching friend:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    const { userName, userId } = req.query as { userName?: string; userId?: string };
+    if (!userName || !userId)
+      return res.status(400).json({ error: "Missing search or userId" });
+
+    const users = await prisma.user.findMany({
+      where: {
+        name: { contains: userName, mode: "insensitive" },
+        NOT: { id: userId },
+      },
+      select: { id: true, name: true, email: true },
+    });
+
+    const results = await Promise.all(
+      users.map(async (user) => {
+        const existingReq = await prisma.friendRequest.findFirst({
+          where: {
+            OR: [
+              { requesterId: userId, addresseeId: user.id },
+              { requesterId: user.id, addresseeId: userId },
+            ],
+          },
+        });
+
+        const existingFriend = await prisma.friend.findFirst({
+          where: {
+            OR: [
+              { userAId: userId, userBId: user.id },
+              { userAId: user.id, userBId: userId },
+            ],
+          },
+        });
+
+        let friendStatus: "PENDING" | "REJECTED" | "NONE" | "FRIEND" | "ACCEPTED" = "NONE";
+        if (existingFriend) friendStatus = "FRIEND";
+        else if (existingReq) friendStatus = existingReq.status;
+
+        return { ...user, friendStatus };
+      })
+    );
+
+    res.json(results);
+  } catch (err) {
+    console.error("searchFriend error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
-export async function friendReq(req: Request, res: Response) {
-  const { userId: sender, friendId: receiver } = req.body;
-
-  if (!sender || !receiver)
-    return res.status(400).json({ message: "Missing sender or receiver ID" });
-  if (sender === receiver)
-    return res.status(400).json({ message: "You cannot add yourself" });
-
+/**
+ * 📤 Send Friend Request
+ * Body: { userId, friendId }
+ */
+export const friendReq = async (req: Request, res: Response) => {
   try {
-    const existingReq = await prisma.friendRequest.findFirst({
+    const { userId, friendId } = req.body;
+    if (!userId || !friendId)
+      return res.status(400).json({ error: "Missing userId or friendId" });
+
+    const existing = await prisma.friendRequest.findFirst({
       where: {
         OR: [
-          { requesterId: sender, addresseeId: receiver },
-          { requesterId: receiver, addresseeId: sender },
+          { requesterId: userId, addresseeId: friendId },
+          { requesterId: friendId, addresseeId: userId },
         ],
-        status: "PENDING",
       },
     });
-    if (existingReq)
-      return res.status(400).json({ message: "Friend request already exists" });
 
-    const friendReq = await prisma.friendRequest.create({
-      data: { requesterId: sender, addresseeId: receiver },
+    if (existing)
+      return res.status(200).json({ success: false, message: "Already exists" });
+
+    await prisma.friendRequest.create({
+      data: {
+        requesterId: userId,
+        addresseeId: friendId,
+      },
     });
 
-    res.status(201).json(friendReq);
-  } catch (error) {
-    console.error("Error sending friend request:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.json({ success: true, message: "Friend request sent" });
+  } catch (err) {
+    console.error("friendReq error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
-export async function getAllFriendReq(req: Request, res: Response) {
-  const { userId } = req.body;
-  if (!userId) return res.status(400).json({ message: "User ID required" });
-
+/**
+ * 📥 Get all Friend Requests for a user
+ * Query: ?userId=abc123
+ */
+export const getAllFriendReq = async (req: Request, res: Response) => {
   try {
+    const { userId } = req.query as { userId?: string };
+    if (!userId) return res.status(400).json({ error: "Missing userId" });
+
     const requests = await prisma.friendRequest.findMany({
-      where: {
-        OR: [{ requesterId: userId }, { addresseeId: userId }],
+      where: { addresseeId: userId, status: "PENDING" },
+      include: {
+        requester: { select: { id: true, name: true, email: true } },
       },
+      orderBy: { createdAt: "desc" },
     });
 
-    if (requests.length === 0)
-      return res.status(404).json({ message: "No friend requests found" });
+    const formatted = requests.map((r) => ({
+      id: r.id,
+      fromUser: r.requester,
+    }));
 
-    res.status(200).json(requests);
-  } catch (error) {
-    console.error("Error fetching friend requests:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.json(formatted);
+  } catch (err) {
+    console.error("getAllFriendReq error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
-export async function acceptFriendReq(req: Request, res: Response) {
-  const { userId: sender, friendId: receiver } = req.body;
-  if (!sender || !receiver)
-    return res.status(400).json({ message: "Missing sender or receiver ID" });
-
+/**
+ * ✅ Accept Friend Request
+ * Body: { requestId }
+ */
+export const acceptFriendReq = async (req: Request, res: Response) => {
   try {
-    const alreadyFriends = await prisma.friend.findFirst({
-      where: {
-        OR: [
-          { userAId: sender, userBId: receiver },
-          { userAId: receiver, userBId: sender },
-        ],
-      },
-    });
-    if (alreadyFriends)
-      return res.status(400).json({ message: "You are already friends" });
+    const { requestId } = req.body;
+    if (!requestId) return res.status(400).json({ error: "Missing requestId" });
 
-    const existingReq = await prisma.friendRequest.findFirst({
-      where: {
-        requesterId: sender,
-        addresseeId: receiver,
-        status: "PENDING",
-      },
+    const request = await prisma.friendRequest.findUnique({
+      where: { id: requestId },
     });
 
-    if (!existingReq)
-      return res
-        .status(404)
-        .json({ message: "No pending friend request found" });
+    if (!request) return res.status(404).json({ error: "Request not found" });
 
     await prisma.friendRequest.update({
-      where: { id: existingReq.id },
+      where: { id: requestId },
       data: { status: "ACCEPTED" },
     });
 
     await prisma.friend.create({
-      data: { userAId: sender, userBId: receiver },
-    });
-
-    res.status(200).json({ message: "Friend request accepted successfully" });
-  } catch (error) {
-    console.error("Error accepting friend request:", error);
-    res.status(500).json({ message: "Internal Server Error" });
-  }
-}
-
-export async function rejectReq(req: Request, res: Response) {
-  const { userId: sender, friendId: receiver } = req.body;
-  if (!sender || !receiver)
-    return res.status(400).json({ message: "Missing sender or receiver ID" });
-
-  try {
-    const existingReq = await prisma.friendRequest.findFirst({
-      where: {
-        requesterId: sender,
-        addresseeId: receiver,
-        status: "PENDING",
+      data: {
+        userAId: request.requesterId,
+        userBId: request.addresseeId,
       },
     });
 
-    if (!existingReq)
-      return res
-        .status(404)
-        .json({ message: "No pending friend request found" });
+    res.json({ success: true, message: "Friend request accepted" });
+  } catch (err) {
+    console.error("acceptFriendReq error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * ❌ Reject Friend Request
+ * Body: { requestId }
+ */
+export const rejectReq = async (req: Request, res: Response) => {
+  try {
+    const { requestId } = req.body;
+    if (!requestId) return res.status(400).json({ error: "Missing requestId" });
 
     await prisma.friendRequest.update({
-      where: { id: existingReq.id },
+      where: { id: requestId },
       data: { status: "REJECTED" },
     });
 
-    res.status(200).json({ message: "Friend req rejected" });
-  } catch (error) {
-    console.error("Error rejecting friend request:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.json({ success: true, message: "Request rejected" });
+  } catch (err) {
+    console.error("rejectReq error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
-}
+};
 
-export async function getFriends(req: Request, res: Response) {
-  const { userId } = req.body;
-  if (!userId) return res.status(400).json({ message: "User ID required" });
-
+/**
+ * 👯 Get Friends list
+ * Body: { userId }
+ */
+export const getFriends = async (req: Request, res: Response) => {
   try {
-    const allFriends = await prisma.friend.findMany({
+    const { userId } = req.body;
+    if (!userId) return res.status(400).json({ error: "Missing userId" });
+
+    const friends = await prisma.friend.findMany({
       where: {
         OR: [{ userAId: userId }, { userBId: userId }],
       },
+      include: {
+        userA: { select: { id: true, name: true, email: true } },
+        userB: { select: { id: true, name: true, email: true } },
+      },
     });
 
-    if (allFriends.length === 0)
-      return res
-        .status(200)
-        .json({ msg: "No friends yet — just a solo rider" });
-    res.status(200).json(allFriends);
-  } catch (error) {
-    console.error("Error fetching friends:", error);
-    res.status(500).json({ message: "Internal Server Error" });
+    const list = friends.map((f) =>
+      f.userAId === userId ? f.userB : f.userA
+    );
+
+    res.json(list);
+  } catch (err) {
+    console.error("getFriends error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
-}
+};

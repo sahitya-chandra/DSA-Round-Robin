@@ -8,6 +8,7 @@ import { codeQueue, queueEvents } from "@repo/queue";
 import prisma from "@repo/db";
 import { Testcase } from "@repo/types";
 import friendRouter from "./routes/socialRouter";
+import chatRouter from "./routes/chatRouter";
 
 const app = express();
 app.use(
@@ -19,7 +20,7 @@ app.use(
 app.use(express.json());
 
 app.use("/api/social" , friendRouter )
-
+app.use("/api/chat" , chatRouter )
 app.post("/api/submit", async (req, res) => {
   const {id, code, language } = req.body;
   if (!code || !id) {

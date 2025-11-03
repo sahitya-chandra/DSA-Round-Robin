@@ -8,13 +8,13 @@ import {
   getFriends,
 } from "../controllers/socail.contoller";
 
-const router: express.Router = express.Router();
+const router  : express.Router= express.Router();
 
 router.get("/search", searchFriend);
 router.post("/request", friendReq);
 router.get("/requests", getAllFriendReq);
 router.post("/accept", acceptFriendReq);
 router.post("/reject", rejectReq);
-router.get("/friends", getFriends);
+router.post("/friends", getFriends);
 
 export default router;
