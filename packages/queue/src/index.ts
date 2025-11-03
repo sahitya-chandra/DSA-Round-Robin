@@ -5,11 +5,14 @@ import dotenv from "dotenv";
 
 dotenv.config({ path: "../../.env" });
 
-const connection = new IORedis(String(process.env.REDIS_URL), {
+export const connection = new IORedis(String(process.env.REDIS_URL), {
   maxRetriesPerRequest: null
 });
 
-type CodeJob = { code: string | null , language?: string, testcases: Testcase[]};
+export const subscriberClient = connection.duplicate();
+export const publisherClient = connection.duplicate();
+
+type CodeJob = { code: string | null , language?: string, testcases: Testcase[], matchId: string, submissionId: string, userId: string, questionId: number};
 
 export const codeQueue = new Queue<CodeJob>("code-execution", { connection });
 
@@ -18,6 +21,4 @@ export function createCodeWorker(
 ) {
   return new Worker<CodeJob>("code-execution", processFn, { connection });
 }
-
 export const queueEvents = new QueueEvents("code-execution", { connection });
-

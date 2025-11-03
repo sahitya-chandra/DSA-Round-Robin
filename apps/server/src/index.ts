@@ -7,26 +7,29 @@ import { PORT } from "./config/config";
 import friendRouter from "./routes/social.route";
 import submitRouter from "./routes/submit.route"
 import setQuestions from "./routes/setQuestions.route"
+import matchRouter from "./routes/match.route"
+import { matchSweeper } from "./sockets/matchSweeper";
 
 const app = express();
 app.use(
   cors({
-    origin: "*",
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
 app.use(express.json());
 
-app.use("/api/social" , friendRouter )
+app.use("/api/social", friendRouter)
 app.use("/api/submit", submitRouter);
-app.use("/set-questions", setQuestions);
+app.use("/api/setquestions", setQuestions);
+app.use("/api/match", matchRouter)
 
 const server = http.createServer(app);
 export const io = initIo(server);
 
 setupSockets(io);
 
-
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  matchSweeper()
 });

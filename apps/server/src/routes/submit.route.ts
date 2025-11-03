@@ -1,8 +1,9 @@
 import express from "express"
-import { submitCode } from "../controllers/submit.controller"
+import { submitMatchController } from "../controllers/submit.controller"
+import { isActiveSession } from "../middleware/middleware"
 
 const router: express.Router = express.Router()
 
-router.post("/", submitCode)
+router.post("/", isActiveSession, submitMatchController)
 
 export default router

@@ -1,38 +1,69 @@
-import prisma from "@repo/db";
-import { codeQueue, queueEvents } from "@repo/queue";
-import { Testcase } from "@repo/types";
-import { Request, Response } from "express";
+import { Response } from "express";
+import { connection as redis, codeQueue } from "@repo/queue";
+import { v4 as uuidv4 } from "uuid";
+import { AuthRequest } from "../types/types";
+import { ACTIVE_MATCH_PREFIX, MATCH_TTL, SUBMISSIONS_PREFIX } from "../utils/constants";
 
-export const submitCode = async (req: Request, res: Response) => {
-	const {id, code, language } = req.body;
-  if (!code || !id) {
-    return res.status(400).json({ error: "Code or id are missing" });
-  }
+export const submitMatchController = async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.id;
+  const { matchId, questionId, code, language } = req.body;
+  if (!userId) return res.status(401).json({ error: "unauthenticated" });
+  if (!matchId || !questionId || !code) return res.status(400).json({ error: "bad request" });
 
-  // return res.json({jobId: job.id, status: "queued" })
+  const ALLOWED_LANGS = ["cpp", "python", "javascript"] as const;
+  const lang = ALLOWED_LANGS.includes(language as any) ? language : "cpp";
 
   try {
-    const question = await prisma.question.findUnique({
-      where: { id },
-    });
+    const raw = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${matchId}`);
+    if (!raw || raw.status !== "RUNNING") return res.status(400).json({ error: "match not running" });
 
-    if (!question) return res.status(404).json({ error: "Question not found" });
+    if (raw.requesterId !== userId && raw.opponentId !== userId) {
+      return res.status(403).json({ error: "not a participant" });
+    }
 
-    const job = await codeQueue.add("run-code", {
+    const questions = raw.questions ? JSON.parse(raw.questions) : [];
+    const qObj = questions.find((q: any) => q.questionData.id === Number(questionId));
+    if (!qObj) return res.status(400).json({ error: "question not in match" });
+
+    const submissionId = uuidv4();
+    const createdAt = new Date().toISOString();
+
+    const submission = {
+      id: submissionId,
+      userId,
+      questionId: Number(questionId),
       code,
-      language,
-      testcases: question?.testcases as Testcase[],
-    });
+      language: lang || "cpp",
+      createdAt,
+      status: "PENDING",
+      result: null,
+    };
 
-    queueEvents
-      .waitUntilReady()
-      .then(() => console.log("QueueEvents is ready"))
-      .catch((err: any) => console.error("QueueEvents failed:", err));
+    console.log("submission", submission)
+    console.log("testcases", qObj)
 
-    const result = await job.waitUntilFinished(queueEvents);
-    console.log("resuslet", result)
-    return res.json({ status: "completed", jobId: job.id, results: result });
+    const subHashKey = `${SUBMISSIONS_PREFIX}${matchId}:${userId}`;
+    await redis.hset(subHashKey, submissionId, JSON.stringify(submission));
+    await redis.expire(subHashKey, MATCH_TTL);
+
+    const job = await codeQueue.add("code-execution", {
+      code,
+      language: lang,
+      testcases: qObj.questionData.testcases ?? [],
+      submissionId,
+      matchId,
+      userId,
+      questionId,
+    },
+    {
+      removeOnComplete: true,   
+      removeOnFail: 10,         
+    }
+  );
+
+    return res.json({ ok: true, submissionId, jobId: job.id });
   } catch (err: any) {
-    res.status(500).json({ status: "failed", error: err.message });
+    console.error("submitMatch error:", err);
+    return res.status(500).json({ error: "internal_error" });
   }
-}
+};

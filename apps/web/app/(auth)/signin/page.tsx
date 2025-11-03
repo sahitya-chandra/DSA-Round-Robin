@@ -52,7 +52,7 @@ export default function SignInPage() {
       
       console.log("Sign-in successful", data);
       setSuccessMsg("Signed in successfully!");
-      router.push("/code");
+      router.push("/");
       e.currentTarget?.reset();
 
     } catch (err) {
