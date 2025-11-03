@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import { AuthRequest } from "../types/types";
-import { ACTIVE_MATCH_PREFIX, connection as redis, USER_MATCH_PREFIX, WAITING_LIST } from "@repo/queue";
+import { connection as redis } from "@repo/queue";
 import { finishMatchById } from "../helpers/finishMatch.helper";
+import { ACTIVE_MATCH_PREFIX, USER_MATCH_PREFIX, WAITING_LIST } from "../utils/constants";
 
 export const matchController = async (req: AuthRequest, res: Response) => {
   const user = req.user;
