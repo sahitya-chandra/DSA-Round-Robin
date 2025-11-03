@@ -1,5 +1,6 @@
-import { connection as redis ,ACTIVE_MATCH_PREFIX } from "@repo/queue";
+import { connection as redis } from "@repo/queue";
 import { finishMatchById } from "../helpers/finishMatch.helper";
+import { ACTIVE_MATCH_PREFIX } from "../utils/constants";
 
 const SWEEP_INTERVAL_MS = 30_000;
 

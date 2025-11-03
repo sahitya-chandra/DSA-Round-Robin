@@ -1,9 +1,10 @@
 import { Server, Socket } from "socket.io";
 import { userSockets, socketToUser } from "../utils/utils";
-import { ACTIVE_MATCH_PREFIX, subscriberClient, USER_MATCH_PREFIX, WAITING_LIST } from "@repo/queue";
+import { subscriberClient } from "@repo/queue";
 import { startMatchMaker } from "./matchMaker";
 import { connection as redis } from "@repo/queue";
 import { finishMatchById } from "../helpers/finishMatch.helper";
+import { ACTIVE_MATCH_PREFIX, USER_MATCH_PREFIX, WAITING_LIST } from "../utils/constants";
 
 export function setupSockets(io: Server) {
   io.on("connection", (socket: Socket) => {
