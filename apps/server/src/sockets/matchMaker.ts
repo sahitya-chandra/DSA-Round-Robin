@@ -1,12 +1,10 @@
 import { Server } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
 import prisma, { Question } from "@repo/db";
-import { connection as redis, publisherClient, WAITING_LIST, USER_MATCH_PREFIX, ACTIVE_MATCH_PREFIX } from "@repo/queue";
+import { connection as redis, publisherClient } from "@repo/queue";
+import { ACTIVE_MATCH_PREFIX, LOCK_KEY, MATCH_DURATION_SECONDS, MATCH_TTL, USER_MATCH_PREFIX, WAITING_LIST } from "../utils/constants";
 
-const MATCH_DURATION_SECONDS = 10 * 60;
-const MATCH_TTL = MATCH_DURATION_SECONDS + 120;
-const LOCK_KEY = "matchmaker_lock";
-const LOCK_TTL_MS = 2000;
+const LOCK_TTL_MS = 8000;
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -89,8 +87,15 @@ export function startMatchMaker(io: Server) {
         );
         await redis.expire(`${ACTIVE_MATCH_PREFIX}${matchId}`, MATCH_TTL);
 
-        await redis.set(`${USER_MATCH_PREFIX}${requesterId}`, matchId, "EX", MATCH_TTL);
-        await redis.set(`${USER_MATCH_PREFIX}${opponentId}`, matchId, "EX", MATCH_TTL);
+        const iterationId = uuidv4().slice(0, 6);
+        console.log(`[${iterationId}] Setting user_match for`, requesterId, opponentId);
+
+        try {
+          await redis.set(`${USER_MATCH_PREFIX}${requesterId}`, matchId, "EX", MATCH_TTL);
+          await redis.set(`${USER_MATCH_PREFIX}${opponentId}`, matchId, "EX", MATCH_TTL);
+        } catch (err) {
+          console.error("Error setting user_match keys:", err);
+        }
 
         // setTimeout(async () => {
         //   try {

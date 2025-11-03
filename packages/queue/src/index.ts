@@ -22,7 +22,3 @@ export function createCodeWorker(
   return new Worker<CodeJob>("code-execution", processFn, { connection });
 }
 export const queueEvents = new QueueEvents("code-execution", { connection });
-
-export const WAITING_LIST = "waiting_users";
-export const USER_MATCH_PREFIX = "user_match:";
-export const ACTIVE_MATCH_PREFIX = "active_match:";

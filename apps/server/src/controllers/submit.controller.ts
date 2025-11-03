@@ -1,10 +1,8 @@
 import { Response } from "express";
-import { connection as redis, codeQueue, ACTIVE_MATCH_PREFIX } from "@repo/queue";
+import { connection as redis, codeQueue } from "@repo/queue";
 import { v4 as uuidv4 } from "uuid";
 import { AuthRequest } from "../types/types";
-
-const SUBMISSIONS_PREFIX = "match_submissions:";
-const MATCH_TTL = 60 * 60;
+import { ACTIVE_MATCH_PREFIX, MATCH_TTL, SUBMISSIONS_PREFIX } from "../utils/constants";
 
 export const submitMatchController = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
@@ -56,7 +54,12 @@ export const submitMatchController = async (req: AuthRequest, res: Response) => 
       matchId,
       userId,
       questionId,
-    });
+    },
+    {
+      removeOnComplete: true,   
+      removeOnFail: 10,         
+    }
+  );
 
     return res.json({ ok: true, submissionId, jobId: job.id });
   } catch (err: any) {

@@ -5,6 +5,7 @@ import path from "path";
 import dotenv from "dotenv";
 
 dotenv.config({ path: "../../.env" });
+const SUBMISSIONS_PREFIX = "match_submissions:";
 
 createCodeWorker(async (job) => {
   const { code, language, testcases, submissionId, matchId, userId, questionId } = job.data;
@@ -95,7 +96,7 @@ createCodeWorker(async (job) => {
       timeMs,
     };
 
-    const subHashKey = `match_submissions:${matchId}:${userId}`;
+    const subHashKey = `${SUBMISSIONS_PREFIX}${matchId}:${userId}`;
     const stored = await redis.hget(subHashKey, submissionId);
     if (stored) {
       const s = JSON.parse(stored);
