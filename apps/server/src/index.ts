@@ -9,7 +9,7 @@ import submitRouter from "./routes/submit.route"
 import setQuestions from "./routes/setQuestions.route"
 import matchRouter from "./routes/match.route"
 import { matchSweeper } from "./sockets/matchSweeper";
-import chatRouter from "./routes/chatRouter";
+import chatRouter from "./routes/chat.route";
 const app = express();
 app.use(
   cors({

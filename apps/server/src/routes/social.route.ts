@@ -6,7 +6,7 @@ import {
   acceptFriendReq,
   rejectReq,
   getFriends,
-} from "../controllers/socail.contoller";
+} from "../controllers/socail.controller";
 
 const router  : express.Router= express.Router();
 

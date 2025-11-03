@@ -40,7 +40,6 @@ export function setupSockets(io: Server) {
           io.to(receiverSocketId).emit("receiveMessage", msg);
         }
         
-        socket.emit("receiveMessage", msg);
       } catch (err) {
         console.error("❌ Error saving message:", err);
       }

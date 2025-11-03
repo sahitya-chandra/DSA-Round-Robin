@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "@repo/db";
-import { io } from "../index"; // import from your main file
+
 
 export const getMessages = async (req: Request, res: Response) => {
   try {
