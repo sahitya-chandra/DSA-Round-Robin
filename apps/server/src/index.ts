@@ -10,6 +10,7 @@ import setQuestions from "./routes/setQuestions.route"
 import matchRouter from "./routes/match.route"
 import { matchSweeper } from "./sockets/matchSweeper";
 import chatRouter from "./routes/chat.route";
+import { setupChatSocket } from "./sockets/chatsocket";
 const app = express();
 app.use(
   cors({
@@ -29,6 +30,7 @@ const server = http.createServer(app);
 export const io = initIo(server);
 
 setupSockets(io);
+setupChatSocket(io);
 
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

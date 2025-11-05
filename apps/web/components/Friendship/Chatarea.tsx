@@ -44,8 +44,8 @@ const Chatarea: React.FC<ChatAreaProps> = ({
   useEffect(() => {
     if (!userId) return;
 
-    socket = io("http://localhost:5000", { auth: { userId } });
-    console.log("🔌 Socket connected:", socket.id);
+    socket = io("http://localhost:5000/friends", { auth: { userId } });
+    console.log(" chats Socket connected:", socket.id);
 
     socket.on("receiveMessage", (msg: Message) => {
       if (
