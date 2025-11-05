@@ -9,7 +9,8 @@ import submitRouter from "./routes/submit.route"
 import setQuestions from "./routes/setQuestions.route"
 import matchRouter from "./routes/match.route"
 import { matchSweeper } from "./sockets/matchSweeper";
-
+import chatRouter from "./routes/chat.route";
+import { setupChatSocket } from "./sockets/chatsocket";
 const app = express();
 app.use(
   cors({
@@ -19,15 +20,17 @@ app.use(
 );
 app.use(express.json());
 
+
 app.use("/api/social", friendRouter)
 app.use("/api/submit", submitRouter);
 app.use("/api/setquestions", setQuestions);
 app.use("/api/match", matchRouter)
-
+app.use("/api/chat" , chatRouter )
 const server = http.createServer(app);
 export const io = initIo(server);
 
 setupSockets(io);
+setupChatSocket(io);
 
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
