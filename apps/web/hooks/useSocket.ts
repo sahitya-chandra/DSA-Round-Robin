@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { getSocket } from "@/lib/socket";
 import { useMatchStore } from "@/store/matchStore";
 import { useRouter } from "next/navigation";
+import { useSubmissionsStore } from "@/store/submissionStore";
 
 export function useSocket(userId: string) {
   const router = useRouter();
   const { setMatchData } = useMatchStore.getState();
+  const { updateSubmission, resetSubmissions} = useSubmissionsStore.getState()
   const [socket, setSocket] = useState<any>(null);
 
   useEffect(() => {
@@ -29,6 +31,7 @@ export function useSocket(userId: string) {
 
     const onSubmissionResult = (data: any) => {
       console.log("submission_result:", data);
+      updateSubmission(data)
     };
 
     const onOpponentPassed = (data: {
@@ -57,6 +60,7 @@ export function useSocket(userId: string) {
       if (data.reason) {
         console.log("Reason:", data.reason);
       }
+      resetSubmissions()
       router.push("/");
     };
 
