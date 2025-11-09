@@ -6,6 +6,12 @@ import fetch from "node-fetch";
 interface AuthSocket extends Socket {
   userId?: string;
 }
+interface MatchCreateResponse {
+  matchId?: string;
+  error?: string;
+  [key: string]: unknown;
+}
+
 
 export function setupChatSocket(io: Server) {
   console.log("💬 Chat socket initialized...");
@@ -72,14 +78,16 @@ export function setupChatSocket(io: Server) {
       const receiverSocketId = chatUserSockets.get(toUserId);
       if (!receiverSocketId) {
         console.log("❌ Invite target offline");
-        io.of("/friends").to(socket.id).emit("receiveMessage", {
-          id: `sys-${Date.now()}`,
-          senderId: fromUserId,
-          receiverId: toUserId,
-          content: "User is offline. Invite not delivered.",
-          createdAt: new Date().toISOString(),
-          type: "system",
-        });
+        io.of("/friends")
+          .to(socket.id)
+          .emit("receiveMessage", {
+            id: `sys-${Date.now()}`,
+            senderId: fromUserId,
+            receiverId: toUserId,
+            content: "User is offline. Invite not delivered.",
+            createdAt: new Date().toISOString(),
+            type: "system",
+          });
         return;
       }
 
@@ -97,21 +105,29 @@ export function setupChatSocket(io: Server) {
 
       // Expiration after 30s
       setTimeout(() => {
-        io.of("/friends").to(receiverSocketId).emit("receiveMessage", {
-          id: `sys-${Date.now()}`,
-          senderId: fromUserId,
-          receiverId: toUserId,
-          content: `The match invite from ${fromUserName} has expired.`,
-          createdAt: new Date().toISOString(),
-          type: "system",
-        });
+        io.of("/friends")
+          .to(receiverSocketId)
+          .emit("receiveMessage", {
+            id: `sys-${Date.now()}`,
+            senderId: fromUserId,
+            receiverId: toUserId,
+            content: `The match invite from ${fromUserName} has expired.`,
+            createdAt: new Date().toISOString(),
+            type: "system",
+          });
       }, 30000);
     });
 
     // ---- Respond to invite (accept / decline) ----
     socket.on(
       "respondInvite",
-      async ({ fromUserId, accepted }: { fromUserId: string; accepted: boolean }) => {
+      async ({
+        fromUserId,
+        accepted,
+      }: {
+        fromUserId: string;
+        accepted: boolean;
+      }) => {
         console.log("📩 respondInvite:", { fromUserId, accepted });
 
         const inviterSocketId = chatUserSockets.get(fromUserId);
@@ -123,20 +139,25 @@ export function setupChatSocket(io: Server) {
 
         if (!accepted) {
           // Notify inviter only
-          io.of("/friends").to(inviterSocketId).emit("receiveMessage", {
-            id: `sys-${Date.now()}`,
-            senderId: accepterId,
-            receiverId: fromUserId,
-            content: "Your match invite was declined.",
-            createdAt: new Date().toISOString(),
-            type: "system",
-          });
+          io.of("/friends")
+            .to(inviterSocketId)
+            .emit("receiveMessage", {
+              id: `sys-${Date.now()}`,
+              senderId: accepterId,
+              receiverId: fromUserId,
+              content: "Your match invite was declined.",
+              createdAt: new Date().toISOString(),
+              type: "system",
+            });
           return;
         }
 
         try {
           // ✅ Create match on backend once — central authority
-          console.log("⚙ Creating match:", { requesterId: fromUserId, opponentId: accepterId });
+          console.log("⚙ Creating match:", {
+            requesterId: fromUserId,
+            opponentId: accepterId,
+          });
 
           const res = await fetch("http://localhost:5000/api/match/create", {
             method: "POST",
@@ -147,27 +168,34 @@ export function setupChatSocket(io: Server) {
             }),
           });
 
-          const data = await res.json();
+          const data = (await res.json()) as MatchCreateResponse;
           console.log("✅ Match creation response:", data);
-          const matchId = data?.matchId;
 
-          if (!res.ok || !matchId) {
+          const matchId = data.matchId ?? null;
+
+          if (!res.ok || matchId == null) {
             console.error("❌ Match creation failed:", data);
-            io.of("/friends").to(socket.id).emit("receiveMessage", {
-              id: `sys-${Date.now()}`,
-              senderId: accepterId,
-              receiverId: fromUserId,
-              content: "Failed to create match. Please try again later.",
-              createdAt: new Date().toISOString(),
-              type: "system",
-            });
+            io.of("/friends")
+              .to(socket.id)
+              .emit("receiveMessage", {
+                id: `sys-${Date.now()}`,
+                senderId: accepterId,
+                receiverId: fromUserId,
+                content: "Failed to create match. Please try again later.",
+                createdAt: new Date().toISOString(),
+                type: "system",
+              });
             return;
           }
 
-          console.log(`🏁 Match created [${matchId}] between ${fromUserId} & ${accepterId}`);
+          console.log(
+            `🏁 Match created [${matchId}] between ${fromUserId} & ${accepterId}`
+          );
 
           // Notify both clients via socket
-          io.of("/friends").to(inviterSocketId).emit("matchStarted", { matchId });
+          io.of("/friends")
+            .to(inviterSocketId)
+            .emit("matchStarted", { matchId });
           io.of("/friends").to(socket.id).emit("matchStarted", { matchId });
 
           // System confirmation messages
@@ -181,17 +209,18 @@ export function setupChatSocket(io: Server) {
           };
           io.of("/friends").to(inviterSocketId).emit("receiveMessage", sysMsg);
           io.of("/friends").to(socket.id).emit("receiveMessage", sysMsg);
-
         } catch (err) {
           console.error("❌ Error in match creation:", err);
-          io.of("/friends").to(socket.id).emit("receiveMessage", {
-            id: `sys-${Date.now()}`,
-            senderId: accepterId,
-            receiverId: fromUserId,
-            content: "Unexpected server error while creating match.",
-            createdAt: new Date().toISOString(),
-            type: "system",
-          });
+          io.of("/friends")
+            .to(socket.id)
+            .emit("receiveMessage", {
+              id: `sys-${Date.now()}`,
+              senderId: accepterId,
+              receiverId: fromUserId,
+              content: "Unexpected server error while creating match.",
+              createdAt: new Date().toISOString(),
+              type: "system",
+            });
         }
       }
     );
