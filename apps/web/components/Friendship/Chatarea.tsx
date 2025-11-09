@@ -1,9 +1,10 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
-import { SendHorizonal, Loader2, Menu , UserPlus } from "lucide-react";
+import { SendHorizonal, Loader2, Menu, UserPlus } from "lucide-react";
 import { authClient } from "@repo/auth";
+import { useRouter } from "next/navigation";
 
 interface ChatAreaProps {
   isSidebarOpen: boolean;
@@ -18,6 +19,7 @@ interface Message {
   receiverId: string;
   content: string;
   createdAt: string;
+  type?: "text" | "invite" | "system";
 }
 
 let socket: Socket | null = null;
@@ -31,26 +33,53 @@ const Chatarea: React.FC<ChatAreaProps> = ({
   const [newMsg, setNewMsg] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [sending, setSending] = useState(false);
+  const [inviteStatus, setInviteStatus] = useState<
+    "idle" | "sending" | "pending" | "expired"
+  >("idle");
+  const [incomingInvite, setIncomingInvite] = useState<{
+    fromUserId: string;
+    fromUserName: string;
+  } | null>(null);
+
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id;
+  const userName = session?.user?.name || "Unknown";
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const router = useRouter();
 
-  // ✅ Auto-scroll when messages change
+  // ---- Auto-scroll ----
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, incomingInvite]);
 
-  // ✅ Connect socket once
+  // ---- Socket setup ----
   useEffect(() => {
     if (!userId) return;
 
     socket = io("http://localhost:5000/friends", { auth: { userId } });
-    console.log(" chats Socket connected:", socket.id);
+
+    socket.on("connect", () => {
+      console.log("[Socket] Connected:", socket?.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("[Socket] Disconnected");
+    });
 
     socket.on("receiveMessage", (msg: Message) => {
+      console.log("[Socket] receiveMessage:", msg);
+
+      if (msg.type === "invite") {
+        setIncomingInvite({
+          fromUserId: msg.senderId,
+          fromUserName: currentChatter || "Unknown",
+        });
+      }
+
       if (
         msg.senderId === currentChatterID ||
-        msg.receiverId === currentChatterID
+        msg.receiverId === currentChatterID ||
+        msg.type === "system"
       ) {
         setMessages((prev) => [...prev, msg]);
       }
@@ -59,8 +88,26 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     socket.on("typing", ({ fromUserId }) => {
       if (fromUserId === currentChatterID) setIsTyping(true);
     });
+
     socket.on("stopTyping", ({ fromUserId }) => {
       if (fromUserId === currentChatterID) setIsTyping(false);
+    });
+
+    // ✅ When backend emits matchStarted, both users redirect
+    socket.on("matchStarted", ({ matchId }) => {
+      console.log("[Socket] Match started:", matchId);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `sys-${Date.now()}`,
+          senderId: userId!,
+          receiverId: currentChatterID!,
+          content: "Match started! Redirecting...",
+          createdAt: new Date().toISOString(),
+          type: "system",
+        },
+      ]);
+      setTimeout(() => router.push(`/code/${matchId}`), 1000);
     });
 
     return () => {
@@ -68,10 +115,9 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     };
   }, [userId, currentChatterID]);
 
-  // ✅ Load chat history
+  // ---- Load chat history ----
   useEffect(() => {
     if (!currentChatterID || !userId) return;
-
     const fetchMessages = async () => {
       try {
         const res = await fetch("http://localhost:5000/api/chat/messages", {
@@ -79,43 +125,16 @@ const Chatarea: React.FC<ChatAreaProps> = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId, friendId: currentChatterID }),
         });
-
-        if (!res.ok) throw new Error("Failed to load messages");
         const data = await res.json();
         setMessages(data.messages || []);
       } catch (err) {
-        console.error("Error loading messages:", err);
+        console.error("[ChatHistory] Error:", err);
       }
     };
-
     fetchMessages();
   }, [currentChatterID, userId]);
 
-  // ✅ Send message
-  const handleSend = async () => {
-    if (!newMsg.trim() || !currentChatterID || !userId) return;
-    setSending(true);
-
-    const messageData = {
-      senderId: userId,
-      receiverId: currentChatterID,
-      content: newMsg.trim(),
-    };
-
-    socket?.emit("sendMessage", messageData);
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: `temp-${Date.now()}`,
-        ...messageData,
-        createdAt: new Date().toISOString(),
-      },
-    ]);
-    setNewMsg("");
-    setSending(false);
-  };
-
-  // ✅ Typing handler
+  // ---- Typing ----
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMsg(e.target.value);
     if (socket && currentChatterID) {
@@ -127,7 +146,26 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     }
   };
 
-  // ✅ Send keyboardEvent
+  // ---- Send message ----
+  const handleSend = async () => {
+    if (!newMsg.trim() || !currentChatterID || !userId) return;
+    setSending(true);
+
+    const messageData: Message = {
+      id: `msg-${Date.now()}`,
+      senderId: userId,
+      receiverId: currentChatterID,
+      content: newMsg.trim(),
+      createdAt: new Date().toISOString(),
+      type: "text",
+    };
+
+    socket?.emit("sendMessage", messageData);
+    setMessages((prev) => [...prev, messageData]);
+    setNewMsg("");
+    setSending(false);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -135,26 +173,85 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     }
   };
 
-  return (
-    <div className="flex flex-col flex-1 relative bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="p-2 rounded-lg hover:bg-gray-700/70 text-gray-300 hover:text-white transition-all duration-200"
-        >
-          <Menu size={26} />
-        </button>
+  // ---- Send match invite ----
+  const handleInvite = useCallback(() => {
+    if (!socket || !userId || !currentChatterID) return;
+    if (inviteStatus === "pending" || inviteStatus === "sending") return;
 
-        <h2 className="text-lg font-semibold text-white tracking-wide truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
-          {currentChatter || "Select a friend to start chatting"}
-        </h2>
+    setInviteStatus("sending");
+    console.log("[Invite] Sending invite to", currentChatterID);
+
+    socket.emit("matchInvite", {
+      fromUserId: userId,
+      fromUserName: userName,
+      toUserId: currentChatterID,
+    });
+
+    const inviteMsg: Message = {
+      id: `invite-${Date.now()}`,
+      senderId: userId,
+      receiverId: currentChatterID,
+      content: `${userName} invited you to a 1v1 match.`,
+      createdAt: new Date().toISOString(),
+      type: "invite",
+    };
+
+    setMessages((prev) => [...prev, inviteMsg]);
+    setInviteStatus("pending");
+  }, [socket, userId, currentChatterID, userName, inviteStatus]);
+
+  // ---- Respond to invite ----
+  const handleInviteResponse = async (accepted: boolean) => {
+    if (!socket || !incomingInvite) return;
+
+    console.log(
+      `[InviteResponse] ${userId} ${
+        accepted ? "ACCEPTED" : "DECLINED"
+      } invite from ${incomingInvite.fromUserId}`
+    );
+
+    socket.emit("respondInvite", {
+      fromUserId: incomingInvite.fromUserId,
+      accepted,
+    });
+
+    const systemMsg: Message = {
+      id: `sys-${Date.now()}`,
+      senderId: userId!,
+      receiverId: incomingInvite.fromUserId,
+      content: accepted
+        ? "You accepted the match invite!"
+        : "You declined the match invite.",
+      createdAt: new Date().toISOString(),
+      type: "system",
+    };
+    setMessages((prev) => [...prev, systemMsg]);
+
+    setIncomingInvite(null);
+  };
+
+  // ---- UI ----
+  return (
+    <div className="flex flex-col flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white">
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-gray-800 p-3">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 rounded-lg hover:bg-gray-700/70 text-gray-300 hover:text-white"
+          >
+            <Menu size={26} />
+          </button>
+          <h2 className="text-lg font-semibold truncate">
+            {currentChatter || "Select a friend"}
+          </h2>
+        </div>
       </div>
 
-      {/* Messages Area */}
+      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-5 space-y-3 hide-scrollbar relative pb-20">
         <AnimatePresence>
-          {messages.length > 0 ? (
+          {messages.length ? (
             messages.map((msg) => (
               <motion.div
                 key={msg.id}
@@ -165,15 +262,21 @@ const Chatarea: React.FC<ChatAreaProps> = ({
                   msg.senderId === userId ? "justify-end" : "justify-start"
                 }`}
               >
-                <div
-                  className={`px-4 py-2 rounded-2xl shadow-md text-sm sm:text-base max-w-[75%] break-words ${
-                    msg.senderId === userId
-                      ? "bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-br-none"
-                      : "bg-gray-800/60 text-gray-100 border border-gray-700 rounded-bl-none"
-                  }`}
-                >
-                  {msg.content}
-                </div>
+                {msg.type === "system" ? (
+                  <div className="text-center text-gray-400 text-xs italic w-full">
+                    {msg.content}
+                  </div>
+                ) : (
+                  <div
+                    className={`px-4 py-2 rounded-2xl text-sm sm:text-base max-w-[75%] break-words ${
+                      msg.senderId === userId
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-br-none"
+                        : "bg-gray-800/60 text-gray-100 border border-gray-700 rounded-bl-none"
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                )}
               </motion.div>
             ))
           ) : (
@@ -182,11 +285,10 @@ const Chatarea: React.FC<ChatAreaProps> = ({
             </p>
           )}
         </AnimatePresence>
-
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Typing Indicator */}
+      {/* Typing indicator */}
       <AnimatePresence>
         {isTyping && (
           <motion.div
@@ -195,60 +297,82 @@ const Chatarea: React.FC<ChatAreaProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.4 }}
-            className="absolute bottom-26 left-6 text-sm text-gray-400 italic flex items-center gap-1"
+            className="absolute bottom-24 left-6 text-sm text-gray-400 italic"
           >
-            <motion.div
-              className="flex items-center gap-1 bg-gray-800/50 backdrop-blur-md px-3 py-1 rounded-xl border border-gray-700 shadow-sm"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              {currentChatter} is typing
-              <motion.span
-                animate={{ opacity: [0, 1, 0] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              >
-                ...
-              </motion.span>
-            </motion.div>
+            <div className="bg-gray-800/50 px-3 py-1 rounded-xl border border-gray-700 shadow-sm">
+              {currentChatter} is typing...
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Input Bar */}
+      {/* Invite modal */}
+      <AnimatePresence>
+        {incomingInvite && (
+          <motion.div
+            key="incoming-invite"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.18 }}
+            className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-20"
+          >
+            <div className="bg-gray-800/90 border border-gray-700 px-4 py-2 rounded-xl flex items-center gap-4 shadow-sm">
+              <div className="text-sm text-gray-200">
+                {incomingInvite.fromUserName} invited you to a 1v1 match
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleInviteResponse(true)}
+                  className="px-3 py-1 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs"
+                >
+                  Accept
+                </button>
+                <button
+                  onClick={() => handleInviteResponse(false)}
+                  className="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs"
+                >
+                  Decline
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Input area */}
       {currentChatterID && (
-        <div className="p-3 bg-gray-800/70 border-t border-gray-700 flex items-center gap-2 backdrop-blur-xl sticky bottom-0 z-10 w-full">
-          {/* Message Input */}
+        <div className="p-3 bg-gray-800/70 border-t border-gray-700 flex items-center gap-2 sticky bottom-0 z-10">
           <input
-            className="flex-1 bg-gray-700/60 text-white rounded-2xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-150 placeholder-gray-400 text-sm sm:text-base"
+            className="flex-1 bg-gray-700/60 text-white rounded-2xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-sm"
             value={newMsg}
             onChange={handleTyping}
             onKeyDown={handleKeyDown}
             placeholder={`Message ${currentChatter}...`}
           />
-
-          {/* Invite Button */}
           <button
-            onClick={() => console.log("Invite clicked")}
-            className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 transition-all duration-200 px-4 py-2.5 rounded-2xl text-sm font-medium text-white shadow-md"
+            onClick={handleInvite}
+            disabled={inviteStatus === "pending" || inviteStatus === "sending"}
+            className={`hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-medium text-white shadow-md transition-all ${
+              inviteStatus === "pending"
+                ? "bg-gray-700 cursor-wait"
+                : "bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700"
+            }`}
           >
-            <UserPlus size={18} />
-            Invite to Match
+            {inviteStatus === "pending" ? (
+              <>
+                <Loader2 size={18} className="animate-spin" /> Waiting...
+              </>
+            ) : (
+              <>
+                <UserPlus size={18} /> Invite
+              </>
+            )}
           </button>
-
-          {/* Compact icon version for mobile */}
-          <button
-            onClick={() => console.log("Invite clicked")}
-            className="flex sm:hidden items-center justify-center bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700 transition-all duration-200 p-2.5 rounded-2xl shadow-md text-white"
-          >
-            <UserPlus size={20} />
-          </button>
-
-          {/* Send Button */}
           <button
             onClick={handleSend}
             disabled={sending}
-            className={`flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 transition-all duration-200 p-2.5 sm:px-4 sm:py-2.5 rounded-2xl shadow-md ${
+            className={`flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 transition-all p-2.5 sm:px-4 sm:py-2.5 rounded-2xl shadow-md ${
               sending ? "opacity-70 cursor-not-allowed" : ""
             }`}
           >

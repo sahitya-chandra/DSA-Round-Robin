@@ -27,6 +27,7 @@
     "@repo/types": "workspace:*",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
     "socket.io": "^4.8.1",
     "uuid": "^13.0.0"
   }

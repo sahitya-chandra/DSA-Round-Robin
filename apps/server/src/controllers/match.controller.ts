@@ -3,6 +3,7 @@ import { AuthRequest } from "../types/types";
 import { connection as redis } from "@repo/queue";
 import { finishMatchById } from "../helpers/finishMatch.helper";
 import { ACTIVE_MATCH_PREFIX, USER_MATCH_PREFIX, WAITING_LIST } from "../utils/constants";
+import { createMatch as createMatchHelper } from "../helpers/matchMaker.helper";
 
 export const matchController = async (req: AuthRequest, res: Response) => {
   const user = req.user;
@@ -108,5 +109,44 @@ export const getMatch = async (req: AuthRequest, res: Response) => {
     });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+export const createMatch = async (req: AuthRequest, res: Response) => {
+  try {
+    const { requesterId, opponentId } = req.body;
+
+    if (!requesterId || !opponentId) {
+      return res.status(400).json({ error: "Missing user IDs" });
+    }
+
+    console.log("🔹 Manual match creation requested:", { requesterId, opponentId });
+
+    // Use the same logic your matchMaker.helper uses internally
+    const match = await createMatchHelper(requesterId, opponentId);
+
+    // `createMatchHelper` should already create redis entries
+    // but if not, ensure this data is consistent
+    if (!match?.matchId) {
+      const matchId = `${Date.now()}:${requesterId}:${opponentId}`;
+      const matchKey = `${ACTIVE_MATCH_PREFIX}${matchId}`;
+      const matchData = {
+        requesterId,
+        opponentId,
+        status: "RUNNING",
+        startedAt: Date.now().toString(),
+        duration: "600000",
+      };
+      await redis.hmset(matchKey, matchData);
+      await redis.set(`${USER_MATCH_PREFIX}${requesterId}`, matchId);
+      await redis.set(`${USER_MATCH_PREFIX}${opponentId}`, matchId);
+
+      return res.json({ ok: true, matchId });
+    }
+
+    return res.json({ ok: true, matchId: match.matchId });
+  } catch (err) {
+    console.error("createMatch error:", err);
+    return res.status(500).json({ error: "internal_error" });
   }
 };
