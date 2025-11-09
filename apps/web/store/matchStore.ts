@@ -12,6 +12,7 @@ interface MatchState {
   }) => void;
   hydrated: boolean;
   setHydrated: (value: boolean) => void;
+  resetMatchData: () => void
 }
 
 export const useMatchStore = create<MatchState>()(
@@ -23,11 +24,18 @@ export const useMatchStore = create<MatchState>()(
       hydrated: false,
       setHydrated: (v) => set({ hydrated: v }),
       setMatchData: (data) => set(data),
+      resetMatchData: () => set({ matchId: null, opponentId: null, questions: [] })
     }),
     {
       name: "match-storage",
+      partialize: (state) => ({
+        matchId: state.matchId,
+        opponentId: state.opponentId,
+        questions: state.questions,
+        hydrated: state.hydrated,
+      }),
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
+        if (state) state.setHydrated(true);
       },
     }
   )

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface SubmissionResult {
   questionId: string;
@@ -23,15 +24,16 @@ interface SubmissionsState {
   resetSubmissions: () => void;
 }
 
-export const useSubmissionsStore = create<SubmissionsState>((set) => ({
-  submissions: {},
-  updateSubmission: (result) => 
-    set((state) => ({
-      submissions: {
-        ...state.submissions,
-        [result.questionId]: result,
-      },
-  })),
-
-  resetSubmissions: () => set({submissions: {}})
-}));
+export const useSubmissionsStore = create<SubmissionsState>()(
+  persist(
+    (set) => ({
+      submissions: {},
+      updateSubmission: (result) =>
+        set((s) => ({
+          submissions: { ...s.submissions, [result.questionId]: result },
+        })),
+      resetSubmissions: () => set({ submissions: {} }),
+    }),
+    { name: "submission-storage" }
+  )
+);

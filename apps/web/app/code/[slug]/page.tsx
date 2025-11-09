@@ -8,18 +8,23 @@ import { authClient } from "@repo/auth";
 import { useMatchStore } from "@/store/matchStore";
 import { Loader2, Play, ChevronDown, ChevronUp, Code2, Trophy, Clock, Zap, AlertCircle } from "lucide-react";
 import { useSubmissionsStore } from "@/store/submissionStore";
+import { useMatchProgressStore } from "@/store/matchProgressStore";
+import { useSocket } from "@/hooks/useSocket";
 
 const App: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const { questions, hydrated } = useMatchStore();
   const submissions = useSubmissionsStore((state) => state.submissions)
+  const myProgress = useMatchProgressStore((state) => state.myProgress)
+  const opponentProgress = useMatchProgressStore((state) => state.opponentProgress)
   const [questionData, setQuestionData] = useState<any[]>(questions);
   const [selectedLang, setSelectedLang] = useState("cpp");
   const [loading, setLoading] = useState(false);
   const [currentQIndex, setCurrentQIndex] = useState(0);
-
+  const [opponent, setOpponent] = useState<{ name: string } | null>(null);
   const { data: session } = authClient.useSession();
+  useSocket(session?.user.id as string, params.slug as string)
   const [code, setCode] = useState<string>(`#include <iostream>
 using namespace std;
 
@@ -29,11 +34,10 @@ int main() {
 }`);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [resultPanelOpen, setResultPanelOpen] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(10 * 60); // 10 minutes
+  const [timeLeft, setTimeLeft] = useState(10 * 60);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch match questions
   useEffect(() => {
     if (!hydrated || questions.length === 0) return;
 
@@ -44,6 +48,7 @@ int main() {
         });
         const data = await res.json();
         if (data.error) throw new Error(data.error);
+        setOpponent(data.opponent);  
         setQuestionData(data.questions);
       } catch (err) {
         console.error("Failed to fetch questions", err);
@@ -55,34 +60,14 @@ int main() {
     fetchMatch();
   }, [hydrated, questions, params.slug]);
 
-  // Timer
   useEffect(() => {
     if (timeLeft <= 0) return;
     const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(timer);
   }, [timeLeft]);
 
-  // WebSocket result listener
-  // useEffect(() => {
-  //   const handleResult = (e: MessageEvent) => {
-  //     try {
-  //       const data = JSON.parse(e.data);
-  //       if (data.event === "submission_result") {
-  //         setResult(data.data);
-  //         setResultPanelOpen(true); // Auto-open on result
-  //       }
-  //     } catch (err) {
-  //       console.error("Invalid message", err);
-  //     }
-  //   };
-
-    // Assuming WebSocket is set up elsewhere or via global
-    // You may need to connect to WS in a useEffect
-    // For now, assuming it's global or handled externally
-  // }, []);
-
   const currentQuestion = questionData[currentQIndex];
-  const curQuesSub = Object.values(submissions).find((sub, i) => sub.questionId === currentQuestion.questionData.id) || null
+  const curQuesSub = Object.values(submissions).find((sub, i) => sub.questionId === currentQuestion?.questionData.id) || null
 
   const handleSubmit = async () => {
     if (!currentQuestion || !session?.user.id) return;
@@ -184,17 +169,33 @@ int main() {
             </div>
 
             <div className="flex items-center gap-4 flex-1 justify-center">
+              {/* ----- YOU ----- */}
               <div className="bg-gradient-to-br from-slate-800/80 to-slate-800/40 rounded-lg px-4 py-2 border border-emerald-500/30 backdrop-blur-sm">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-emerald-500/30">
                     YOU
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <Trophy className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-xl font-black text-emerald-400">
-                      {questionData.filter(q => q.solved).length}
-                    </span>
-                    <span className="text-slate-500 font-semibold text-sm">/ {questionData.length}</span>
+
+                  <div className="flex gap-1.5">
+                    {questionData.map((q, i) => {
+                      const solved = myProgress[q.questionData.id] ?? false
+                      return (
+                        <div
+                          key={i}
+                          className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                            solved ? "bg-emerald-500/30" : "bg-slate-700/40"
+                          }`}
+                        >
+                          {solved ? (
+                            <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                              <path d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <div className="w-3 h-3 rounded-full bg-slate-600" />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -210,15 +211,33 @@ int main() {
                 </div>
               </div>
 
+              {/* ----- OPPONENT ----- */}
               <div className="bg-gradient-to-br from-slate-800/80 to-slate-800/40 rounded-lg px-4 py-2 border border-violet-500/30 backdrop-blur-sm">
                 <div className="flex items-center gap-2.5">
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-violet-500/30">
-                    OPP
+                    {opponent?.name?.[0]?.toUpperCase() ?? "OPP"}
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <Trophy className="w-3.5 h-3.5 text-violet-400" />
-                    <span className="text-xl font-black text-violet-400">?</span>
-                    <span className="text-slate-500 font-semibold text-sm">/ {questionData.length}</span>
+
+                  <div className="flex gap-1.5">
+                    {questionData.map((q, i) => {
+                      const oppSolved = opponentProgress[q.questionData.id] ?? false;
+                      return (
+                        <div
+                          key={i}
+                          className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                            oppSolved ? "bg-violet-500/30" : "bg-slate-700/40"
+                          }`}
+                        >
+                          {oppSolved ? (
+                            <svg className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                              <path d="M5 13l4 4L19 7" />
+                            </svg>
+                          ) : (
+                            <div className="w-3 h-3 rounded-full bg-slate-600" />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -228,7 +247,7 @@ int main() {
               onClick={finish}
               className="px-4 py-2 text-sm font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-all border border-rose-500/20 hover:border-rose-500/40"
             >
-              Forfeit
+              Give up
             </button>
           </div>
         </div>

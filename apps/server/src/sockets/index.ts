@@ -18,6 +18,11 @@ export function setupSockets(io: Server) {
       console.log(`User ${userId} → socket ${socket.id}`);
     });
 
+    socket.on("join_match", ({ matchId }) => {
+      socket.join(matchId);
+      console.log(`Socket ${socket.id} rejoined match: ${matchId}`);
+    });
+
     socket.on("disconnect", async () => {
       const userId = socketToUser.get(socket.id);
       if (userId) {
@@ -30,7 +35,7 @@ export function setupSockets(io: Server) {
           if (active) {
             const raw = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${active}`);
             const opponentId = raw.requesterId === userId ? raw.opponentId : raw.requesterId;
-            await finishMatchById(active, { reason: "disconnect", winnerId: opponentId });
+            // await finishMatchById(active, { reason: "disconnect", winnerId: opponentId });
           }
         } catch (err) {
           console.error("Error removing disconnected user from waiting list:", err);
