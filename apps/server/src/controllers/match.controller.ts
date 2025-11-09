@@ -95,6 +95,7 @@ export const getMatch = async (req: AuthRequest, res: Response) => {
       opponentId: data.opponentId,
       status: data.status,
       startedAt: data.startedAt,
+      duration: data.duration,
       questions,
     });
   } catch (err: any) {

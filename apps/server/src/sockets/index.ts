@@ -55,7 +55,7 @@ export function setupSockets(io: Server) {
 
     if (channel === "match_created" && event === "match_started") {
       try {
-        const { matchId, requesterId, opponentId, questions } = data;
+        const { matchId, requesterId, opponentId, questions, startedAt, duration } = data;
         console.log("Match start event received:", data);
 
         const reqSocketId = userSockets.get(requesterId);
@@ -69,13 +69,15 @@ export function setupSockets(io: Server) {
         if (reqSocket) reqSocket.join(matchId);
         if (oppSocket) oppSocket.join(matchId);
 
-        io.to(matchId).emit("match:ready", { matchId, startedAt: data.startedAt });
+        io.to(matchId).emit("match:ready", { matchId, startedAt });
 
         if (requesterId) {
           io.to(requesterId).emit("match_started", {
             matchId,
             opponentId,
             questions,
+            startedAt,
+            duration,
           });
         }
 
@@ -84,6 +86,8 @@ export function setupSockets(io: Server) {
             matchId,
             opponentId: requesterId,
             questions,
+            startedAt, 
+            duration,
           });
         }
 

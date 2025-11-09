@@ -7,7 +7,7 @@ import { useMatchProgressStore } from "@/store/matchProgressStore";
 
 export function useSocket(userId: string, slug?: string) {
   const router = useRouter();
-  const { setMatchData, resetMatchData } = useMatchStore.getState();
+  const { setMatchData, setTiming, resetMatchData } = useMatchStore.getState();
   const { updateSubmission, resetSubmissions} = useSubmissionsStore.getState()
   const { markSolved, resetProgress } = useMatchProgressStore.getState();
   const [socket, setSocket] = useState<any>(null);
@@ -23,6 +23,7 @@ export function useSocket(userId: string, slug?: string) {
         opponentId: data.opponentId,
         questions: data.questions,
       });
+      setTiming(data.startedAt, data.duration);
       router.push(`/code/${data.matchId}`);
     };
 

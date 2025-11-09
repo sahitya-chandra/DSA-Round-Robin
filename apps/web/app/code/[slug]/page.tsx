@@ -14,7 +14,8 @@ import { useSocket } from "@/hooks/useSocket";
 const App: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const { questions, hydrated } = useMatchStore();
+  const { questions, hydrated, startedAt, duration } = useMatchStore();
+  const [timeLeft, setTimeLeft] = useState(0);
   const submissions = useSubmissionsStore((state) => state.submissions)
   const myProgress = useMatchProgressStore((state) => state.myProgress)
   const opponentProgress = useMatchProgressStore((state) => state.opponentProgress)
@@ -34,7 +35,6 @@ int main() {
 }`);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [resultPanelOpen, setResultPanelOpen] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(10 * 60);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -61,10 +61,28 @@ int main() {
   }, [hydrated, questions, params.slug]);
 
   useEffect(() => {
-    if (timeLeft <= 0) return;
-    const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
-    return () => clearInterval(timer);
-  }, [timeLeft]);
+    if (!startedAt || !duration) return;
+
+    const start = new Date(startedAt).getTime();
+    const end = start + duration * 1000;
+
+    const tick = () => {
+      const now = Date.now();
+      const remaining = Math.max(0, Math.floor((end - now) / 1000));
+      setTimeLeft(remaining);
+    };
+
+    tick(); // initial
+    const interval = setInterval(tick, 1000);
+
+    return () => clearInterval(interval);
+  }, [startedAt, duration]);
+
+  // useEffect(() => {
+  //   if (timeLeft === 0 && params.slug) {
+  //     finish();
+  //   }
+  // }, [timeLeft]);
 
   const currentQuestion = questionData[currentQIndex];
   const curQuesSub = Object.values(submissions).find((sub, i) => sub.questionId === currentQuestion?.questionData.id) || null

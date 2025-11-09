@@ -10,6 +10,9 @@ interface MatchState {
     opponentId: string;
     questions: { questionData: any; order: number }[];
   }) => void;
+  startedAt: string | null;
+  duration: number | null;
+  setTiming: (startedAt: string, duration: number) => void;
   hydrated: boolean;
   setHydrated: (value: boolean) => void;
   resetMatchData: () => void
@@ -22,9 +25,12 @@ export const useMatchStore = create<MatchState>()(
       opponentId: null,
       questions: [],
       hydrated: false,
+      startedAt: null,
+      duration: null,
       setHydrated: (v) => set({ hydrated: v }),
       setMatchData: (data) => set(data),
-      resetMatchData: () => set({ matchId: null, opponentId: null, questions: [] })
+      setTiming: (startedAt, duration) => set({ startedAt, duration }),
+      resetMatchData: () => set({ matchId: null, opponentId: null, questions: [], startedAt: null, duration: null })
     }),
     {
       name: "match-storage",
@@ -32,6 +38,8 @@ export const useMatchStore = create<MatchState>()(
         matchId: state.matchId,
         opponentId: state.opponentId,
         questions: state.questions,
+        startedAt: state.startedAt,
+        duration: state.duration,
         hydrated: state.hydrated,
       }),
       onRehydrateStorage: () => (state) => {
