@@ -18,6 +18,11 @@ export function setupSockets(io: Server) {
       console.log(`User ${userId} → socket ${socket.id}`);
     });
 
+    socket.on("join_match", ({ matchId }) => {
+      socket.join(matchId);
+      console.log(`Socket ${socket.id} rejoined match: ${matchId}`);
+    });
+
     socket.on("disconnect", async () => {
       const userId = socketToUser.get(socket.id);
       if (userId) {
@@ -30,7 +35,7 @@ export function setupSockets(io: Server) {
           if (active) {
             const raw = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${active}`);
             const opponentId = raw.requesterId === userId ? raw.opponentId : raw.requesterId;
-            await finishMatchById(active, { reason: "disconnect", winnerId: opponentId });
+            // await finishMatchById(active, { reason: "disconnect", winnerId: opponentId });
           }
         } catch (err) {
           console.error("Error removing disconnected user from waiting list:", err);
@@ -50,7 +55,7 @@ export function setupSockets(io: Server) {
 
     if (channel === "match_created" && event === "match_started") {
       try {
-        const { matchId, requesterId, opponentId, questions } = data;
+        const { matchId, requesterId, opponentId, questions, startedAt, duration } = data;
         console.log("Match start event received:", data);
 
         const reqSocketId = userSockets.get(requesterId);
@@ -64,13 +69,15 @@ export function setupSockets(io: Server) {
         if (reqSocket) reqSocket.join(matchId);
         if (oppSocket) oppSocket.join(matchId);
 
-        io.to(matchId).emit("match:ready", { matchId, startedAt: data.startedAt });
+        io.to(matchId).emit("match:ready", { matchId, startedAt });
 
         if (requesterId) {
           io.to(requesterId).emit("match_started", {
             matchId,
             opponentId,
             questions,
+            startedAt,
+            duration,
           });
         }
 
@@ -79,6 +86,8 @@ export function setupSockets(io: Server) {
             matchId,
             opponentId: requesterId,
             questions,
+            startedAt, 
+            duration,
           });
         }
 
