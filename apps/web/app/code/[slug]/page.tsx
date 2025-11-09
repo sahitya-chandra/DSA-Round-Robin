@@ -48,8 +48,15 @@ int main() {
         const res = await fetch(`http://localhost:5000/api/match/getmatch/${params.slug}`, {
           credentials: "include",
         });
+        if (!res.ok) {
+          router.push("/");
+          return;
+        }
         const data = await res.json();
-        if (data.error) throw new Error(data.error);
+        if (data.error) {
+          router.push("/");
+          return;
+        }
         setOpponent(data.opponent);  
         setQuestionData(data.questions);
       } catch (err) {
@@ -60,7 +67,7 @@ int main() {
     };
 
     fetchMatch();
-  }, [hydrated, questions, params.slug]);
+  }, [hydrated, questions, params.slug, router]);
 
   useEffect(() => {
     if (!startedAt || !duration) return;

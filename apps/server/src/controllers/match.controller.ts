@@ -80,6 +80,14 @@ export const getMatch = async (req: AuthRequest, res: Response) => {
     const matchKey = `${ACTIVE_MATCH_PREFIX}${matchId}`;
     const data = await redis.hgetall(matchKey);
 
+     if (!data || !data.status) {
+      return res.status(404).json({ error: "Match not found or expired" });
+    }
+
+    if (data.status !== "RUNNING") {
+      return res.status(400).json({ error: "Match has already ended" });
+    }
+
     if (data.requesterId !== userId && data.opponentId !== userId) {
       return res.status(403).json({ error: "forbidden" });
     }
