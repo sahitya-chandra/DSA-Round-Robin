@@ -4,12 +4,14 @@ import { useMatchStore } from "@/store/matchStore";
 import { useRouter } from "next/navigation";
 import { useSubmissionsStore } from "@/store/submissionStore";
 import { useMatchProgressStore } from "@/store/matchProgressStore";
+import { useMatchResultStore } from "@/store/matchResultStore";
 
 export function useSocket(userId: string, slug?: string) {
   const router = useRouter();
   const { setMatchData, setTiming, resetMatchData } = useMatchStore.getState();
   const { updateSubmission, resetSubmissions} = useSubmissionsStore.getState()
   const { markSolved, resetProgress } = useMatchProgressStore.getState();
+  const { setResult } = useMatchResultStore.getState()
   const [socket, setSocket] = useState<any>(null);
 
   useEffect(() => {
@@ -56,20 +58,11 @@ export function useSocket(userId: string, slug?: string) {
       reason?: string;
     }) => {
       console.log("match:finished →", data);
-      alert(
-        data.winnerId === userId
-          ? "You won!"
-          : data.winnerId
-          ? "You lost!"
-          : "Match ended in a draw!"
-      );
-      if (data.reason) {
-        console.log("Reason:", data.reason);
-      }
+      setResult(data.winnerId, data.reason);
+
       resetSubmissions()
       resetProgress()
       resetMatchData()
-      router.push("/");
     };
 
     const joinExistingMatch = async () => {

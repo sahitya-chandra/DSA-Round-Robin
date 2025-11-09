@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useParams, useRouter } from "next/navigation";
 import { authClient } from "@repo/auth";
 import { useMatchStore } from "@/store/matchStore";
-import { Loader2, Play, ChevronDown, ChevronUp, Code2, Trophy, Clock, Zap, AlertCircle } from "lucide-react";
+import { useMatchResultStore } from "@/store/matchResultStore";
+import { Loader2, Play, ChevronDown, ChevronUp, Code2, Clock, Zap, AlertCircle, Trophy } from "lucide-react";
 import { useSubmissionsStore } from "@/store/submissionStore";
 import { useMatchProgressStore } from "@/store/matchProgressStore";
 import { useSocket } from "@/hooks/useSocket";
@@ -15,6 +16,7 @@ const App: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const { questions, hydrated, startedAt, duration } = useMatchStore();
+  const { visible, winnerId, hideResult } = useMatchResultStore();
   const [timeLeft, setTimeLeft] = useState(0);
   const submissions = useSubmissionsStore((state) => state.submissions)
   const myProgress = useMatchProgressStore((state) => state.myProgress)
@@ -72,17 +74,18 @@ int main() {
       setTimeLeft(remaining);
     };
 
-    tick(); // initial
+    tick();
     const interval = setInterval(tick, 1000);
 
     return () => clearInterval(interval);
   }, [startedAt, duration]);
 
   // useEffect(() => {
-  //   if (timeLeft === 0 && params.slug) {
+  //   if (!startedAt || !duration) return;
+  //   if (timeLeft === 0) {
   //     finish();
   //   }
-  // }, [timeLeft]);
+  // }, [timeLeft, startedAt, duration]);
 
   const currentQuestion = questionData[currentQIndex];
   const curQuesSub = Object.values(submissions).find((sub, i) => sub.questionId === currentQuestion?.questionData.id) || null
@@ -545,6 +548,46 @@ int main() {
           display: none;
         }
       `}</style>
+      {visible && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/50 rounded-2xl p-8 w-[380px] text-center shadow-2xl">
+            <div className="flex flex-col items-center justify-center space-y-4">
+              <div className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg ${
+                winnerId === session?.user.id
+                  ? "bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/30"
+                  : winnerId
+                  ? "bg-gradient-to-br from-rose-500 to-red-500 shadow-rose-500/30"
+                  : "bg-gradient-to-br from-slate-600 to-slate-700 shadow-slate-500/30"
+              }`}>
+                <Trophy className="w-10 h-10 text-white" />
+              </div>
+
+              <div>
+                <h2 className="text-2xl font-extrabold text-white mb-2">
+                  {winnerId === session?.user.id
+                    ? "🏆 You Won!"
+                    : winnerId
+                    ? "😞 You Lost!"
+                    : "🤝 It's a Draw!"}
+                </h2>
+                <p className="text-slate-400 text-sm font-medium">
+                  {winnerId ? "Good game!" : "Both players performed equally well."}
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  hideResult();
+                  router.push("/");
+                }}
+                className="mt-4 px-6 py-2.5 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-lg shadow-md transition-all"
+              >
+                Return to Home
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
