@@ -41,6 +41,10 @@ int main() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setLoading(false)
+  }, [submissions])
+
+  useEffect(() => {
     if (!hydrated || questions.length === 0) return;
 
     const fetchMatch = async () => {
@@ -118,8 +122,6 @@ int main() {
       console.log("Submission queued:", data);
     } catch (err: any) {
       console.error("Submit error:", err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -353,7 +355,7 @@ int main() {
                           </div>
                           <div className="flex gap-3">
                             <span className="text-slate-500 font-semibold min-w-[65px]">Output:</span>
-                            <span className="text-emerald-300 font-medium">{JSON.stringify(t.expected_output)}</span>
+                            <span className="text-emerald-300 font-medium">{t.expected_output}</span>
                           </div>
                         </div>
                       </div>
