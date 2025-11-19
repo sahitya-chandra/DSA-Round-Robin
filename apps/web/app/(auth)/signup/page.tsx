@@ -15,6 +15,9 @@ import { authClient } from "@repo/auth";
 import { formSchema } from "@repo/types";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
+import { User, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { motion } from "framer-motion";
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
@@ -62,122 +65,140 @@ export default function Page() {
     }
   };
 
-  const handleLogout = async () => {
-    await authClient.signOut();
-    router.push("/");
-  }
-
   return (
-    <div className="flex flex-col items-center p-8 min-h-screen bg-gray-50 font-sans">
-      <Card className="w-full max-w-sm shadow-xl rounded-xl">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-gray-800">
-            Create your account
-          </CardTitle>
-          <CardDescription className="text-gray-500">
-            Enter your name, email, and password to sign up
-          </CardDescription>
-        </CardHeader>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 p-4 relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 w-full h-full bg-[linear-gradient(to_right,#4f4f4f2e_1px,transparent_1px),linear-gradient(to_bottom,#4f4f4f2e_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-[500px] bg-gradient-to-b from-purple-500/10 via-cyan-500/10 to-transparent blur-3xl pointer-events-none" />
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md relative z-10"
+      >
+        <Card className="bg-slate-900/50 border border-white/10 backdrop-blur-xl shadow-2xl">
+          <CardHeader className="space-y-1 text-center">
+            <CardTitle className="text-2xl font-bold text-white">
+              Create an account
+            </CardTitle>
+            <CardDescription className="text-slate-400">
+              Enter your details to get started
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              
+              {/* Name Input */}
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-slate-300">Name</Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                  <Input 
+                    id="name" 
+                    name="name" 
+                    type="text" 
+                    placeholder="John Doe" 
+                    required 
+                    className="pl-10 bg-slate-950/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:ring-purple-500/20"
+                  />
+                </div>
+              </div>
+
+              {/* Email Input */}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-slate-300">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                  <Input
+                    id="email"
+                    type="email"
+                    name="email" 
+                    placeholder="name@example.com"
+                    required
+                    className="pl-10 bg-slate-950/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:ring-purple-500/20"
+                  />
+                </div>
+              </div>
+
+              {/* Password Input */}
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-slate-300">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                  <Input 
+                    id="password" 
+                    name="password" 
+                    type="password" 
+                    required 
+                    className="pl-10 bg-slate-950/50 border-slate-800 text-white placeholder:text-slate-600 focus:border-purple-500/50 focus:ring-purple-500/20"
+                  />
+                </div>
+              </div>
+
+              {/* Status Messages */}
+              {errorMsg && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+                  {errorMsg}
+                </div>
+              )}
+              {successMsg && (
+                <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm text-center">
+                  {successMsg}
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-purple-500 to-cyan-500 hover:from-purple-400 hover:to-cyan-400 text-white border-0" 
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating account...
+                  </>
+                ) : (
+                  <>
+                    Sign Up
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+
+          <CardFooter className="flex flex-col gap-4">
+            <div className="relative w-full">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-slate-800"></span>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-slate-900 px-2 text-slate-500">
+                  Or continue with
+                </span>
+              </div>
+            </div>
             
-            {/* Name Input */}
-            <div className="grid gap-2">
-              <Label htmlFor="name" className="font-medium text-gray-700">Name</Label>
-              <Input 
-                id="name" 
-                name="name" 
-                type="text" 
-                placeholder="John Doe" 
-                required 
-                className="rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {/* Email Input */}
-            <div className="grid gap-2">
-              <Label htmlFor="email" className="font-medium text-gray-700">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                name="email" 
-                placeholder="you@example.com"
-                required
-                className="rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {/* Password Input */}
-            <div className="grid gap-2">
-              <Label htmlFor="password" className="font-medium text-gray-700">Password</Label>
-              <Input 
-                id="password" 
-                name="password" 
-                type="password" 
-                required 
-                className="rounded-lg focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            {/* Status Messages */}
-            {errorMsg && (
-              <p className="text-red-600 text-sm text-center font-medium p-2 bg-red-100 rounded-lg border border-red-300 transition-opacity duration-300">
-                {errorMsg}
-              </p>
-            )}
-            {successMsg && (
-              <p className="text-green-700 text-sm text-center font-medium p-2 bg-green-100 rounded-lg border border-green-300 transition-opacity duration-300">
-                {successMsg}
-              </p>
-            )}
-
-            {/* Submit Button */}
             <Button 
-              type="submit" 
-              className="w-full mt-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-colors duration-200" 
-              disabled={isLoading}
+              variant="outline" 
+              className="w-full bg-slate-950/50 border-slate-800 text-slate-300 hover:bg-slate-900 hover:text-white"
             >
-              {isLoading ? "Creating account..." : "Sign Up"}
+               <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M21.9 12.2c0-.7-.1-1.4-.2-2.1H12v3.9h5.4c-.2 1.3-.8 2.5-1.7 3.4v2.5h3.2c1.9-1.8 3-4.5 3-7.7z"/><path fill="currentColor" d="M12 22c3.3 0 6.1-1.1 8.2-3.1l-3.2-2.5c-.9.6-2.1 1-3.7 1-2.8 0-5.2-1.9-6.1-4.4H2.7v2.6C4.8 20.3 8.2 22 12 22z"/><path fill="currentColor" d="M5.9 14.8c-.3-.9-.4-1.9-.4-2.8s.1-1.9.4-2.8V6.6H2.7C2 8.1 1.7 10 1.7 12s.3 3.9 1 5.4l3.2-2.6z"/><path fill="currentColor" d="M12 5.5c1.8 0 3.3.6 4.6 1.8l2.8-2.8C18.1 2.5 15.2 1 12 1c-3.8 0-7.2 1.7-9.3 4.4l3.2 2.6c.9-2.5 3.3-4.2 6.1-4.2z"/></svg>
+              Google
             </Button>
-          </form>
-        </CardContent>
 
-        <CardFooter className="flex-col gap-4 pt-0">
-          <div className="relative w-full">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-gray-200"></span>
+            <div className="text-center text-sm text-slate-400">
+              Already have an account?{" "}
+              <Link href="/signin" className="text-purple-400 hover:text-purple-300 font-medium hover:underline">
+                Sign In
+              </Link>
             </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500 font-medium">
-                Or continue with
-              </span>
-            </div>
-          </div>
-          <Button 
-            variant="outline" 
-            className="w-full flex items-center justify-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50 rounded-lg shadow-sm"
-          >
-             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.9 12.2c0-.7-.1-1.4-.2-2.1H12v3.9h5.4c-.2 1.3-.8 2.5-1.7 3.4v2.5h3.2c1.9-1.8 3-4.5 3-7.7z"/><path fill="#34A853" d="M12 22c3.3 0 6.1-1.1 8.2-3.1l-3.2-2.5c-.9.6-2.1 1-3.7 1-2.8 0-5.2-1.9-6.1-4.4H2.7v2.6C4.8 20.3 8.2 22 12 22z"/><path fill="#FBBC04" d="M5.9 14.8c-.3-.9-.4-1.9-.4-2.8s.1-1.9.4-2.8V6.6H2.7C2 8.1 1.7 10 1.7 12s.3 3.9 1 5.4l3.2-2.6z"/><path fill="#EA4335" d="M12 5.5c1.8 0 3.3.6 4.6 1.8l2.8-2.8C18.1 2.5 15.2 1 12 1c-3.8 0-7.2 1.7-9.3 4.4l3.2 2.6c.9-2.5 3.3-4.2 6.1-4.2z"/></svg>
-            Sign Up with Google
-          </Button>
-          <div className="mt-4 text-center text-sm text-gray-600">
-            Already have an account?{" "}
-            <Button variant="link" onClick={() => router.push("/signin")} className="p-0 h-auto text-blue-600 hover:text-blue-700 font-medium">
-              Sign In
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
-      
-      {/* Logout button */}
-      <Button 
-        variant="secondary"
-        className="w-[100px] mt-8 shadow-md bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg" 
-        onClick={handleLogout}
-      > 
-        Logout
-      </Button>
+          </CardFooter>
+        </Card>
+      </motion.div>
     </div>
   )
 }

@@ -2,16 +2,19 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../../components/Friendship/Sidebar";
 import Chatarea from "../../components/Friendship/Chatarea";
+import { motion } from "framer-motion";
 
 const Page = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentChatter, setCurrentChatter] = useState<string | null>(null);
   const [currentChatterID, setCurrentChatterID] = useState<string | null>(null);
+
   useEffect(() => {
     console.log(currentChatterID);
   }, [currentChatter]);
+
   return (
-    <div className="flex h-screen bg-black text-white font-sans overflow-hidden">
+    <div className="flex h-screen bg-slate-950 text-white font-sans overflow-hidden pt-16">
       <Sidebar
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}

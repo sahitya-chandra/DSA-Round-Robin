@@ -29,7 +29,10 @@ export const Btn = ({ userId }: { userId: string | undefined }) => {
   }, [socket, router]);
 
   const match = async () => {
-    if (!userId) return;
+    if (!userId) {
+      router.push("/signin");
+      return;
+    }
     setLoading(true);
 
     try {
