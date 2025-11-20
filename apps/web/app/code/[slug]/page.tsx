@@ -17,7 +17,17 @@ const App: React.FC = () => {
   const router = useRouter();
   const { questions, hydrated, startedAt, duration } = useMatchStore();
   const { visible, winnerId, hideResult } = useMatchResultStore();
-  const [timeLeft, setTimeLeft] = useState(0);
+
+  
+  const calculateTimeLeft = () => {
+    if (!startedAt || !duration) return 0;
+    const start = new Date(startedAt).getTime();
+    const end = start + duration * 1000;
+    const now = Date.now();
+    return Math.max(0, Math.floor((end - now) / 1000));
+  };
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
   const submissions = useSubmissionsStore((state) => state.submissions)
   const myProgress = useMatchProgressStore((state) => state.myProgress)
   const opponentProgress = useMatchProgressStore((state) => state.opponentProgress)
@@ -37,7 +47,10 @@ int main() {
 }`);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const resultPanelRef = useRef<ImperativePanelHandle>(null);
+
   const [isResultCollapsed, setIsResultCollapsed] = useState(false);
+  
+  const isHeaderLoading = !hydrated || loadingQuestions;
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -255,78 +268,113 @@ int main() {
             </div>
 
             <div className="flex items-center gap-4 flex-1 justify-center">
-              {/* ----- YOU ----- */}
-              <div className="bg-gradient-to-br from-slate-800/80 to-slate-800/40 rounded-lg px-4 py-2 border border-emerald-500/30 backdrop-blur-sm">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-emerald-500/30">
-                    YOU
-                  </div>
-
-                  <div className="flex gap-1.5">
-                    {questionData.map((q, i) => {
-                      const solved = myProgress[q.questionData.id] ?? false
-                      return (
-                        <div
-                          key={i}
-                          className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                            solved ? "bg-emerald-500/30" : "bg-slate-700/40"
-                          }`}
-                        >
-                          {solved ? (
-                            <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-                              <path d="M5 13l4 4L19 7" />
-                            </svg>
-                          ) : (
-                            <div className="w-3 h-3 rounded-full bg-slate-600" />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-rose-600 to-red-700 rounded-lg p-[2px] shadow-lg">
-                <div className="bg-slate-900 rounded-[6px] px-5 py-2">
-                  <div className="flex items-center gap-2">
-                    <Clock className={`w-3.5 h-3.5 ${timerColor}`} />
-                    <div className={`text-2xl font-black font-mono ${timerColor} tracking-wider`}>
-                      {formatTime(timeLeft)}
+            <div className="flex items-center gap-4 flex-1 justify-center">
+              {isHeaderLoading ? (
+                <>
+                  {/* YOU Skeleton */}
+                  <div className="bg-slate-800/50 rounded-lg px-4 py-2 border border-slate-700/30 w-[140px] h-[54px] animate-pulse flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-slate-700/50" />
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="w-6 h-6 rounded-full bg-slate-700/50" />
+                      ))}
                     </div>
                   </div>
-                </div>
-              </div>
 
-              {/* ----- OPPONENT ----- */}
-              <div className="bg-gradient-to-br from-slate-800/80 to-slate-800/40 rounded-lg px-4 py-2 border border-violet-500/30 backdrop-blur-sm">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-violet-500/30">
-                    {opponent?.name?.[0]?.toUpperCase() ?? "OPP"}
+                  {/* Timer Skeleton */}
+                  <div className="bg-slate-800/50 rounded-lg p-[2px] w-[110px] h-[50px] animate-pulse">
+                    <div className="h-full bg-slate-900/50 rounded-[6px] flex items-center justify-center">
+                      <div className="w-20 h-6 bg-slate-700/50 rounded" />
+                    </div>
                   </div>
 
-                  <div className="flex gap-1.5">
-                    {questionData.map((q, i) => {
-                      const oppSolved = opponentProgress[q.questionData.id] ?? false;
-                      return (
-                        <div
-                          key={i}
-                          className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                            oppSolved ? "bg-violet-500/30" : "bg-slate-700/40"
-                          }`}
-                        >
-                          {oppSolved ? (
-                            <svg className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-                              <path d="M5 13l4 4L19 7" />
-                            </svg>
-                          ) : (
-                            <div className="w-3 h-3 rounded-full bg-slate-600" />
-                          )}
+                  {/* OPPONENT Skeleton */}
+                  <div className="bg-slate-800/50 rounded-lg px-4 py-2 border border-slate-700/30 w-[140px] h-[54px] animate-pulse flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-full bg-slate-700/50" />
+                    <div className="flex gap-1.5">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="w-6 h-6 rounded-full bg-slate-700/50" />
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* ----- YOU ----- */}
+                  <div className="bg-gradient-to-br from-slate-800/80 to-slate-800/40 rounded-lg px-4 py-2 border border-emerald-500/30 backdrop-blur-sm">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-emerald-500/30">
+                        YOU
+                      </div>
+
+                      <div className="flex gap-1.5">
+                        {questionData.map((q, i) => {
+                          const solved = myProgress[q.questionData.id] ?? false
+                          return (
+                            <div
+                              key={i}
+                              className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                                solved ? "bg-emerald-500/30" : "bg-slate-700/40"
+                              }`}
+                            >
+                              {solved ? (
+                                <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                                  <path d="M5 13l4 4L19 7" />
+                                </svg>
+                              ) : (
+                                <div className="w-3 h-3 rounded-full bg-slate-600" />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-br from-rose-600 to-red-700 rounded-lg p-[2px] shadow-lg">
+                    <div className="bg-slate-900 rounded-[6px] px-5 py-2">
+                      <div className="flex items-center gap-2">
+                        <Clock className={`w-3.5 h-3.5 ${timerColor}`} />
+                        <div className={`text-2xl font-black font-mono ${timerColor} tracking-wider`}>
+                          {formatTime(timeLeft)}
                         </div>
-                      );
-                    })}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+
+                  {/* ----- OPPONENT ----- */}
+                  <div className="bg-gradient-to-br from-slate-800/80 to-slate-800/40 rounded-lg px-4 py-2 border border-violet-500/30 backdrop-blur-sm">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-violet-500/30">
+                        {opponent?.name?.[0]?.toUpperCase() ?? "OPP"}
+                      </div>
+
+                      <div className="flex gap-1.5">
+                        {questionData.map((q, i) => {
+                          const oppSolved = opponentProgress[q.questionData.id] ?? false;
+                          return (
+                            <div
+                              key={i}
+                              className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
+                                oppSolved ? "bg-violet-500/30" : "bg-slate-700/40"
+                              }`}
+                            >
+                              {oppSolved ? (
+                                <svg className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                                  <path d="M5 13l4 4L19 7" />
+                                </svg>
+                              ) : (
+                                <div className="w-3 h-3 rounded-full bg-slate-600" />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
             </div>
 
             <button
@@ -490,7 +538,7 @@ int main() {
                       </div>
                     </div>
 
-                    <div className="flex-1 min-h-0">
+                    <div className="flex-1 min-h-0 overflow-hidden">
                       <CodeEditor code={code} setCode={setCode} language={selectedLang} />
                     </div>
                   </div>
@@ -509,7 +557,7 @@ int main() {
                 >
                   <div className="h-full flex flex-col bg-gradient-to-b from-slate-900 to-slate-950">
                     <ResultHeader />
-                    <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+                    <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
                       {curQuesSub ? (
                         <>
                           <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 rounded-xl p-5 border border-slate-700/50">
