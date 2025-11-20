@@ -36,10 +36,14 @@ export const Navbar = () => {
 
   const isActive = (path: string) => pathname === path;
 
+  if (pathname.startsWith("/code/") && pathname !== "/code") {
+    return null;
+  }
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/5">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="flex items-center justify-between h-16">
+        <div className="relative flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-lg group-hover:shadow-cyan-500/20 transition-all">
@@ -49,7 +53,7 @@ export const Navbar = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-1">
+          <div className="hidden md:flex items-center gap-1 absolute left-1/2 transform -translate-x-1/2">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <span

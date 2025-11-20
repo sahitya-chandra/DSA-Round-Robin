@@ -1,6 +1,6 @@
 import { createCodeWorker, publisherClient, connection as redis } from "@repo/queue";
 import { exec } from "child_process";
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
 import dotenv from "dotenv";
 
@@ -11,30 +11,44 @@ createCodeWorker(async (job) => {
   const { code, language, testcases, submissionId, matchId, userId, questionId } = job.data;
   if (!code || !language || !testcases) throw new Error("Missing data");
 
-  const tempDir = path.join(String(process.env.HOME_DIR), "docker_temp");
-  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+  const tempDir = path.join(String(process.env.HOME_DIR), "docker_temp", `job-${job.id}`);
+  await fs.mkdir(tempDir, { recursive: true });
 
   console.log("Mount directory:", tempDir);
 
   const fileExtMap: Record<string, string> = { cpp: "cpp", python: "py", javascript: "js" };
-  const dockerImageMap: Record<string, string> = { cpp: "gcc:latest", python: "python:3.11", javascript: "node:18" };
+  const dockerImageMap: Record<string, string> = { 
+    cpp: "gcc:latest", 
+    python: "python:3.11-alpine", 
+    javascript: "node:18-alpine" 
+  };
 
   const fileExt = fileExtMap[language];
   const dockerImage = dockerImageMap[language];
   if (!fileExt || !dockerImage) throw new Error(`Unsupported language: ${language}`);
 
-  const filePath = path.join(tempDir, `job-${job.id}.${fileExt}`);
-  fs.writeFileSync(filePath, code);
+  const sourceFilename = `main.${fileExt}`;
+  const filePath = path.join(tempDir, sourceFilename);
+  await fs.writeFile(filePath, code);
+
+  for (let i = 0; i < testcases.length; i++) {
+    const input = testcases[i]?.input || "";
+    await fs.writeFile(path.join(tempDir, `input_${i}.txt`), input);
+  }
 
   console.log(`Source file created at: ${filePath}`);
 
-  const runCmdMap: Record<string, string> = {
-    cpp: `g++ /code/job-${job.id}.cpp -o /code/main && /code/main`,
-    python: `python /code/job-${job.id}.py`,
-    javascript: `node /code/job-${job.id}.js`,
-  };
+  let runCmd = "";
+  if (language === "cpp") {
+    runCmd = `g++ /code/${sourceFilename} -o /code/main && `;
+    runCmd += `i=0; while [ \\$i -lt ${testcases.length} ]; do /code/main < /code/input_\\$i.txt > /code/output_\\$i.txt; i=\\$((i+1)); done`;
+  } else if (language === "python") {
+    runCmd = `i=0; while [ \\$i -lt ${testcases.length} ]; do python /code/${sourceFilename} < /code/input_\\$i.txt > /code/output_\\$i.txt; i=\\$((i+1)); done`;
+  } else if (language === "javascript") {
+    runCmd = `i=0; while [ \\$i -lt ${testcases.length} ]; do node /code/${sourceFilename} < /code/input_\\$i.txt > /code/output_\\$i.txt; i=\\$((i+1)); done`;
+  }
 
-  const dockerBase = `docker run --rm -i -v ${tempDir}:/code --memory=128m --cpus=0.5 --log-opt max-size=10m --log-opt max-file=3 ${dockerImage} bash -c`;
+  const dockerCmd = `docker run --rm --init -i -v ${tempDir}:/code --memory=128m --cpus=0.5 --network none ${dockerImage} sh -c "${runCmd}"`;
 
   const detailedResults: {
     input: string;
@@ -48,42 +62,39 @@ createCodeWorker(async (job) => {
   const startTime = Date.now();
 
   try {
-    for (const [i, tc] of testcases.entries()) {
-      console.log(`\n--- Running testcase ${i + 1} ---`);
-      console.log("Input:", JSON.stringify(tc.input));
-
-      const dockerCmd = `${dockerBase} "${runCmdMap[language]}"`;
-
-      const output = await new Promise<string>((resolve, reject) => {
-        const proc = exec(dockerCmd, { timeout: 5000 }, (err, stdout, stderr) => {
-          console.log("STDOUT:", stdout);
-          console.log("STDERR:", stderr);
-          if (err) return reject(stderr || err.message);
-          resolve(stdout.trim());
-        });
-
-        if (proc.stdin) {
-          proc.stdin.write(tc.input);
-          proc.stdin.end();
+    let dockerStderr = "";
+    console.log("Executing batch docker command...");
+    await new Promise<void>((resolve, reject) => {
+      exec(dockerCmd, { timeout: 10000 }, (err, stdout, stderr) => {
+        dockerStderr = stderr;
+        if (err) {
+          console.error("Docker execution failed:", stderr);
         }
+        resolve();
       });
+    });
 
-      const cleanedOutput = output.trim();
-      const expected = tc.expected_output.trim();
-      const passed = cleanedOutput === expected;
+    for (let i = 0; i < total; i++) {
+      const tc = testcases[i];
+      if (!tc) continue;
 
+      const expected = (tc.expected_output || "").trim();
+      let output = "";
+      try {
+        output = (await fs.readFile(path.join(tempDir, `output_${i}.txt`), "utf-8")).trim();
+      } catch (e) {
+        output = `Runtime Error / No Output\nLogs: ${dockerStderr}`;
+      }
+
+      const passed = output === expected;
       if (passed) passedCount++;
 
       detailedResults.push({
-        input: tc.input,
+        input: tc.input || "",
         expected,
-        output: cleanedOutput,
+        output,
         passed,
       });
-
-      console.log("Expected:", JSON.stringify(expected));
-      console.log("Got     :", JSON.stringify(cleanedOutput));
-      console.log("Passed? :", passed);
     }
 
     const endTime = Date.now();
@@ -119,6 +130,7 @@ createCodeWorker(async (job) => {
     }));
 
     return summaryResult;
+
   } catch (err) {
     console.error("Error during execution:", err);
     return {
@@ -130,10 +142,10 @@ createCodeWorker(async (job) => {
     };
   } finally {
     try {
-      fs.unlinkSync(filePath);
-      console.log("Deleted temp file:", filePath);
+      await fs.rm(tempDir, { recursive: true, force: true });
+      console.log("Cleaned up temp directory:", tempDir);
     } catch (e) {
-      console.warn("Failed to delete temp file:", filePath);
+      console.warn("Failed to cleanup temp directory:", tempDir);
     }
   }
 });
