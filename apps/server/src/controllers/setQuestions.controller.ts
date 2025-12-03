@@ -2,24 +2,20 @@ import prisma from "@repo/db";
 import { Request, Response } from "express";
 
 export const setQuestions = async (req: Request, res: Response) => {
-  const { ids } = req.body;
-  if (!ids || !Array.isArray(ids)) {
-    return res.status(400).json({ error: "ids must be an array" });
-  }
-
   try {
-    const questionsFromDb = await prisma.question.findMany({
-      where: { id: { in: ids } },
-    });
+    const randomQuestions = await prisma.$queryRaw<
+      any[]
+    >`SELECT * FROM "Question" ORDER BY RANDOM() LIMIT 5`;
 
-    const questions = questionsFromDb.map((q) => ({
+    const questions = randomQuestions.map((q) => ({
       ...q,
       testcases: q.testcases ?? [],
     }));
 
-    console.log("questions", questions)
+    console.log("5 random questions:", questions);
+
     res.status(200).json({ status: "success", questions });
   } catch (err: any) {
-    res.status(500).json({ status: "failed in getting questions", error: err.message });
+    res.status(500).json({ status: "failed in getting random questions", error: err.message });
   }
-}
+};
