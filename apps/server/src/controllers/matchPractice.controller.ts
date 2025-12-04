@@ -10,13 +10,13 @@ export const submitPracticeController = async (req: AuthRequest, res: Response) 
   const userId = req.user?.id;
   const { questionId, code, language } = req.body;
 
-  // // 1. Enforce auth + input validation (same standard as 1v1)
-  // if (!userId) {
-  //   return res.status(401).json({ error: "unauthenticated" });
-  // }
-  // if (!questionId || !code) {
-  //   return res.status(400).json({ error: "bad_request" });
-  // }
+  // 1. Enforce auth + input validation (same standard as 1v1)
+  if (!userId) {
+    return res.status(401).json({ error: "unauthenticated" });
+  }
+  if (!questionId || !code) {
+    return res.status(400).json({ error: "bad_request" });
+  }
 
   const ALLOWED_LANGS = ["cpp", "python", "javascript"] as const;
   const lang = ALLOWED_LANGS.includes(language as any) ? language : "cpp";
@@ -59,11 +59,9 @@ export const submitPracticeController = async (req: AuthRequest, res: Response) 
         language: lang,
         testcases: (question as any).testcases ?? [],
         submissionId,
-        matchId: null,              // distinguish from 1v1
+        matchId: "",             
         userId,
         questionId: Number(questionId),
-        mode: "practice",           // <--- tell worker this is practice
-        practiceRoomId: `practice:${userId}`, // <--- socket room
       },
       {
         removeOnComplete: true,
