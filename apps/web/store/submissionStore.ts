@@ -5,6 +5,7 @@ interface SubmissionResult {
   questionId: string;
   userId: string;
   result: {
+		error: any;
     passed: boolean;
     passedCount: number;
     total: number;

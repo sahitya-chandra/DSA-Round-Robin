@@ -38,15 +38,25 @@ createCodeWorker(async (job) => {
 
   console.log(`Source file created at: ${filePath}`);
 
-  let runCmd = "";
-  if (language === "cpp") {
-    runCmd = `g++ /code/${sourceFilename} -o /code/main && `;
-    runCmd += `i=0; while [ \\$i -lt ${testcases.length} ]; do /code/main < /code/input_\\$i.txt > /code/output_\\$i.txt; i=\\$((i+1)); done`;
-  } else if (language === "python") {
-    runCmd = `i=0; while [ \\$i -lt ${testcases.length} ]; do python /code/${sourceFilename} < /code/input_\\$i.txt > /code/output_\\$i.txt; i=\\$((i+1)); done`;
-  } else if (language === "javascript") {
-    runCmd = `i=0; while [ \\$i -lt ${testcases.length} ]; do node /code/${sourceFilename} < /code/input_\\$i.txt > /code/output_\\$i.txt; i=\\$((i+1)); done`;
-  }
+let runCmd = "";
+
+if (language === "cpp") {
+  runCmd =
+    `g++ /code/${sourceFilename} -o /code/main && ` +
+    `for i in $(seq 0 ${testcases.length - 1}); do ` +
+    `/code/main < /code/input_$i.txt > /code/output_$i.txt; ` +
+    `done`;
+} else if (language === "python") {
+  runCmd =
+    `for i in $(seq 0 ${testcases.length - 1}); do ` +
+    `python /code/${sourceFilename} < /code/input_$i.txt > /code/output_$i.txt; ` +
+    `done`;
+} else if (language === "javascript") {
+  runCmd =
+    `for i in $(seq 0 ${testcases.length - 1}); do ` +
+    `node /code/${sourceFilename} < /code/input_$i.txt > /code/output_$i.txt; ` +
+    `done`;
+}
 
   const dockerCmd = `docker run --rm --init -i -v ${tempDir}:/code --memory=128m --cpus=0.5 --network none ${dockerImage} sh -c "${runCmd}"`;
 
