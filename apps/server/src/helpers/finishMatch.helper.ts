@@ -67,6 +67,26 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
   }
 
   await prisma.$transaction(async (tx) => {
+    const requester = await tx.user.findUnique({ where: { id: requesterId }, select: { rating: true } });
+    const opponent = await tx.user.findUnique({ where: { id: opponentId }, select: { rating: true } });
+
+    const rRating = requester?.rating || 1200;
+    const oRating = opponent?.rating || 1200;
+
+    const K = 32;
+    const expectedScoreR = 1 / (1 + Math.pow(10, (oRating - rRating) / 400));
+    const expectedScoreO = 1 / (1 + Math.pow(10, (rRating - oRating) / 400));
+
+    let actualScoreR = 0.5; // Draw
+    if (winnerId === requesterId) actualScoreR = 1;
+    else if (winnerId === opponentId) actualScoreR = 0;
+
+    const newRatingR = Math.round(rRating + K * (actualScoreR - expectedScoreR));
+    const newRatingO = Math.round(oRating + K * ((1 - actualScoreR) - expectedScoreO));
+
+    await tx.user.update({ where: { id: requesterId }, data: { rating: newRatingR } });
+    await tx.user.update({ where: { id: opponentId }, data: { rating: newRatingO } });
+
     await tx.match.create({
       data: {
         id: matchId,

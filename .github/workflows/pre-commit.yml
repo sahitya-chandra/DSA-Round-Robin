@@ -42,14 +42,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        run: pnpm run db:generate
+
       - name: Lint
         run: pnpm run lint
 
       - name: Type Check
         run: pnpm run check-types
-
-      - name: Generate Prisma client
-        run: pnpm run db:generate
 
       - name: Build
         run: pnpm run build

@@ -13,6 +13,7 @@ import {
   Activity,
   X,
 } from "lucide-react";
+import { getProfileData } from "../actions/profile";
 
 // --- TYPE DEFINITIONS ---
 interface Match {
@@ -24,16 +25,7 @@ interface Match {
   ratingChange: number;
 }
 
-// --- ACTIVITY DATA GENERATOR ---
-const generateActivityData = (days: number) => {
-  const today = new Date();
-  return Array.from({ length: days }, (_, i) => {
-    const date = new Date(today);
-    date.setDate(today.getDate() - (days - 1 - i));
-    const count = Math.random() > 0.3 ? Math.floor(Math.random() * 5) : 0;
-    return { date: date.toISOString().split("T")[0] || "", count };
-  });
-};
+// --- ACTIVITY DATA GENERATOR REMOVED ---
 
 // --- BAR VARIANTS (FIXED ease) ---
 const barVariants = {
@@ -54,34 +46,56 @@ export default function ProfilePage() {
   const { data: session } = authClient.useSession();
   const username = session?.user?.name || "Player";
 
-  const stats = useMemo(
-    () => ({
-      matchesPlayed: 42,
-      wins: 27,
-      losses: 15,
-      rating: 1420,
-      winStreak: 3,
-      bestRating: 1487,
-    }),
-    []
-  );
+  const [profileData, setProfileData] = useState<{
+    user: { name: string; rating: number; createdAt: Date; activeDays: number };
+    stats: { matchesPlayed: number; wins: number; losses: number; rating: number; winRate: number; winStreak: number; bestRating: number };
+    matches: Match[];
+    activity: { date: string; count: number }[];
+  } | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [matches] = useState<Match[]>([
-    { id: "1", opponent: "Alice", result: "Win", date: "Nov 9, 2025", score: "2-1", ratingChange: 10 },
-    { id: "2", opponent: "Bob", result: "Loss", date: "Nov 8, 2025", score: "1-3", ratingChange: -9 },
-    { id: "3", opponent: "Charlie", result: "Win", date: "Nov 7, 2025", score: "3-0", ratingChange: 14 },
-    { id: "4", opponent: "David", result: "Loss", date: "Nov 6, 2025", score: "0-2", ratingChange: -12 },
-  ]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getProfileData();
+        if (data) {
+          // @ts-ignore - Date serialization issue between server/client
+          setProfileData(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch profile data", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
-  const [activity, setActivity] = useState<{ date: string; count: number }[]>([]);
-  const totalDays = 84;
-
-  useEffect(() => setActivity(generateActivityData(totalDays)), []);
-
-  const activeDays = activity.filter((d) => d.count > 0).length;
-  const totalMatches = activity.reduce((sum, d) => sum + d.count, 0);
-  const winRate = Math.round((stats.wins / stats.matchesPlayed) * 100);
+  const displayUsername = profileData?.user.name || username;
+  const stats = profileData?.stats || {
+    matchesPlayed: 0,
+    wins: 0,
+    losses: 0,
+    rating: 1200,
+    winRate: 0,
+    winStreak: 0,
+    bestRating: 1200,
+  };
+  const matches = profileData?.matches || [];
+  const activity = profileData?.activity || [];
+  
+  const activeDays = profileData?.user.activeDays || 0;
+  const totalMatches = stats.matchesPlayed;
+  const winRate = stats.winRate;
   const maxCount = useMemo(() => Math.max(...activity.map((d) => d.count), 0), [activity]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white p-6 pt-24 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400"></div>
+      </div>
+    );
+  }
 
   // --- COMPONENTS ---
   const ProfileHeader = () => (
@@ -94,7 +108,7 @@ export default function ProfilePage() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6, ease: easeOut }}
           >
-            {username}
+            {displayUsername}
           </motion.h1>
 
           <p className="text-sm text-slate-400 mt-3 flex items-center gap-2">
