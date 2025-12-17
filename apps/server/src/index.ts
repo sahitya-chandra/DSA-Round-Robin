@@ -1,31 +1,11 @@
-import express from "express";
 import http from "http";
 import { initIo } from './utils/socketInstance';
 import { setupSockets } from './sockets/index';
-import cors from "cors";
 import { PORT } from "./config/config";
-import friendRouter from "./routes/social.route";
-import submitRouter from "./routes/submit.route"
-import setQuestions from "./routes/setQuestions.route"
-import matchRouter from "./routes/match.route"
 import { matchSweeper } from "./sockets/matchSweeper";
-import chatRouter from "./routes/chat.route";
 import { setupChatSocket } from "./sockets/chatsocket";
-const app = express();
-app.use(
-  cors({
-    origin: "http://localhost:3000",
-    credentials: true,
-  })
-);
-app.use(express.json());
+import { app } from "./app";
 
-
-app.use("/api/social", friendRouter)
-app.use("/api/submit", submitRouter);
-app.use("/api/setquestions", setQuestions);
-app.use("/api/match", matchRouter)
-app.use("/api/chat" , chatRouter )
 const server = http.createServer(app);
 export const io = initIo(server);
 

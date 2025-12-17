@@ -3,8 +3,11 @@ import { userSockets, socketToUser } from "../utils/utils";
 import { subscriberClient } from "@repo/queue";
 import { startMatchMaker } from "./matchMaker";
 import { connection as redis } from "@repo/queue";
-import { finishMatchById } from "../helpers/finishMatch.helper";
-import { ACTIVE_MATCH_PREFIX, USER_MATCH_PREFIX, WAITING_LIST } from "../utils/constants";
+import {
+  ACTIVE_MATCH_PREFIX,
+  USER_MATCH_PREFIX,
+  WAITING_LIST,
+} from "../utils/constants";
 
 export function setupSockets(io: Server) {
   io.on("connection", (socket: Socket) => {
@@ -47,58 +50,16 @@ export function setupSockets(io: Server) {
 
   startMatchMaker(io);
 
-  subscriberClient.subscribe("match_created");
   subscriberClient.subscribe("match_events");
 
   subscriberClient.on("message", async (channel, message) => {
+    if (channel !== "match_events") return;
+
     const { event, data } = JSON.parse(message);
 
-    if (channel === "match_created" && event === "match_started") {
-      try {
-        const { matchId, requesterId, opponentId, questions, startedAt, duration } = data;
-        console.log("Match start event received:", data);
-
-        const reqSocketId = userSockets.get(requesterId);
-        const oppSocketId = opponentId ? userSockets.get(opponentId) : null;
-
-        console.log("Socket IDs → requester:", reqSocketId, "opponent:", oppSocketId);
-
-        const reqSocket = reqSocketId ? io.sockets.sockets.get(reqSocketId) : null;
-        const oppSocket = oppSocketId ? io.sockets.sockets.get(oppSocketId) : null;
-
-        if (reqSocket) reqSocket.join(matchId);
-        if (oppSocket) oppSocket.join(matchId);
-
-        io.to(matchId).emit("match:ready", { matchId, startedAt });
-
-        if (requesterId) {
-          io.to(requesterId).emit("match_started", {
-            matchId,
-            opponentId,
-            questions,
-            startedAt,
-            duration,
-          });
-        }
-
-        if (opponentId) {
-          io.to(opponentId).emit("match_started", {
-            matchId,
-            opponentId: requesterId,
-            questions,
-            startedAt, 
-            duration,
-          });
-        }
-
-        console.log(`Emitted match_started and match:ready for ${matchId}`);
-      } catch (err) {
-        console.error("Error in match_started handler:", err);
-      }
-    }
-
-    if (channel === "match_events" && event === "submission_result") {
-      const { matchId, userId, submissionId, questionId, result, details } = data;
+    if (event === "submission_result") {
+      const { matchId, userId, submissionId, questionId, result, details } =
+        data;
 
       io.to(userId).emit("submission_result", {
         matchId,
@@ -118,17 +79,17 @@ export function setupSockets(io: Server) {
       );
 
       if (result.passed) {
-        const room = io.sockets.adapter.rooms.get(matchId)
+        const room = io.sockets.adapter.rooms.get(matchId);
         if (room) {
           for (const socketId of room) {
-            const opponentId = socketToUser.get(socketId)
+            const opponentId = socketToUser.get(socketId);
             if (opponentId && opponentId !== userId) {
               io.to(opponentId).emit("opponent_submission_passed", {
                 matchId,
                 opponentId: userId,
                 questionId,
                 submissionId,
-              })
+              });
               console.log(
                 `Notified opponent ${opponentId} that user ${userId} passed question ${questionId}`
               );
@@ -136,8 +97,8 @@ export function setupSockets(io: Server) {
           }
         }
       }
-    } else if (channel === "match_events" && event === "match_finished") {
-      const { matchId, winnerId } = data;
+    } else if (event === "match_finished") {
+      const { matchId } = data;
       io.to(matchId).emit("match:finished", data);
     }
   });
