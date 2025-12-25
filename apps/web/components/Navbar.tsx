@@ -17,11 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-const navLinks = [
-  { href: "/", label: "Home" },
-  { href: "/code", label: "Practice" },
-  { href: "/friends", label: "Chats" },
-];
+const navLinks: { href: string; label: string }[] = [];
 
 export const Navbar = () => {
   const { data: session } = authClient.useSession();
@@ -41,15 +37,15 @@ export const Navbar = () => {
   }
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-white/5">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b-2 border-border minecraft-texture">
       <div className="container mx-auto px-4 md:px-6">
         <div className="relative flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-lg group-hover:shadow-cyan-500/20 transition-all">
+            <div className="w-8 h-8 bg-primary pixel-border-outset flex items-center justify-center text-primary-foreground font-bold shadow-lg group-hover:brightness-110 active:pixel-border-inset transition-all font-minecraft text-xs">
               RR
             </div>
-            <span className="text-white font-bold text-lg tracking-tight">DSA Round_Robin</span>
+            <span className="text-foreground font-bold text-lg tracking-tight font-minecraft">DSA Round_Robin</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -57,10 +53,10 @@ export const Navbar = () => {
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <span
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-4 py-2 text-sm font-medium transition-all ${
                     isActive(link.href)
-                      ? "bg-white/10 text-white"
-                      : "text-slate-400 hover:text-white hover:bg-white/5"
+                      ? "bg-accent text-accent-foreground pixel-border-inset"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent/50 pixel-border-outset active:pixel-border-inset"
                   }`}
                 >
                   {link.label}
@@ -83,24 +79,24 @@ export const Navbar = () => {
                     </Avatar>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-slate-900 border-slate-800 text-slate-200" align="end">
+                <DropdownMenuContent className="w-56 bg-popover border-2 text-popover-foreground minecraft-texture" align="end">
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none text-white">{session.user.name}</p>
-                      <p className="text-xs leading-none text-slate-400">{session.user.email}</p>
+                      <p className="text-sm font-medium leading-none text-foreground">{session.user.name}</p>
+                      <p className="text-xs leading-none text-muted-foreground">{session.user.email}</p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-slate-800" />
-                  <DropdownMenuItem className="focus:bg-slate-800 focus:text-white cursor-pointer" onClick={() => router.push("/profile")}>
+                  <DropdownMenuSeparator className="bg-border" />
+                  <DropdownMenuItem className="focus:bg-accent focus:text-accent-foreground cursor-pointer" onClick={() => router.push("/profile")}>
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem className="focus:bg-slate-800 focus:text-white cursor-pointer" onClick={() => router.push("/friends")}>
+                  <DropdownMenuItem className="focus:bg-accent focus:text-accent-foreground cursor-pointer" onClick={() => router.push("/friends")}>
                     <MessageSquare className="mr-2 h-4 w-4" />
                     <span>Chats</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-slate-800" />
-                  <DropdownMenuItem className="text-red-400 focus:bg-red-500/10 focus:text-red-400 cursor-pointer" onClick={handleSignOut}>
+                  <DropdownMenuSeparator className="bg-border" />
+                  <DropdownMenuItem className="text-destructive focus:bg-destructive/20 focus:text-destructive cursor-pointer" onClick={handleSignOut}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
@@ -109,12 +105,12 @@ export const Navbar = () => {
             ) : (
               <div className="flex items-center gap-3">
                 <Link href="/signin">
-                  <Button variant="ghost" className="text-slate-300 hover:text-white hover:bg-white/5">
+                  <Button variant="ghost" className="text-muted-foreground hover:text-foreground">
                     Sign In
                   </Button>
                 </Link>
                 <Link href="/signup">
-                  <Button className="bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400 text-white border-0 shadow-lg shadow-purple-500/20">
+                  <Button className="bg-primary text-primary-foreground hover:brightness-110 shadow-lg">
                     Sign Up
                   </Button>
                 </Link>
@@ -139,7 +135,7 @@ export const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-slate-950 border-b border-slate-800 overflow-hidden"
+            className="md:hidden bg-card border-b-2 border-border minecraft-texture overflow-hidden"
           >
             <div className="px-4 py-4 space-y-4">
               {navLinks.map((link) => (
@@ -147,17 +143,17 @@ export const Navbar = () => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg text-base font-medium ${
+                  className={`block px-4 py-3 text-base font-medium pixel-border-outset active:pixel-border-inset ${
                     isActive(link.href)
-                      ? "bg-white/10 text-white"
-                      : "text-slate-400 hover:bg-white/5 hover:text-white"
+                      ? "bg-accent text-accent-foreground pixel-border-inset"
+                      : "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
                   }`}
                 >
                   {link.label}
                 </Link>
               ))}
               
-              <div className="pt-4 border-t border-slate-800">
+              <div className="pt-4 border-t-2 border-border">
                 {session ? (
                   <div className="space-y-3">
                     <div className="flex items-center gap-3 px-4">
@@ -174,7 +170,7 @@ export const Navbar = () => {
                     </div>
                     <Button
                       variant="ghost"
-                      className="w-full justify-start text-slate-400 hover:text-white hover:bg-white/5"
+                      className="w-full justify-start text-muted-foreground hover:text-foreground"
                       onClick={() => {
                         router.push("/profile");
                         setIsMobileMenuOpen(false);
@@ -185,7 +181,7 @@ export const Navbar = () => {
                     </Button>
                     <Button
                       variant="ghost"
-                      className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/20"
                       onClick={() => {
                         handleSignOut();
                         setIsMobileMenuOpen(false);
@@ -198,12 +194,12 @@ export const Navbar = () => {
                 ) : (
                   <div className="flex flex-col gap-3 px-4">
                     <Link href="/signin" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button variant="outline" className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+                      <Button variant="outline" className="w-full">
                         Sign In
                       </Button>
                     </Link>
                     <Link href="/signup" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button className="w-full bg-gradient-to-r from-cyan-500 to-purple-500 text-white border-0">
+                      <Button className="w-full bg-primary text-primary-foreground">
                         Sign Up
                       </Button>
                     </Link>

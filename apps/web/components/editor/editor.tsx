@@ -30,36 +30,36 @@ export default function CodeEditor({
 
   const customTheme = EditorView.theme({
     "&": {
-      backgroundColor: "#0f1419",
-      color: "#e5e7eb",
+      backgroundColor: "oklch(0.25 0.03 40)", // Dirt brown background
+      color: "oklch(0.95 0 0)", // Light foreground
       height: "100%",
       fontSize: "14px",
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
     },
     ".cm-content": {
-      caretColor: "#818cf8",
+      caretColor: "oklch(0.7 0.15 140)", // Grass green caret
       padding: "16px 0",
     },
     ".cm-cursor, .cm-dropCursor": {
-      borderLeftColor: "#818cf8",
+      borderLeftColor: "oklch(0.7 0.15 140)", // Grass green cursor
       borderLeftWidth: "2px",
     },
     "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, .cm-content ::selection": {
-      backgroundColor: "#4c1d95 !important",
+      backgroundColor: "oklch(0.6 0.12 220) !important", // Diamond blue selection
     },
     ".cm-activeLine": {
-      backgroundColor: "#1a1f2e",
+      backgroundColor: "oklch(0.35 0.02 40)", // Slightly lighter dirt brown
     },
     ".cm-gutters": {
-      backgroundColor: "#0a0e1a",
-      color: "#6b7280",
+      backgroundColor: "oklch(0.3 0.02 0)", // Darker stone gray
+      color: "oklch(0.5 0 0)", // Cobblestone gray
       border: "none",
-      borderRight: "1px solid #1f2937",
+      borderRight: "2px solid oklch(0.5 0.01 0)", // Cobblestone border
       paddingRight: "8px",
     },
     ".cm-activeLineGutter": {
-      backgroundColor: "#1a1f2e",
-      color: "#818cf8",
+      backgroundColor: "oklch(0.35 0.02 40)",
+      color: "oklch(0.7 0.15 140)", // Grass green
     },
     ".cm-lineNumbers .cm-gutterElement": {
       padding: "0 12px 0 8px",
@@ -76,14 +76,14 @@ export default function CodeEditor({
       lineHeight: "1.6",
     },
     ".cm-foldPlaceholder": {
-      backgroundColor: "#4c1d95",
+      backgroundColor: "oklch(0.45 0.05 40)", // Wood brown
       border: "none",
-      color: "#a5b4fc",
+      color: "oklch(0.75 0.15 220)", // Diamond blue
     },
   });
 
   return (
-    <div className="h-full w-full bg-[#0f1419] rounded-lg overflow-hidden border border-gray-800/50">
+    <div className="h-full w-full bg-card overflow-hidden border-2 border-border minecraft-texture pixel-border-outset">
       <CodeMirror
         value={code}
         height="100%"

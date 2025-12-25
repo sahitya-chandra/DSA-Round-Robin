@@ -188,43 +188,42 @@ int main() {
 
   const ResultHeader = () => (
     <div 
-      className="h-12 bg-gradient-to-b from-slate-900 to-slate-950 flex items-center justify-between px-6 border-b border-slate-800/50"
+      className="h-12 bg-card flex items-center justify-between px-4 md:px-6 border-b-2 border-border minecraft-texture"
       onPointerDown={(e) => e.stopPropagation()}
     >
       <div className="flex items-center gap-3 w-full">
         {curQuesSub ? (
           curQuesSub.result.passed ? (
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center">
-              <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-8 h-8 bg-primary/20 pixel-border-outset flex items-center justify-center">
+              <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
           ) : (
-            <div className="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center">
-              <svg className="w-5 h-5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="w-8 h-8 bg-destructive/20 pixel-border-outset flex items-center justify-center">
+              <svg className="w-5 h-5 text-destructive" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </div>
           )
         ) : (
-          <div className="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center">
-            <Code2 className="w-4 h-4 text-slate-500" />
+          <div className="w-8 h-8 bg-muted pixel-border-inset flex items-center justify-center">
+            <Code2 className="w-4 h-4 text-muted-foreground" />
           </div>
         )}
-        <div className="flex-1">
-          <p className="text-sm font-medium text-slate-300">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-card-foreground font-minecraft truncate">
             {curQuesSub
               ? curQuesSub.result.passed
                 ? "All Tests Passed!"
                 : `${curQuesSub.result.passedCount}/${curQuesSub.result.total} Passed`
               : "No results yet"}
           </p>
-          {curQuesSub && <p className="text-xs text-slate-500">{curQuesSub.result.timeMs}ms</p>}
+          {curQuesSub && <p className="text-xs text-muted-foreground">{curQuesSub.result.timeMs}ms</p>}
         </div>
         <button 
-          className="p-1 hover:bg-slate-800 rounded transition-colors"
+          className="p-1 hover:bg-accent/50 transition-colors pixel-border-outset active:pixel-border-inset"
           onClick={() => {
-            // e.stopPropagation(); // Not needed if parent stops it, but good for safety
             const panel = resultPanelRef.current;
             if (panel) {
               if (isResultCollapsed) {
@@ -235,16 +234,16 @@ int main() {
             }
           }}
         >
-          {isResultCollapsed ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          {isResultCollapsed ? <ChevronUp className="w-4 h-4 text-foreground" /> : <ChevronDown className="w-4 h-4 text-foreground" />}
         </button>
       </div>
     </div>
   );
 
   return (
-    <div className="flex flex-col h-screen bg-slate-950 text-slate-100 overflow-hidden">
+    <div className="flex flex-col h-screen bg-background text-foreground overflow-hidden minecraft-texture">
       {/* Battle Header */}
-      <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-b border-slate-700/50">
+      <div className="relative bg-card border-b-2 border-border minecraft-texture">
         <div className="absolute inset-0 opacity-5">
           <div className="absolute inset-0" style={{
             backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
@@ -252,8 +251,8 @@ int main() {
           }}></div>
         </div>
 
-        <div className="relative px-6 py-3">
-          <div className="flex items-center justify-between gap-6">
+        <div className="relative px-4 md:px-6 py-3">
+          <div className="flex items-center justify-between gap-3 md:gap-6 flex-wrap">
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
@@ -262,38 +261,37 @@ int main() {
                 <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></div>
               </div>
               <div>
-                <h1 className="text-lg font-black text-white tracking-tight">DSA RR</h1>
-                <p className="text-[10px] text-slate-400 font-medium">1v1 Battle Mode</p>
+                <h1 className="text-lg font-black text-foreground tracking-tight font-minecraft">DSA RR</h1>
+                <p className="text-[10px] text-muted-foreground font-medium">1v1 Battle Mode</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-4 flex-1 justify-center">
-            <div className="flex items-center gap-4 flex-1 justify-center">
+            <div className="flex items-center gap-2 md:gap-4 flex-1 justify-center min-w-0">
               {isHeaderLoading ? (
                 <>
                   {/* YOU Skeleton */}
-                  <div className="bg-slate-800/50 rounded-lg px-4 py-2 border border-slate-700/30 w-[140px] h-[54px] animate-pulse flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-slate-700/50" />
-                    <div className="flex gap-1.5">
+                  <div className="bg-card/50 px-3 md:px-4 py-2 border-2 border-border w-[100px] md:w-[140px] h-[50px] md:h-[54px] animate-pulse flex items-center gap-2 md:gap-3 pixel-border-outset">
+                    <div className="w-7 h-7 md:w-9 md:h-9 bg-muted pixel-border-inset" />
+                    <div className="flex gap-1">
                       {[1, 2, 3].map((i) => (
-                        <div key={i} className="w-6 h-6 rounded-full bg-slate-700/50" />
+                        <div key={i} className="w-4 h-4 md:w-6 md:h-6 bg-muted pixel-border-inset" />
                       ))}
                     </div>
                   </div>
 
                   {/* Timer Skeleton */}
-                  <div className="bg-slate-800/50 rounded-lg p-[2px] w-[110px] h-[50px] animate-pulse">
-                    <div className="h-full bg-slate-900/50 rounded-[6px] flex items-center justify-center">
-                      <div className="w-20 h-6 bg-slate-700/50 rounded" />
+                  <div className="bg-card/50 p-[2px] w-[90px] md:w-[110px] h-[46px] md:h-[50px] animate-pulse pixel-border-outset">
+                    <div className="h-full bg-card pixel-border-inset flex items-center justify-center">
+                      <div className="w-16 md:w-20 h-5 md:h-6 bg-muted" />
                     </div>
                   </div>
 
                   {/* OPPONENT Skeleton */}
-                  <div className="bg-slate-800/50 rounded-lg px-4 py-2 border border-slate-700/30 w-[140px] h-[54px] animate-pulse flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full bg-slate-700/50" />
-                    <div className="flex gap-1.5">
+                  <div className="bg-card/50 px-3 md:px-4 py-2 border-2 border-border w-[100px] md:w-[140px] h-[50px] md:h-[54px] animate-pulse flex items-center gap-2 md:gap-3 pixel-border-outset">
+                    <div className="w-7 h-7 md:w-9 md:h-9 bg-muted pixel-border-inset" />
+                    <div className="flex gap-1">
                       {[1, 2, 3].map((i) => (
-                        <div key={i} className="w-6 h-6 rounded-full bg-slate-700/50" />
+                        <div key={i} className="w-4 h-4 md:w-6 md:h-6 bg-muted pixel-border-inset" />
                       ))}
                     </div>
                   </div>
@@ -301,28 +299,28 @@ int main() {
               ) : (
                 <>
                   {/* ----- YOU ----- */}
-                  <div className="bg-gradient-to-br from-slate-800/80 to-slate-800/40 rounded-lg px-4 py-2 border border-emerald-500/30 backdrop-blur-sm">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-emerald-500/30">
+                  <div className="bg-card px-3 md:px-4 py-2 border-2 border-primary pixel-border-outset minecraft-texture">
+                    <div className="flex items-center gap-2 md:gap-2.5">
+                      <div className="w-7 h-7 md:w-9 md:h-9 bg-primary pixel-border-outset flex items-center justify-center text-primary-foreground font-bold text-[10px] md:text-xs font-minecraft">
                         YOU
                       </div>
 
-                      <div className="flex gap-1.5">
+                      <div className="flex gap-1 md:gap-1.5">
                         {questionData.map((q, i) => {
                           const solved = myProgress[q.questionData.id] ?? false
                           return (
                             <div
                               key={i}
-                              className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                                solved ? "bg-emerald-500/30" : "bg-slate-700/40"
+                              className={`w-4 h-4 md:w-6 md:h-6 flex items-center justify-center transition-colors pixel-border-outset ${
+                                solved ? "bg-primary/30" : "bg-muted"
                               }`}
                             >
                               {solved ? (
-                                <svg className="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                                <svg className="w-3 h-3 md:w-4 md:h-4 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
                                   <path d="M5 13l4 4L19 7" />
                                 </svg>
                               ) : (
-                                <div className="w-3 h-3 rounded-full bg-slate-600" />
+                                <div className="w-2 h-2 md:w-3 md:h-3 bg-muted-foreground" />
                               )}
                             </div>
                           );
@@ -331,11 +329,11 @@ int main() {
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-br from-rose-600 to-red-700 rounded-lg p-[2px] shadow-lg">
-                    <div className="bg-slate-900 rounded-[6px] px-5 py-2">
-                      <div className="flex items-center gap-2">
-                        <Clock className={`w-3.5 h-3.5 ${timerColor}`} />
-                        <div className={`text-2xl font-black font-mono ${timerColor} tracking-wider`}>
+                  <div className="bg-destructive p-[2px] shadow-lg pixel-border-outset">
+                    <div className="bg-card px-3 md:px-5 py-2 pixel-border-inset">
+                      <div className="flex items-center gap-1 md:gap-2">
+                        <Clock className={`w-3 h-3 md:w-3.5 md:h-3.5 ${timerColor}`} />
+                        <div className={`text-lg md:text-2xl font-black font-mono ${timerColor} tracking-wider font-minecraft`}>
                           {formatTime(timeLeft)}
                         </div>
                       </div>
@@ -343,28 +341,28 @@ int main() {
                   </div>
 
                   {/* ----- OPPONENT ----- */}
-                  <div className="bg-gradient-to-br from-slate-800/80 to-slate-800/40 rounded-lg px-4 py-2 border border-violet-500/30 backdrop-blur-sm">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-purple-500 flex items-center justify-center text-white font-bold text-xs shadow-lg shadow-violet-500/30">
+                  <div className="bg-card px-3 md:px-4 py-2 border-2 border-accent pixel-border-outset minecraft-texture">
+                    <div className="flex items-center gap-2 md:gap-2.5">
+                      <div className="w-7 h-7 md:w-9 md:h-9 bg-accent pixel-border-outset flex items-center justify-center text-accent-foreground font-bold text-[10px] md:text-xs font-minecraft">
                         {opponent?.name?.[0]?.toUpperCase() ?? "OPP"}
                       </div>
 
-                      <div className="flex gap-1.5">
+                      <div className="flex gap-1 md:gap-1.5">
                         {questionData.map((q, i) => {
                           const oppSolved = opponentProgress[q.questionData.id] ?? false;
                           return (
                             <div
                               key={i}
-                              className={`w-6 h-6 rounded-full flex items-center justify-center transition-colors ${
-                                oppSolved ? "bg-violet-500/30" : "bg-slate-700/40"
+                              className={`w-4 h-4 md:w-6 md:h-6 flex items-center justify-center transition-colors pixel-border-outset ${
+                                oppSolved ? "bg-accent/30" : "bg-muted"
                               }`}
                             >
                               {oppSolved ? (
-                                <svg className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                                <svg className="w-3 h-3 md:w-4 md:h-4 text-accent" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
                                   <path d="M5 13l4 4L19 7" />
                                 </svg>
                               ) : (
-                                <div className="w-3 h-3 rounded-full bg-slate-600" />
+                                <div className="w-2 h-2 md:w-3 md:h-3 bg-muted-foreground" />
                               )}
                             </div>
                           );
@@ -375,11 +373,10 @@ int main() {
                 </>
               )}
             </div>
-            </div>
 
             <button
               onClick={finish}
-              className="px-4 py-2 text-sm font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-all border border-rose-500/20 hover:border-rose-500/40"
+              className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold text-destructive hover:text-destructive hover:bg-destructive/10 transition-all border-2 border-destructive pixel-border-outset active:pixel-border-inset font-minecraft whitespace-nowrap"
             >
               Give up
             </button>
@@ -390,12 +387,12 @@ int main() {
       <div className="flex flex-1 min-h-0">
         <PanelGroup direction="horizontal">
           <Panel defaultSize={40} minSize={20}>
-            <div className="h-full flex flex-col border-r border-slate-800/50 bg-gradient-to-b from-slate-900 to-slate-950">
-              <div className="px-5 py-4 border-b border-slate-800/50 bg-slate-900/50">
-                <div className="flex items-center justify-between mb-3">
+            <div className="h-full flex flex-col border-r-2 border-border bg-card minecraft-texture">
+              <div className="px-4 md:px-5 py-3 md:py-4 border-b-2 border-border bg-card/50">
+                <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                   <div className="flex items-center gap-2">
-                    <Code2 className="w-5 h-5 text-violet-400" />
-                    <h2 className="text-lg font-bold text-white">Problem {currentQIndex + 1}</h2>
+                    <Code2 className="w-4 h-4 md:w-5 md:h-5 text-primary" />
+                    <h2 className="text-base md:text-lg font-bold text-foreground font-minecraft">Problem {currentQIndex + 1}</h2>
                   </div>
                   {currentQuestion && (
                     <div className={`px-3 py-1 rounded-full text-xs font-bold border bg-gradient-to-r ${difficultyStyles.bg} ${difficultyStyles.border} ${difficultyStyles.text} uppercase tracking-wide`}>
@@ -408,19 +405,19 @@ int main() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setCurrentQIndex((i) => (i > 0 ? i - 1 : questionData.length - 1))}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg transition-all border border-slate-700/50 hover:border-slate-600 group"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/80 transition-all border-2 border-border pixel-border-outset active:pixel-border-inset group"
                     >
                       <ChevronDown className="w-4 h-4 rotate-90 group-hover:-translate-x-0.5 transition-transform" />
-                      <span className="text-sm font-semibold">Prev</span>
+                      <span className="text-sm font-semibold text-secondary-foreground">Prev</span>
                     </button>
-                    <div className="px-4 py-2.5 bg-violet-500/10 border border-violet-500/30 rounded-lg text-center min-w-[80px]">
-                      <span className="text-sm font-bold text-violet-400">{currentQIndex + 1} / {questionData.length}</span>
+                    <div className="px-4 py-2.5 bg-accent/20 border-2 border-accent pixel-border-outset text-center min-w-[80px]">
+                      <span className="text-sm font-bold text-accent-foreground font-minecraft">{currentQIndex + 1} / {questionData.length}</span>
                     </div>
                     <button
                       onClick={() => setCurrentQIndex((i) => (i + 1) % questionData.length)}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800/50 hover:bg-slate-800 rounded-lg transition-all border border-slate-700/50 hover:border-slate-600 group"
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/80 transition-all border-2 border-border pixel-border-outset active:pixel-border-inset group"
                     >
-                      <span className="text-sm font-semibold">Next</span>
+                      <span className="text-sm font-semibold text-secondary-foreground">Next</span>
                       <ChevronDown className="w-4 h-4 -rotate-90 group-hover:translate-x-0.5 transition-transform" />
                     </button>
                   </div>
@@ -436,31 +433,31 @@ int main() {
                   </div>
                 ) : currentQuestion ? (
                   <>
-                    <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 rounded-xl p-5 border border-slate-700/50 backdrop-blur-sm">
-                      <h3 className="text-xs font-bold text-violet-400 mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <div className="bg-card p-5 border-2 border-border pixel-border-outset minecraft-texture">
+                      <h3 className="text-xs font-bold text-primary mb-3 uppercase tracking-wider flex items-center gap-2 font-minecraft">
                         <AlertCircle className="w-4 h-4" />
                         Problem Statement
                       </h3>
-                      <p className="text-slate-300 leading-relaxed text-[15px]">{currentQuestion.questionData.question}</p>
+                      <p className="text-card-foreground leading-relaxed text-[15px]">{currentQuestion.questionData.question}</p>
                     </div>
 
-                    <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 rounded-xl p-5 border border-slate-700/50 backdrop-blur-sm">
-                      <h3 className="text-xs font-bold text-violet-400 mb-4 uppercase tracking-wider flex items-center gap-2">
+                    <div className="bg-card p-5 border-2 border-border pixel-border-outset minecraft-texture">
+                      <h3 className="text-xs font-bold text-primary mb-4 uppercase tracking-wider flex items-center gap-2 font-minecraft">
                         <Code2 className="w-4 h-4" />
                         Sample Test Cases
                       </h3>
                       <div className="space-y-3">
                         {currentQuestion.questionData.testcases.slice(0, 3).map((t: any, i: number) => (
-                          <div key={i} className="bg-slate-900/60 rounded-lg p-4 border border-slate-700/30">
-                            <div className="text-xs font-bold text-slate-500 mb-2.5 uppercase tracking-wide">Test {i + 1}</div>
+                          <div key={i} className="bg-muted p-4 border-2 border-border pixel-border-inset">
+                            <div className="text-xs font-bold text-muted-foreground mb-2.5 uppercase tracking-wide font-minecraft">Test {i + 1}</div>
                             <div className="space-y-2 font-mono text-sm">
                               <div className="flex gap-3">
-                                <span className="text-slate-500 font-semibold min-w-[65px]">Input:</span>
-                                <span className="text-amber-300 font-medium">{t.input}</span>
+                                <span className="text-muted-foreground font-semibold min-w-[65px]">Input:</span>
+                                <span className="text-accent-foreground font-medium">{t.input}</span>
                               </div>
                               <div className="flex gap-3">
-                                <span className="text-slate-500 font-semibold min-w-[65px]">Output:</span>
-                                <span className="text-emerald-300 font-medium">{t.expected_output}</span>
+                                <span className="text-muted-foreground font-semibold min-w-[65px]">Output:</span>
+                                <span className="text-primary font-medium">{t.expected_output}</span>
                               </div>
                             </div>
                           </div>
@@ -468,23 +465,23 @@ int main() {
                       </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-violet-500/10 via-fuchsia-500/10 to-violet-500/10 rounded-xl p-5 border border-violet-500/30">
-                      <h3 className="text-xs font-bold text-violet-300 mb-3 uppercase tracking-wider flex items-center gap-2">
+                    <div className="bg-accent/20 p-5 border-2 border-accent pixel-border-outset minecraft-texture">
+                      <h3 className="text-xs font-bold text-accent-foreground mb-3 uppercase tracking-wider flex items-center gap-2 font-minecraft">
                         <Zap className="w-4 h-4" />
                         Battle Rules
                       </h3>
-                      <ul className="space-y-2.5 text-sm text-slate-300">
+                      <ul className="space-y-2.5 text-sm text-card-foreground">
                         <li className="flex items-start gap-2.5">
-                          <span className="text-violet-400 mt-1 text-lg leading-none">•</span>
-                          <span><strong className="text-white font-semibold">Speed Wins:</strong> Solve faster to break ties</span>
+                          <span className="text-primary mt-1 text-lg leading-none">•</span>
+                          <span><strong className="text-foreground font-semibold">Speed Wins:</strong> Solve faster to break ties</span>
                         </li>
                         <li className="flex items-start gap-2.5">
-                          <span className="text-violet-400 mt-1 text-lg leading-none">•</span>
-                          <span><strong className="text-white font-semibold">Accuracy Counts:</strong> Wrong answers lose points</span>
+                          <span className="text-primary mt-1 text-lg leading-none">•</span>
+                          <span><strong className="text-foreground font-semibold">Accuracy Counts:</strong> Wrong answers lose points</span>
                         </li>
                         <li className="flex items-start gap-2.5">
-                          <span className="text-violet-400 mt-1 text-lg leading-none">•</span>
-                          <span><strong className="text-white font-semibold">Fair Play:</strong> No external help allowed</span>
+                          <span className="text-primary mt-1 text-lg leading-none">•</span>
+                          <span><strong className="text-foreground font-semibold">Fair Play:</strong> No external help allowed</span>
                         </li>
                       </ul>
                     </div>
@@ -503,14 +500,14 @@ int main() {
               <PanelGroup direction="vertical">
                 <Panel defaultSize={70} minSize={20}>
                   <div className="h-full flex flex-col">
-                    <div className="flex items-center justify-between px-6 py-3.5 border-b border-slate-800/50 bg-slate-900/50">
+                    <div className="flex items-center justify-between px-4 md:px-6 py-2.5 md:py-3.5 border-b-2 border-border bg-card/50 flex-wrap gap-2">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                        <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider">Code Editor</h2>
+                        <div className="w-2 h-2 bg-primary animate-pulse pixel-border-outset"></div>
+                        <h2 className="text-xs md:text-sm font-bold text-muted-foreground uppercase tracking-wider font-minecraft">Code Editor</h2>
                       </div>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-2 md:gap-3 flex-wrap">
                         <select
-                          className="bg-slate-800/60 text-white border border-slate-700/50 rounded-lg px-4 py-2 text-sm font-semibold focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/20 transition-all cursor-pointer"
+                          className="bg-secondary text-secondary-foreground border-2 border-border px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer pixel-border-inset font-minecraft"
                           value={selectedLang}
                           onChange={(e) => setSelectedLang(e.target.value)}
                         >
@@ -521,7 +518,7 @@ int main() {
                         <button
                           onClick={handleSubmit}
                           disabled={loading}
-                          className="px-5 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-bold rounded-lg shadow-lg shadow-violet-500/30 transition-all hover:shadow-violet-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 text-sm"
+                          className="px-3 md:px-5 py-1.5 md:py-2 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/30 transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2 text-xs md:text-sm pixel-border-outset active:pixel-border-inset font-minecraft whitespace-nowrap"
                         >
                           {loading ? (
                             <>
@@ -555,32 +552,32 @@ int main() {
                   onExpand={() => setIsResultCollapsed(false)}
                   className={isResultCollapsed ? "hidden" : ""}
                 >
-                  <div className="h-full flex flex-col bg-gradient-to-b from-slate-900 to-slate-950">
+                  <div className="h-full flex flex-col bg-card minecraft-texture">
                     <ResultHeader />
-                    <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none'}}>
+                    <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5 space-y-4 custom-scrollbar">
                       {curQuesSub ? (
                         <>
-                          <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 rounded-xl p-5 border border-slate-700/50">
-                            <div className="flex items-center gap-4">
+                          <div className="bg-card p-4 md:p-5 border-2 border-border pixel-border-outset minecraft-texture">
+                            <div className="flex items-center gap-4 flex-wrap">
                               {curQuesSub.result.passed ? (
-                                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <div className="w-12 h-12 md:w-14 md:h-14 bg-primary pixel-border-outset flex items-center justify-center">
+                                  <svg className="w-6 h-6 md:w-8 md:h-8 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                   </svg>
                                 </div>
                               ) : (
-                                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-rose-500 to-red-500 flex items-center justify-center shadow-lg shadow-rose-500/30">
-                                  <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <div className="w-12 h-12 md:w-14 md:h-14 bg-destructive pixel-border-outset flex items-center justify-center">
+                                  <svg className="w-6 h-6 md:w-8 md:h-8 text-destructive-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                   </svg>
                                 </div>
                               )}
-                              <div>
-                                <div className={`text-xl font-black ${curQuesSub.result.passed ? "text-emerald-400" : "text-rose-400"} mb-1`}>
+                              <div className="flex-1 min-w-0">
+                                <div className={`text-lg md:text-xl font-black font-minecraft ${curQuesSub.result.passed ? "text-primary" : "text-destructive"} mb-1`}>
                                   {curQuesSub.result.passed ? "Perfect! All Tests Passed!" : `${curQuesSub.result.passedCount}/${curQuesSub.result.total} Tests Passed`}
                                 </div>
-                                <div className="text-sm text-slate-400 font-medium">
-                                  Execution time: <span className="text-white font-bold">{curQuesSub.result.timeMs}ms</span>
+                                <div className="text-sm text-muted-foreground font-medium">
+                                  Execution time: <span className="text-foreground font-bold">{curQuesSub.result.timeMs}ms</span>
                                 </div>
                               </div>
                             </div>
@@ -590,28 +587,28 @@ int main() {
                             {curQuesSub.details.map((r, i) => (
                               <div
                                 key={i}
-                                className={`rounded-xl p-4 border backdrop-blur-sm ${
-                                  r.passed ? "bg-emerald-500/5 border-emerald-500/30" : "bg-rose-500/5 border-rose-500/30"
+                                className={`p-4 border-2 backdrop-blur-sm minecraft-texture pixel-border-outset ${
+                                  r.passed ? "bg-primary/5 border-primary/30" : "bg-destructive/5 border-destructive/30"
                                 }`}
                               >
-                                <div className="flex items-center justify-between mb-3">
-                                  <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Test Case {i + 1}</span>
-                                  <span className={`text-xs font-black px-2.5 py-1 rounded-full ${r.passed ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
+                                <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+                                  <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider font-minecraft">Test Case {i + 1}</span>
+                                  <span className={`text-xs font-black px-2.5 py-1 pixel-border-outset font-minecraft ${r.passed ? "bg-primary/20 text-primary" : "bg-destructive/20 text-destructive"}`}>
                                     {r.passed ? "PASSED" : "FAILED"}
                                   </span>
                                 </div>
-                                <div className="space-y-2 font-mono text-sm">
-                                  <div className="flex gap-3">
-                                    <span className="text-slate-500 font-semibold min-w-[70px]">Input:</span>
-                                    <span className="text-amber-300 font-medium">{r.input}</span>
+                                <div className="space-y-2 font-mono text-xs md:text-sm">
+                                  <div className="flex gap-3 flex-wrap">
+                                    <span className="text-muted-foreground font-semibold min-w-[70px]">Input:</span>
+                                    <span className="text-accent-foreground font-medium break-all">{r.input}</span>
                                   </div>
-                                  <div className="flex gap-3">
-                                    <span className="text-slate-500 font-semibold min-w-[70px]">Expected:</span>
-                                    <span className="text-emerald-300 font-medium">{r.expected}</span>
+                                  <div className="flex gap-3 flex-wrap">
+                                    <span className="text-muted-foreground font-semibold min-w-[70px]">Expected:</span>
+                                    <span className="text-primary font-medium break-all">{r.expected}</span>
                                   </div>
-                                  <div className="flex gap-3">
-                                    <span className="text-slate-500 font-semibold min-w-[70px]">Output:</span>
-                                    <span className={`font-medium ${r.passed ? "text-emerald-300" : "text-rose-300"}`}>{r.output}</span>
+                                  <div className="flex gap-3 flex-wrap">
+                                    <span className="text-muted-foreground font-semibold min-w-[70px]">Output:</span>
+                                    <span className={`font-medium break-all ${r.passed ? "text-primary" : "text-destructive"}`}>{r.output}</span>
                                   </div>
                                 </div>
                               </div>
@@ -620,10 +617,10 @@ int main() {
                         </>
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                          <div className="w-20 h-20 rounded-full bg-slate-800/50 flex items-center justify-center mb-4 border border-slate-700/50">
-                            <Code2 className="w-10 h-10 text-slate-600" />
+                          <div className="w-16 h-16 md:w-20 md:h-20 bg-muted pixel-border-inset flex items-center justify-center mb-4">
+                            <Code2 className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground" />
                           </div>
-                          <p className="text-slate-500 text-sm font-medium">Submit your code to see test results</p>
+                          <p className="text-muted-foreground text-sm font-medium font-minecraft">Submit your code to see test results</p>
                         </div>
                       )}
                     </div>
@@ -631,7 +628,7 @@ int main() {
                 </Panel>
               </PanelGroup>
               {isResultCollapsed && (
-                <div className="border-t border-slate-800/50">
+                <div className="border-t-2 border-border">
                   <ResultHeader />
                 </div>
               )}
@@ -646,28 +643,28 @@ int main() {
         }
       `}</style>
       {visible && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/50 rounded-2xl p-8 w-[380px] text-center shadow-2xl">
+        <div className="fixed inset-0 bg-background/90 backdrop-blur-sm flex items-center justify-center z-50 p-4 minecraft-texture">
+          <div className="bg-card border-2 border-border p-6 md:p-8 w-full max-w-md text-center shadow-2xl minecraft-texture pixel-border-outset">
             <div className="flex flex-col items-center justify-center space-y-4">
-              <div className={`w-20 h-20 rounded-full flex items-center justify-center shadow-lg ${
+              <div className={`w-16 h-16 md:w-20 md:h-20 pixel-border-outset flex items-center justify-center shadow-lg ${
                 winnerId === session?.user.id
-                  ? "bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/30"
+                  ? "bg-primary"
                   : winnerId
-                  ? "bg-gradient-to-br from-rose-500 to-red-500 shadow-rose-500/30"
-                  : "bg-gradient-to-br from-slate-600 to-slate-700 shadow-slate-500/30"
+                  ? "bg-destructive"
+                  : "bg-muted"
               }`}>
-                <Trophy className="w-10 h-10 text-white" />
+                <Trophy className="w-8 h-8 md:w-10 md:h-10 text-primary-foreground" />
               </div>
 
               <div>
-                <h2 className="text-2xl font-extrabold text-white mb-2">
+                <h2 className="text-xl md:text-2xl font-extrabold text-card-foreground mb-2 font-minecraft">
                   {winnerId === session?.user.id
                     ? "🏆 You Won!"
                     : winnerId
                     ? "😞 You Lost!"
                     : "🤝 It's a Draw!"}
                 </h2>
-                <p className="text-slate-400 text-sm font-medium">
+                <p className="text-muted-foreground text-sm font-medium">
                   {winnerId ? "Good game!" : "Both players performed equally well."}
                 </p>
               </div>
@@ -677,7 +674,7 @@ int main() {
                   hideResult();
                   router.push("/");
                 }}
-                className="mt-4 px-6 py-2.5 bg-violet-600 hover:bg-violet-500 text-white font-semibold rounded-lg shadow-md transition-all"
+                className="mt-4 px-6 py-2.5 bg-primary text-primary-foreground font-semibold shadow-md transition-all pixel-border-outset active:pixel-border-inset hover:brightness-110 font-minecraft"
               >
                 Return to Home
               </button>

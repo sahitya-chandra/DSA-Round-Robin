@@ -2,6 +2,7 @@ import { Server } from "socket.io";
 import { connection as redis } from "@repo/queue";
 import { WAITING_LIST } from "../utils/constants";
 import { createMatch } from "../helpers/matchMaker.helper";
+import { userSockets } from "../utils/utils";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -26,8 +27,60 @@ export function startMatchMaker(io: Server) {
         }
 
         console.log(`Matchmaker: Pairing ${requesterId} vs ${opponentId}`);
-        await createMatch(requesterId, opponentId);
+        const match = await createMatch(requesterId, opponentId);
 
+        if (!match) {
+          console.warn(
+            `Matchmaker: failed to create match for ${requesterId} vs ${opponentId}`
+          );
+          continue;
+        }
+
+        const {
+          matchId,
+          questions,
+          startedAt,
+          duration,
+        } = match;
+
+        const reqSocketId = userSockets.get(requesterId);
+        const oppSocketId = userSockets.get(opponentId);
+
+        const reqSocket = reqSocketId
+          ? io.sockets.sockets.get(reqSocketId)
+          : null;
+        const oppSocket = oppSocketId
+          ? io.sockets.sockets.get(oppSocketId)
+          : null;
+
+        if (reqSocket) reqSocket.join(matchId);
+        if (oppSocket) oppSocket.join(matchId);
+
+        io.to(matchId).emit("match:ready", { matchId, startedAt });
+
+        if (requesterId) {
+          io.to(requesterId).emit("match_started", {
+            matchId,
+            opponentId,
+            questions,
+            startedAt,
+            duration,
+          });
+        }
+
+        if (opponentId) {
+          io.to(opponentId).emit("match_started", {
+            matchId,
+            opponentId: requesterId,
+            questions,
+            startedAt,
+            duration,
+          });
+        }
+
+        console.log(
+          `Emitted match_started and match:ready for ${matchId} (requester: ${requesterId}, opponent: ${opponentId})`
+        );
       } catch (err) {
         console.error("Match-maker error:", err);
         await sleep(1000);

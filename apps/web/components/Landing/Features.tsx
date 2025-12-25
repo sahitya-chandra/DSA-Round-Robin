@@ -45,13 +45,13 @@ const features = [
 
 export const Features = () => {
   return (
-    <section className="py-24 bg-slate-950 relative overflow-hidden">
+    <section className="py-24 bg-background relative overflow-hidden minecraft-texture">
       <div className="container px-4 md:px-6 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-            Everything you need to <span className="text-cyan-400">excel</span>
+          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 font-minecraft">
+            Everything you need to <span className="text-primary">excel</span>
           </h2>
-          <p className="text-slate-400 text-lg">
+          <p className="text-muted-foreground text-lg">
             A complete platform designed to help you master coding interviews and competitive programming.
           </p>
         </div>
@@ -64,18 +64,16 @@ export const Features = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="group relative p-8 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-all hover:bg-slate-900/80"
+              className="group relative p-8 bg-card border-2 minecraft-texture transition-all hover:-translate-y-1 hover:shadow-xl pixel-border-outset active:pixel-border-inset"
             >
-              <div className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-5 transition-opacity duration-500 rounded-2xl`} />
+              <div className={`absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
               
-              <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${feature.color} p-0.5 mb-6`}>
-                <div className="w-full h-full bg-slate-950 rounded-[7px] flex items-center justify-center">
-                  <feature.icon className="w-6 h-6 text-white" />
-                </div>
+              <div className={`w-12 h-12 bg-accent pixel-border-outset mb-6 flex items-center justify-center relative z-10`}>
+                <feature.icon className="w-6 h-6 text-primary" />
               </div>
 
-              <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
-              <p className="text-slate-400 leading-relaxed">
+              <h3 className="text-xl font-bold text-card-foreground mb-3 font-minecraft">{feature.title}</h3>
+              <p className="text-muted-foreground leading-relaxed">
                 {feature.description}
               </p>
             </motion.div>

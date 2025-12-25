@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Press_Start_2P } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/Navbar";
 
 const inter = Inter({ subsets: ["latin"] });
+const minecraftFont = Press_Start_2P({ 
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-minecraft",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "DSA Round_Robin",
@@ -17,8 +22,7 @@ export default function RootLayout({
 }): React.ReactNode {
   return (
     <html lang="en" className="dark">
-      <body className={inter.className}>
-        <Navbar />
+      <body className={`${inter.className} ${minecraftFont.variable}`}>
         {children}
       </body>
     </html>

@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import prisma, { Question } from "@repo/db";
-import { connection as redis, publisherClient } from "@repo/queue";
+import { connection as redis } from "@repo/queue";
 import {
   ACTIVE_MATCH_PREFIX,
   USER_MATCH_PREFIX,
@@ -9,7 +9,23 @@ import {
   WAITING_LIST,
 } from "../utils/constants";
 
-export async function createMatch(requesterId: string, opponentId: string) {
+export interface CreatedMatch {
+  matchId: string;
+  requesterId: string;
+  opponentId: string;
+  questions: {
+    questionData: Question;
+    order: number;
+  }[];
+  startedAt: string;
+  expiresAt: string;
+  duration: number;
+}
+
+export async function createMatch(
+  requesterId: string,
+  opponentId: string
+): Promise<CreatedMatch | null> {
   const [rMatch, oMatch] = await Promise.all([
     redis.get(`${USER_MATCH_PREFIX}${requesterId}`),
     redis.get(`${USER_MATCH_PREFIX}${opponentId}`),
@@ -39,7 +55,9 @@ export async function createMatch(requesterId: string, opponentId: string) {
   }));
 
   const startedAt = new Date().toISOString();
-  const expiresAt = new Date(Date.now() + MATCH_DURATION_SECONDS * 1000).toISOString();
+  const expiresAt = new Date(
+    Date.now() + MATCH_DURATION_SECONDS * 1000
+  ).toISOString();
 
   await redis.hmset(
     `${ACTIVE_MATCH_PREFIX}${matchId}`,
@@ -65,22 +83,15 @@ export async function createMatch(requesterId: string, opponentId: string) {
     redis.set(`${USER_MATCH_PREFIX}${opponentId}`, matchId, "EX", MATCH_TTL),
   ]);
 
-  const payload = {
-    event: "match_started",
-    data: {
-      matchId,
-      status: "RUNNING",
-      requesterId,
-      opponentId,
-      questions: mqPayload,
-      startedAt,
-      expiresAt,
-      duration: MATCH_DURATION_SECONDS,
-    },
-  };
-
-  await publisherClient.publish("match_created", JSON.stringify(payload));
-
   console.log(`Match ${matchId} created – ${requesterId} vs ${opponentId}`);
-  return { matchId, requesterId, opponentId, questions: mqPayload };
+
+  return {
+    matchId,
+    requesterId,
+    opponentId,
+    questions: mqPayload,
+    startedAt,
+    expiresAt,
+    duration: MATCH_DURATION_SECONDS,
+  };
 }
