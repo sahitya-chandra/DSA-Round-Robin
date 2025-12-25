@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
-import { SendHorizonal, Loader2, Menu, UserPlus } from "lucide-react";
+import { SendHorizonal, Loader2, Menu, UserPlus, LayoutDashboard } from "lucide-react";
 import { authClient } from "@repo/auth";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/api";
@@ -235,18 +235,25 @@ const Chatarea: React.FC<ChatAreaProps> = ({
   return (
     <div className="flex flex-col flex-1 bg-background text-foreground font-minecraft">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-border p-3">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between border-b border-border p-2 sm:p-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 min-w-0 flex-1">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 pixel-border-outset bg-card text-foreground hover:brightness-110"
+            className="md:hidden p-1.5 sm:p-2 pixel-border-outset bg-card text-foreground hover:brightness-110 flex-shrink-0"
           >
-            <Menu size={26} />
+            <Menu size={18} className="sm:w-5 sm:h-5" />
           </button>
-          <h2 className="text-lg font-semibold truncate text-foreground">
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold truncate text-foreground min-w-0">
             {currentChatter || "Select a friend"}
           </h2>
         </div>
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="flex items-center gap-1 sm:gap-1.5 md:gap-2 px-1.5 sm:px-2 md:px-3 py-1.5 sm:py-1.5 md:py-2 pixel-border-outset bg-secondary text-secondary-foreground hover:brightness-110 transition-all text-xs sm:text-xs md:text-sm flex-shrink-0"
+        >
+          <LayoutDashboard size={14} className="sm:w-4 sm:h-4 md:w-4 md:h-4" />
+          <span className="hidden xs:inline sm:inline">Dashboard</span>
+        </button>
       </div>
 
       {/* Messages */}
@@ -343,9 +350,9 @@ const Chatarea: React.FC<ChatAreaProps> = ({
 
       {/* Input area */}
       {currentChatterID && (
-        <div className="p-3 bg-secondary border-t border-border flex items-center gap-2 sticky bottom-0 z-10 transition-colors">
+        <div className="p-1.5 sm:p-3 bg-secondary border-t border-border flex items-center gap-1 sm:gap-2 sticky bottom-0 z-10 transition-colors">
           <input
-            className="flex-1 bg-input text-foreground pixel-border-inset px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary placeholder-muted-foreground text-sm font-minecraft"
+            className="flex-1 bg-input text-foreground pixel-border-inset px-1.5 sm:px-4 py-1.5 sm:py-2.5 outline-none focus:ring-2 focus:ring-primary placeholder-muted-foreground text-xs sm:text-sm font-minecraft min-w-0"
             value={newMsg}
             onChange={handleTyping}
             onKeyDown={handleKeyDown}
@@ -354,7 +361,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
           <button
             onClick={handleInvite}
             disabled={inviteStatus === "pending" || inviteStatus === "sending"}
-            className={`hidden sm:flex items-center gap-2 px-4 py-2.5 pixel-border-outset text-sm font-medium text-primary-foreground shadow-md transition-all ${
+            className={`flex items-center justify-center gap-0 sm:gap-2 px-1.5 sm:px-4 py-1.5 sm:py-2.5 pixel-border-outset text-xs sm:text-sm font-medium text-primary-foreground shadow-md transition-all flex-shrink-0 ${
               inviteStatus === "pending"
                 ? "bg-muted cursor-wait"
                 : "bg-accent hover:brightness-110"
@@ -362,25 +369,27 @@ const Chatarea: React.FC<ChatAreaProps> = ({
           >
             {inviteStatus === "pending" ? (
               <>
-                <Loader2 size={18} className="animate-spin" /> Waiting...
+                <Loader2 size={14} className="sm:w-[18px] sm:h-[18px] animate-spin" />
+                <span className="hidden sm:inline ml-1">Waiting...</span>
               </>
             ) : (
               <>
-                <UserPlus size={18} /> Invite
+                <UserPlus size={14} className="sm:w-[18px] sm:h-[18px]" />
+                <span className="hidden sm:inline ml-1">Invite</span>
               </>
             )}
           </button>
           <button
             onClick={handleSend}
             disabled={sending}
-            className={`flex items-center justify-center bg-primary text-primary-foreground pixel-border-outset hover:brightness-110 transition-all p-2.5 sm:px-4 sm:py-2.5 shadow-md ${
+            className={`flex items-center justify-center bg-primary text-primary-foreground pixel-border-outset hover:brightness-110 transition-all p-1.5 sm:p-2.5 shadow-md flex-shrink-0 ${
               sending ? "opacity-70 cursor-not-allowed" : ""
             }`}
           >
             {sending ? (
-              <Loader2 className="animate-spin w-5 h-5" />
+              <Loader2 className="animate-spin w-3.5 h-3.5 sm:w-5 sm:h-5" />
             ) : (
-              <SendHorizonal className="w-5 h-5" />
+              <SendHorizonal className="w-3.5 h-3.5 sm:w-5 sm:h-5" />
             )}
           </button>
         </div>

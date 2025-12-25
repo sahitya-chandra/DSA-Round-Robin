@@ -28,11 +28,11 @@ const sidebarItems = [
   { name: "Feedback", href: "/feedback", icon: MessageSquare }, // Keeping Feedback as requested, though icon duplicate
 ];
 
-export function Sidebar() {
+export function SidebarContent({ className, onItemClick }: { className?: string, onItemClick?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-col h-screen w-64 bg-sidebar border-r-2 border-sidebar-border fixed left-0 top-0 z-40 minecraft-texture hidden md:flex">
+    <div className={cn("flex flex-col h-full bg-sidebar border-r-2 border-sidebar-border minecraft-texture", className)}>
       {/* Logo */}
       <div className="p-6 flex items-center gap-2 border-b-2 border-sidebar-border">
         <div className="w-8 h-8 bg-primary pixel-border-outset flex items-center justify-center">
@@ -49,6 +49,7 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onItemClick}
               className={cn(
                 "flex items-center gap-3 px-4 py-3 transition-all duration-200 group pixel-border-outset active:pixel-border-inset",
                 isActive 
@@ -67,6 +68,14 @@ export function Sidebar() {
       <div className="p-4 border-t-2 border-sidebar-border">
          <UserNav />
       </div>
+    </div>
+  );
+}
+
+export function Sidebar() {
+  return (
+    <div className="hidden md:flex flex-col w-64 h-screen z-40 relative">
+      <SidebarContent />
     </div>
   );
 }

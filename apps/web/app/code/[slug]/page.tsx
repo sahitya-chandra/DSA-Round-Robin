@@ -200,8 +200,9 @@ int main() {
           </div>
 
           <div className="relative px-4 md:px-6 py-3">
-            <div className="flex items-center justify-between gap-3 md:gap-6 flex-wrap">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-3 lg:gap-6 flex-wrap lg:flex-nowrap">
+              {/* Logo Section - Order 1 */}
+              <div className="flex items-center gap-3 order-1">
                 <div className="relative">
                   <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/30">
                     <Zap className="w-4 h-4 text-white" fill="white" />
@@ -216,7 +217,8 @@ int main() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 md:gap-4 flex-1 justify-center min-w-0">
+              {/* Status Section (Progress + Timer) - Order 3 (Mobile/Tablet) / Order 2 (Desktop) */}
+              <div className="flex items-center gap-2 lg:gap-4 justify-center w-full lg:w-auto lg:flex-1 order-3 lg:order-2 mt-2 lg:mt-0">
                 {isHeaderLoading ? (
                   <>
                     <div className="bg-card/50 px-3 md:px-4 py-2 border-2 border-border w-[100px] md:w-[140px] h-[50px] md:h-[54px] animate-pulse flex items-center gap-2 md:gap-3 pixel-border-outset">
@@ -243,24 +245,24 @@ int main() {
                   </>
                 ) : (
                   <>
-                    <div className="bg-card px-3 md:px-4 py-2 border-2 border-primary pixel-border-outset minecraft-texture">
-                      <div className="flex items-center gap-2 md:gap-2.5">
-                        <div className="w-7 h-7 md:w-9 md:h-9 bg-primary pixel-border-outset flex items-center justify-center text-primary-foreground font-bold text-[10px] md:text-xs font-minecraft">
+                    <div className="bg-card px-2 md:px-4 py-1.5 md:py-2 border-2 border-primary pixel-border-outset minecraft-texture">
+                      <div className="flex items-center gap-1.5 md:gap-2.5">
+                        <div className="w-6 h-6 md:w-9 md:h-9 bg-primary pixel-border-outset flex items-center justify-center text-primary-foreground font-bold text-[10px] md:text-xs font-minecraft">
                           YOU
                         </div>
-                        <div className="flex gap-1 md:gap-1.5">
+                        <div className="flex gap-0.5 md:gap-1.5">
                           {questionData.map((q, i) => {
                             const solved = myProgress[q.questionData.id] ?? false;
                             return (
                               <div
                                 key={i}
-                                className={`w-4 h-4 md:w-6 md:h-6 flex items-center justify-center transition-colors pixel-border-outset ${
+                                className={`w-3 h-3 md:w-6 md:h-6 flex items-center justify-center transition-colors pixel-border-outset ${
                                   solved ? "bg-primary/30" : "bg-muted"
                                 }`}
                               >
                                 {solved ? (
                                   <svg
-                                    className="w-3 h-3 md:w-4 md:h-4 text-primary"
+                                    className="w-2 h-2 md:w-4 md:h-4 text-primary"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -269,7 +271,7 @@ int main() {
                                     <path d="M5 13l4 4L19 7" />
                                   </svg>
                                 ) : (
-                                  <div className="w-2 h-2 md:w-3 md:h-3 bg-muted-foreground" />
+                                  <div className="w-1.5 h-1.5 md:w-3 md:h-3 bg-muted-foreground" />
                                 )}
                               </div>
                             );
@@ -279,11 +281,11 @@ int main() {
                     </div>
 
                     <div className="bg-destructive p-[2px] shadow-lg pixel-border-outset">
-                      <div className="bg-card px-3 md:px-5 py-2 pixel-border-inset">
+                      <div className="bg-card px-2 md:px-5 py-1.5 md:py-2 pixel-border-inset">
                         <div className="flex items-center gap-1 md:gap-2">
                           <Clock className={`w-3 h-3 md:w-3.5 md:h-3.5 ${timerColor}`} />
                           <div
-                            className={`text-lg md:text-2xl font-black font-mono ${timerColor} tracking-wider font-minecraft`}
+                            className={`text-base md:text-2xl font-black font-mono ${timerColor} tracking-wider font-minecraft`}
                           >
                             {formatTime(timeLeft)}
                           </div>
@@ -291,24 +293,24 @@ int main() {
                       </div>
                     </div>
 
-                    <div className="bg-card px-3 md:px-4 py-2 border-2 border-accent pixel-border-outset minecraft-texture">
-                      <div className="flex items-center gap-2 md:gap-2.5">
-                        <div className="w-7 h-7 md:w-9 md:h-9 bg-accent pixel-border-outset flex items-center justify-center text-accent-foreground font-bold text-[10px] md:text-xs font-minecraft">
+                    <div className="bg-card px-2 md:px-4 py-1.5 md:py-2 border-2 border-accent pixel-border-outset minecraft-texture">
+                      <div className="flex items-center gap-1.5 md:gap-2.5">
+                        <div className="w-6 h-6 md:w-9 md:h-9 bg-accent pixel-border-outset flex items-center justify-center text-accent-foreground font-bold text-[10px] md:text-xs font-minecraft">
                           {opponent?.name?.[0]?.toUpperCase() ?? "OPP"}
                         </div>
-                        <div className="flex gap-1 md:gap-1.5">
+                        <div className="flex gap-0.5 md:gap-1.5">
                           {questionData.map((q, i) => {
                             const oppSolved = opponentProgress[q.questionData.id] ?? false;
                             return (
                               <div
                                 key={i}
-                                className={`w-4 h-4 md:w-6 md:h-6 flex items-center justify-center transition-colors pixel-border-outset ${
+                                className={`w-3 h-3 md:w-6 md:h-6 flex items-center justify-center transition-colors pixel-border-outset ${
                                   oppSolved ? "bg-accent/30" : "bg-muted"
                                 }`}
                               >
                                 {oppSolved ? (
                                   <svg
-                                    className="w-3 h-3 md:w-4 md:h-4 text-accent"
+                                    className="w-2 h-2 md:w-4 md:h-4 text-accent"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -317,7 +319,7 @@ int main() {
                                     <path d="M5 13l4 4L19 7" />
                                   </svg>
                                 ) : (
-                                  <div className="w-2 h-2 md:w-3 md:h-3 bg-muted-foreground" />
+                                  <div className="w-1.5 h-1.5 md:w-3 md:h-3 bg-muted-foreground" />
                                 )}
                               </div>
                             );
@@ -329,12 +331,15 @@ int main() {
                 )}
               </div>
 
-              <button
-                onClick={finish}
-                className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold text-destructive hover:text-destructive hover:bg-destructive/10 transition-all border-2 border-destructive pixel-border-outset active:pixel-border-inset font-minecraft whitespace-nowrap"
-              >
-                Give up
-              </button>
+              {/* Action Section - Order 2 (Mobile/Tablet) / Order 3 (Desktop) */}
+              <div className="order-2 lg:order-3">
+                <button
+                  onClick={finish}
+                  className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold text-destructive hover:text-destructive hover:bg-destructive/10 transition-all border-2 border-destructive pixel-border-outset active:pixel-border-inset font-minecraft whitespace-nowrap"
+                >
+                  Give up
+                </button>
+              </div>
             </div>
           </div>
         </div>
