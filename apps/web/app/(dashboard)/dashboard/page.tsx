@@ -3,12 +3,11 @@
 import React from "react";
 import { Zap, Code2, Moon, Upload, TrendingUp, Users } from "lucide-react";
 import { MatchCard } from "@/components/Dashboard/MatchCard";
-import { Loader } from "@/components/Dashboard/Loader";
 import { useMatchMaker } from "@/hooks/useMatchMaker";
- 
+
 
 export default function DashboardPage() {
-  const { startMatch, cancelMatch, queued } = useMatchMaker();
+  const { startMatch } = useMatchMaker();
 
   return (
     <div className="w-full animate-fade-in">
@@ -23,7 +22,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         <MatchCard
           title="BLITZ DUEL"
           description="10-min speed round"
@@ -32,16 +31,6 @@ export default function DashboardPage() {
           tag="vs Random"
           onClick={startMatch}
         />
-        
-        <MatchCard
-          title="FRIEND DUEL"
-          description="Private battle with your buddy"
-          icon={Upload}
-          colorClass="text-pink-500 bg-pink-500/10"
-          tag="New"
-          onClick={() => {}} // TODO: Implement Friend Duel logic
-          locked={true} // Locking for now as logic is specific
-        />
 
         <MatchCard
           title="PRACTICE SOLO"
@@ -49,6 +38,16 @@ export default function DashboardPage() {
           icon={Code2}
           colorClass="text-yellow-500 bg-yellow-500/10"
           onClick={() => window.location.href = "/code"} 
+        />
+        
+        <MatchCard
+          title="FRIEND DUEL"
+          description="Private battle with your buddy"
+          icon={Upload}
+          colorClass="text-pink-500 bg-pink-500/10"
+          // tag="New"
+          onClick={() => {}} // TODO: Implement Friend Duel logic
+          locked={true} // Locking for now as logic is specific
         />
         
         {/* Row 2 - Locked/Extra */}
@@ -61,11 +60,7 @@ export default function DashboardPage() {
         />
       </div>
 
-      <Loader 
-        isOpen={queued} 
-        onCancel={cancelMatch} 
-        mode="BLITZ DUEL" 
-      />
+      {/* Loader moved to Global Layout */}
     </div>
   );
 }

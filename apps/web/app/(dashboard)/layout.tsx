@@ -1,19 +1,34 @@
+"use client";
+
 import React from "react";
 import { Sidebar } from "@/components/Dashboard/Sidebar";
+import { Loader } from "@/components/Dashboard/Loader";
+import { useMatchListener } from "@/hooks/useMatchListener";
+import { useMatchStores } from "@/stores/useMatchStore";
+import { useMatchMaker } from "@/hooks/useMatchMaker";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  useMatchListener();
+  const { queued } = useMatchStores();
+  const { cancelMatch } = useMatchMaker();
+  
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary/20 minecraft-texture flex flex-row">
+    <div className="h-screen bg-background text-foreground font-sans selection:bg-primary/20 minecraft-texture flex flex-row overflow-hidden">
       <Sidebar />
-      <main className="flex-1 min-h-screen pt-16 md:pt-0">
+      <main className="flex-1 h-full pt-16 md:pt-0 relative overflow-y-auto">
         <div className="container mx-auto p-4 md:p-8 max-w-7xl">
           {children}
         </div>
       </main>
+      <Loader 
+        isOpen={queued} 
+        onCancel={cancelMatch} 
+        mode="BLITZ DUEL" 
+      />
     </div>
   );
 }
