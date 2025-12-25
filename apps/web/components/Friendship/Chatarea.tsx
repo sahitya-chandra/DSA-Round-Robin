@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { SendHorizonal, Loader2, Menu, UserPlus } from "lucide-react";
 import { authClient } from "@repo/auth";
 import { useRouter } from "next/navigation";
+import { API_BASE_URL } from "@/lib/api";
 
 interface ChatAreaProps {
   isSidebarOpen: boolean;
@@ -56,7 +57,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
   useEffect(() => {
     if (!userId) return;
 
-    socket = io("http://localhost:5000/friends", { auth: { userId } });
+    socket = io(`${API_BASE_URL}/friends`, { auth: { userId } });
 
     socket.on("connect", () => {
       console.log("[Socket] Connected:", socket?.id);
@@ -120,7 +121,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     if (!currentChatterID || !userId) return;
     const fetchMessages = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/chat/messages", {
+        const res = await fetch(`${API_BASE_URL}/api/chat/messages`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId, friendId: currentChatterID }),
@@ -232,17 +233,17 @@ const Chatarea: React.FC<ChatAreaProps> = ({
 
   // ---- UI ----
   return (
-    <div className="flex flex-col flex-1 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white">
+    <div className="flex flex-col flex-1 bg-background text-foreground font-minecraft">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-gray-800 p-3">
+      <div className="flex items-center justify-between border-b border-border p-3">
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-700/70 text-gray-300 hover:text-white"
+            className="p-2 pixel-border-outset bg-card text-foreground hover:brightness-110"
           >
             <Menu size={26} />
           </button>
-          <h2 className="text-lg font-semibold truncate">
+          <h2 className="text-lg font-semibold truncate text-foreground">
             {currentChatter || "Select a friend"}
           </h2>
         </div>
@@ -263,15 +264,15 @@ const Chatarea: React.FC<ChatAreaProps> = ({
                 }`}
               >
                 {msg.type === "system" ? (
-                  <div className="text-center text-gray-400 text-xs italic w-full">
+                  <div className="text-center text-muted-foreground text-xs italic w-full">
                     {msg.content}
                   </div>
                 ) : (
                   <div
-                    className={`px-4 py-2 rounded-2xl text-sm sm:text-base max-w-[75%] break-words ${
+                    className={`px-4 py-2 border pixel-border text-sm sm:text-base max-w-[75%] break-words ${
                       msg.senderId === userId
-                        ? "bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-br-none"
-                        : "bg-gray-800/60 text-gray-100 border border-gray-700 rounded-bl-none"
+                        ? "bg-accent text-accent-foreground"
+                        : "bg-card text-card-foreground"
                     }`}
                   >
                     {msg.content}
@@ -280,7 +281,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
               </motion.div>
             ))
           ) : (
-            <p className="text-gray-500 text-center mt-5 italic">
+            <p className="text-muted-foreground text-center mt-5 italic">
               No messages yet. Say hi 👋
             </p>
           )}
@@ -297,9 +298,9 @@ const Chatarea: React.FC<ChatAreaProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
             transition={{ duration: 0.4 }}
-            className="absolute bottom-24 left-6 text-sm text-gray-400 italic"
+            className="absolute bottom-24 left-6 text-sm text-muted-foreground italic"
           >
-            <div className="bg-gray-800/50 px-3 py-1 rounded-xl border border-gray-700 shadow-sm">
+            <div className="bg-card px-3 py-1 border pixel-border shadow-sm text-foreground">
               {currentChatter} is typing...
             </div>
           </motion.div>
@@ -317,20 +318,20 @@ const Chatarea: React.FC<ChatAreaProps> = ({
             transition={{ duration: 0.18 }}
             className="fixed bottom-24 left-1/2 transform -translate-x-1/2 z-20"
           >
-            <div className="bg-gray-800/90 border border-gray-700 px-4 py-2 rounded-xl flex items-center gap-4 shadow-sm">
-              <div className="text-sm text-gray-200">
+            <div className="bg-card border pixel-border px-4 py-2 flex items-center gap-4 shadow-lg">
+              <div className="text-sm text-foreground font-minecraft">
                 {incomingInvite.fromUserName} invited you to a 1v1 match
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => handleInviteResponse(true)}
-                  className="px-3 py-1 rounded-lg bg-green-600 hover:bg-green-700 text-white text-xs"
+                  className="px-3 py-1 pixel-border-outset bg-primary text-primary-foreground text-xs hover:brightness-110"
                 >
                   Accept
                 </button>
                 <button
                   onClick={() => handleInviteResponse(false)}
-                  className="px-3 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs"
+                  className="px-3 py-1 pixel-border-outset bg-destructive text-destructive-foreground text-xs hover:brightness-110"
                 >
                   Decline
                 </button>
@@ -342,9 +343,9 @@ const Chatarea: React.FC<ChatAreaProps> = ({
 
       {/* Input area */}
       {currentChatterID && (
-        <div className="p-3 bg-gray-800/70 border-t border-gray-700 flex items-center gap-2 sticky bottom-0 z-10">
+        <div className="p-3 bg-secondary border-t border-border flex items-center gap-2 sticky bottom-0 z-10 transition-colors">
           <input
-            className="flex-1 bg-gray-700/60 text-white rounded-2xl px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 text-sm"
+            className="flex-1 bg-input text-foreground pixel-border-inset px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary placeholder-muted-foreground text-sm font-minecraft"
             value={newMsg}
             onChange={handleTyping}
             onKeyDown={handleKeyDown}
@@ -353,10 +354,10 @@ const Chatarea: React.FC<ChatAreaProps> = ({
           <button
             onClick={handleInvite}
             disabled={inviteStatus === "pending" || inviteStatus === "sending"}
-            className={`hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-2xl text-sm font-medium text-white shadow-md transition-all ${
+            className={`hidden sm:flex items-center gap-2 px-4 py-2.5 pixel-border-outset text-sm font-medium text-primary-foreground shadow-md transition-all ${
               inviteStatus === "pending"
-                ? "bg-gray-700 cursor-wait"
-                : "bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-700 hover:to-fuchsia-700"
+                ? "bg-muted cursor-wait"
+                : "bg-accent hover:brightness-110"
             }`}
           >
             {inviteStatus === "pending" ? (
@@ -372,7 +373,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
           <button
             onClick={handleSend}
             disabled={sending}
-            className={`flex items-center justify-center bg-gradient-to-r from-blue-600 to-indigo-500 hover:from-blue-700 hover:to-indigo-600 transition-all p-2.5 sm:px-4 sm:py-2.5 rounded-2xl shadow-md ${
+            className={`flex items-center justify-center bg-primary text-primary-foreground pixel-border-outset hover:brightness-110 transition-all p-2.5 sm:px-4 sm:py-2.5 shadow-md ${
               sending ? "opacity-70 cursor-not-allowed" : ""
             }`}
           >

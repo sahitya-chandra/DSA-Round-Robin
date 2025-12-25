@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { authClient } from "@repo/auth";
 import Friends from "./Friends";
+import { API_BASE_URL } from "@/lib/api";
 
 interface User {
   id: string;
@@ -27,7 +28,7 @@ interface SidebarProps {
   setCurrentChatterID: (id: string | null) => void;
 }
 
-const API_BASE = "http://localhost:5000/api/social";
+const API_BASE = `${API_BASE_URL}/api/social`;
 
 const Sidebar: React.FC<SidebarProps> = ({
   isSidebarOpen,
@@ -171,36 +172,36 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-gray-950 border-r border-gray-800 transition-transform duration-300
+      className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-background border-r pixel-border border-border transition-transform duration-300 font-minecraft
       ${isSidebarOpen ? "translate-x-0 w-72" : "-translate-x-full w-72"}
       md:relative md:translate-x-0 md:w-72 md:shadow-lg`}
     >
       {/* Header */}
-      <div className="p-4 flex justify-between items-center border-b border-gray-800">
-        <h2 className="text-xl font-bold text-white">Friends</h2>
+      <div className="p-4 flex justify-between items-center border-b border-border">
+        <h2 className="text-xl font-bold text-foreground">Friends</h2>
         <button
           onClick={() => setIsSidebarOpen(false)}
-          className="md:hidden text-gray-400 hover:text-white transition"
+          className="md:hidden text-muted-foreground hover:text-foreground transition"
         >
           ✖
         </button>
       </div>
 
       {/* Search */}
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-4 border-b border-border">
         <input
           type="text"
           placeholder="Search or add friend..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="w-full px-3 py-2 rounded-lg bg-gray-800 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-amber-400 transition"
+          className="w-full px-3 py-2 pixel-border-inset bg-input placeholder-muted-foreground text-foreground focus:outline-none focus:ring-2 focus:ring-primary transition"
         />
 
         {isSearching && (
-          <p className="mt-2 text-gray-400 text-sm">Searching...</p>
+          <p className="mt-2 text-muted-foreground text-sm">Searching...</p>
         )}
         {!isSearching && searchInput.trim() && searchResults.length === 0 && (
-          <p className="mt-2 text-gray-400 text-sm">No users found</p>
+          <p className="mt-2 text-muted-foreground text-sm">No users found</p>
         )}
       </div>
 
@@ -215,20 +216,20 @@ const Sidebar: React.FC<SidebarProps> = ({
             return (
               <div
                 key={user.id}
-                className="p-3 rounded-lg bg-gray-800 hover:bg-gray-700 flex items-center justify-between transition"
+                className="p-3 bg-card border pixel-border hover:bg-muted flex items-center justify-between transition"
               >
                 <div className="flex-1 min-w-0">
-                  <p className="truncate text-white">{user.name}</p>
-                  <p className="truncate text-gray-400 text-sm">{user.email}</p>
+                  <p className="truncate text-foreground">{user.name}</p>
+                  <p className="truncate text-muted-foreground text-sm">{user.email}</p>
                 </div>
 
                 <button
                   onClick={() => sendFriendRequest(user.id)}
                   disabled={isSending || isPending || isFriend}
-                  className={`ml-2 py-1 px-3 rounded-lg text-sm font-medium transition ${
+                  className={`ml-2 py-1 px-3 pixel-border-outset text-sm font-medium transition ${
                     isSending
-                      ? "bg-gray-600 text-gray-300"
-                      : "bg-amber-500 text-black hover:bg-amber-400"
+                      ? "bg-muted text-muted-foreground"
+                      : "bg-primary text-primary-foreground hover:brightness-110"
                   }`}
                 >
                   {isSending
@@ -249,23 +250,23 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="px-4 mt-3">
         <button
           onClick={() => setShowRequests(!showRequests)}
-          className="w-full py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition text-white"
+          className="w-full py-2 pixel-border-outset bg-secondary text-secondary-foreground hover:brightness-110 transition"
         >
           {showRequests ? "Hide Requests" : "Show Requests"}
         </button>
       </div>
 
       {showRequests && (
-        <div className="p-4 border-t border-gray-800 overflow-y-auto">
+        <div className="p-4 border-t border-border overflow-y-auto">
           {loadingRequests ? (
-            <p className="text-gray-400 text-sm">Loading requests…</p>
+            <p className="text-muted-foreground text-sm">Loading requests…</p>
           ) : friendRequests.length > 0 ? (
             friendRequests.map((req) => (
               <div
                 key={req.id}
-                className="flex justify-between items-center p-2 mb-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition"
+                className="flex justify-between items-center p-2 mb-2 bg-card border pixel-border hover:bg-muted transition"
               >
-                <span className="truncate text-white">
+                <span className="truncate text-foreground">
                   {req.fromUser?.name || req.toUser?.name || "Unknown User"}
                 </span>
                 <div className="flex space-x-2">
@@ -287,13 +288,13 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
             ))
           ) : (
-            <p className="text-gray-400 text-sm">No requests</p>
+            <p className="text-muted-foreground text-sm">No requests</p>
           )}
         </div>
       )}
 
       {/* ✅ Friends List */}
-      <div className="flex-1 overflow-y-auto border-t border-gray-800 mt-2">
+      <div className="flex-1 overflow-y-auto border-t border-border mt-2">
         <Friends
           setCurrentChatter={setCurrentChatter}
           setCurrentChatterID={setCurrentChatterID}

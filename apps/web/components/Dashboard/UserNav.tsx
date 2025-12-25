@@ -21,7 +21,7 @@ export function UserNav() {
 
   const handleSignOut = async () => {
       await authClient.signOut();
-      router.push("/signin"); // Middleware will handle redirect to / if needed, or stays at signin
+      router.push("/"); // Middleware will handle redirect to / if needed, or stays at signin
   };
 
   if (!session) return null; // Or return a Skeleton
@@ -54,10 +54,10 @@ export function UserNav() {
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem className="focus:bg-slate-800 focus:text-white cursor-pointer" onClick={() => router.push("/settings")}>
+        {/* <DropdownMenuItem className="focus:bg-slate-800 focus:text-white cursor-pointer" onClick={() => router.push("/settings")}>
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuSeparator className="bg-slate-800" />
         <DropdownMenuItem className="text-red-400 focus:bg-red-500/10 focus:text-red-400 cursor-pointer" onClick={handleSignOut}>
           <LogOut className="mr-2 h-4 w-4" />

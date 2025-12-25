@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { getSocket } from "@/lib/socket";
-import { useMatchStore } from "@/store/matchStore";
+import { useMatchStore } from "@/stores/matchStore";
 import { useRouter } from "next/navigation";
-import { useSubmissionsStore } from "@/store/submissionStore";
-import { useMatchProgressStore } from "@/store/matchProgressStore";
-import { useMatchResultStore } from "@/store/matchResultStore";
+import { useSubmissionsStore } from "@/stores/submissionStore";
+import { useMatchProgressStore } from "@/stores/matchProgressStore";
+import { useMatchResultStore } from "@/stores/matchResultStore";
+import { useMatchStores } from "@/stores/useMatchStore";
+import { API_BASE_URL } from "@/lib/api";
 
 export function useSocket(userId: string, slug?: string) {
   const router = useRouter();
@@ -12,6 +14,7 @@ export function useSocket(userId: string, slug?: string) {
   const { updateSubmission, resetSubmissions} = useSubmissionsStore.getState()
   const { markSolved, resetProgress } = useMatchProgressStore.getState();
   const { setResult } = useMatchResultStore.getState()
+  const { setQueued } = useMatchStores();
   const [socket, setSocket] = useState<any>(null);
 
   useEffect(() => {
@@ -27,6 +30,7 @@ export function useSocket(userId: string, slug?: string) {
       });
       setTiming(data.startedAt, data.duration);
       router.push(`/code/${data.matchId}`);
+      setQueued(false)
     };
 
     const onMatchReady = (data: { matchId: string; startedAt: string }) => {
@@ -69,7 +73,7 @@ export function useSocket(userId: string, slug?: string) {
       if (!slug) return;
 
       try {
-        const res = await fetch(`http://localhost:5000/api/match/getmatch/${slug}`, {
+        const res = await fetch(`${API_BASE_URL}/api/match/getmatch/${slug}`, {
           credentials: "include",
         });
         const data = await res.json();

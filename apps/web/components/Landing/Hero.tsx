@@ -2,16 +2,9 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Code2, Sparkles } from "lucide-react";
-import Link from "next/link";
-import { Btn } from "@/components/Btn";
+import { Sparkles } from "lucide-react";
 
-interface HeroProps {
-  userId?: string;
-}
-
-export const Hero: React.FC<HeroProps> = ({ userId }) => {
+export const Hero: React.FC= () => {
   return (
     <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-background pt-20 minecraft-texture">
       {/* Background Effects - Minecraft grid pattern */}
@@ -50,15 +43,6 @@ export const Hero: React.FC<HeroProps> = ({ userId }) => {
           Challenge friends, solve complex problems, and level up your coding skills
           in an immersive, multiplayer environment designed for developers.
         </motion.p>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-{/* Button Removed per user request */}
-        </motion.div>
       </div>
 
       {/* Scroll Indicator */}

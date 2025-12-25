@@ -1,10 +1,11 @@
 import { io, Socket } from "socket.io-client";
+import { API_BASE_URL } from "./api";
 
 let socket: Socket | null = null;
 
 export function getSocket(userId: string): Socket {
   if (!socket) {
-    socket = io("http://localhost:5000", {
+    socket = io(API_BASE_URL, {
       withCredentials: true,
 			reconnection: true,
       reconnectionAttempts: 5,
