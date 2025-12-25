@@ -27,6 +27,7 @@ model User {
   ReceivedMessages  Message[]           @relation("ReceivedMessages")
   Submissions       Submission[]        @relation("Submissions")
   Matches           MatchParticipant[]
+  LeaderboardEntry  LeaderboardEntry?
 }
 
 model Account {
@@ -166,4 +167,37 @@ model Message {
   receiverId String
   content    String
   createdAt  DateTime @default(now())
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  rating    Int
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([createdAt])
+}
+
+model LeaderboardEntry {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  rank            Int      @default(0)
+  rating          Int      @default(1200)
+  wins            Int      @default(0)
+  losses          Int      @default(0)
+  totalMatches    Int      @default(0)
+  winStreak       Int      @default(0)
+  bestWinStreak   Int      @default(0)
+  lastMatchAt     DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([rating(sort: Desc)])
+  @@index([rank])
+  @@index([wins(sort: Desc)])
 }

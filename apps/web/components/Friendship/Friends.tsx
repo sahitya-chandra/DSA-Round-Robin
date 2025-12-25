@@ -52,10 +52,10 @@ const Friends: React.FC<FriendsProps> = ({
   }, [session?.user?.id]);
 
   const Skeleton = () => (
-    <div className="flex items-center justify-between p-3 mb-2 bg-muted pixel-border animate-pulse">
-      <div className="flex items-center space-x-3">
-        <span className="w-3 h-3 bg-secondary rounded-full"></span>
-        <div className="h-4 w-24 bg-secondary rounded"></div>
+    <div className="flex items-center justify-between p-2 md:p-3 mb-2 bg-muted pixel-border animate-pulse">
+      <div className="flex items-center space-x-2 md:space-x-3">
+        <span className="w-2 h-2 md:w-3 md:h-3 bg-secondary rounded-full"></span>
+        <div className="h-3 md:h-4 w-20 md:w-24 bg-secondary rounded"></div>
       </div>
     </div>
   );
@@ -66,34 +66,34 @@ const Friends: React.FC<FriendsProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 hide-scrollbar font-minecraft">
-      <h3 className="font-semibold text-muted-foreground mb-3 text-lg">
+    <div className="flex-1 overflow-y-auto p-2 md:p-4 hide-scrollbar font-minecraft">
+      <h3 className="font-semibold text-muted-foreground mb-2 md:mb-3 text-sm md:text-lg px-1">
         Current Friends
       </h3>
 
       {loading ? (
         Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} />)
       ) : friends.length === 0 ? (
-        <p className="text-muted-foreground text-sm mt-2">No friends found.</p>
+        <p className="text-muted-foreground text-sm mt-2 px-1">No friends found.</p>
       ) : (
         friends.map((friend, i) => (
           <div
             key={friend.id}
             onClick={() => handleFriendClick(friend)}
-            className="flex items-center justify-between p-3 mb-2 bg-card border pixel-border hover:bg-muted hover:scale-[1.02] transition-all duration-200 cursor-pointer"
+            className="flex items-center justify-between p-2 md:p-3 mb-2 bg-card border pixel-border hover:bg-muted hover:scale-[1.02] transition-all duration-200 cursor-pointer"
           >
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
               <span
-                className={`w-3 h-3 rounded-full ${
+                className={`w-2 h-2 md:w-3 md:h-3 rounded-full flex-shrink-0 ${
                   i % 2 === 0 ? "bg-green-500" : "bg-gray-500"
                 }`}
               ></span>
-              <div>
-                <p className="font-medium text-foreground">{friend.name}</p>
-                <p className="text-muted-foreground text-xs">{friend.email}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-foreground text-sm md:text-base truncate">{friend.name}</p>
+                <p className="text-muted-foreground text-xs truncate">{friend.email}</p>
               </div>
             </div>
-            <span className="text-muted-foreground text-lg">💬</span>
+            <span className="text-muted-foreground text-base md:text-lg ml-2 flex-shrink-0">💬</span>
           </div>
         ))
       )}

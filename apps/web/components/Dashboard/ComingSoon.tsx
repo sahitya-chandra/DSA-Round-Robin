@@ -34,7 +34,7 @@ export function ComingSoon({
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className={`text-4xl md:text-5xl font-bold mb-4 ${colorClass}`}
+        className={`text-3xl md:text-5xl font-bold mb-4 ${colorClass}`}
       >
         {title} Coming Soon
       </motion.h1>
@@ -52,16 +52,18 @@ export function ComingSoon({
          initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.4 }}
-        className="flex gap-4"
+        className="flex flex-col sm:flex-row gap-4"
       >
         <Link href="/dashboard">
-            <Button variant="outline" className="px-6 py-4 rounded-xl border-white/10 hover:bg-white/5">
+            <Button variant="outline" className="px-6 py-4 rounded-xl border-white/10 hover:bg-white/5 w-full sm:w-auto">
                 Return to Dashboard
             </Button>
         </Link>
-        <Button className="px-6 py-4 rounded-xl bg-primary text-black font-bold hover:bg-primary/90">
-            Share Your Ideas
-        </Button>
+        <Link href="/feedback">
+            <Button className="px-6 py-4 rounded-xl bg-primary text-black font-bold hover:bg-primary/90 w-full sm:w-auto">
+                Share Your Ideas
+            </Button>
+        </Link>
       </motion.div>
     </div>
   );
