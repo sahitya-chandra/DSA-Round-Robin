@@ -14,7 +14,7 @@ const Page = () => {
   }, [currentChatter]);
 
   return (
-    <div className="flex h-screen bg-slate-950 text-white font-sans overflow-hidden pt-16">
+    <div className="flex h-screen bg-background text-foreground font-sans overflow-hidden pt-16 minecraft-texture">
       <Sidebar
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}

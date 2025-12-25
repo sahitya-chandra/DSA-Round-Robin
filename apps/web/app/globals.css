@@ -8,6 +8,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-minecraft: var(--font-minecraft);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -45,7 +46,7 @@
 
 .custom-scrollbar {
   scrollbar-width: thin;            
-  scrollbar-color: #00f6ff #071a2a;
+  scrollbar-color: oklch(0.7 0.15 140) oklch(0.25 0.03 40);
 }
 
 /* Chrome, Edge, Safari */
@@ -55,18 +56,18 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #071a2a;
-  border-radius: 10px;
+  background: oklch(0.25 0.03 40);
+  border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #00f6ff; 
-  border-radius: 10px;
-  border: 2px solid #071a2a; 
+  background-color: oklch(0.7 0.15 140); 
+  border-radius: 4px;
+  border: 1px solid oklch(0.3 0.02 0); 
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: #00cce0; /* hover effect */
+  background-color: oklch(0.75 0.15 140);
 }
 
 @keyframes fade-in {
@@ -76,7 +77,7 @@
   }
   60% {
     opacity: 1;
-    transform: translateY(-2px) scale(1.01); /* little overshoot */
+    transform: translateY(-2px) scale(1.01);
   }
   100% {
     opacity: 1;
@@ -85,7 +86,118 @@
 }
 
 .animate-fade-in {
-  animation: fade-in 0.35s cubic-bezier(0.4, 0, 0.2, 1); /* smooth easing */
+  animation: fade-in 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Minecraft-style animations */
+@keyframes block-break {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1) rotate(5deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(0.8) rotate(-5deg);
+    opacity: 0;
+  }
+}
+
+@keyframes item-pickup {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-10px) scale(1.1);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-20px) scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes crafting {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+
+.animate-block-break {
+  animation: block-break 0.4s ease-out;
+}
+
+.animate-item-pickup {
+  animation: item-pickup 0.5s ease-out;
+}
+
+.animate-crafting {
+  animation: crafting 2s ease-in-out infinite;
+}
+
+/* Minecraft-style pixelated borders */
+.pixel-border {
+  border-style: solid;
+  border-width: 2px;
+  border-image: 
+    linear-gradient(
+      to bottom right,
+      oklch(0.6 0.01 0) 0%,
+      oklch(0.4 0.01 0) 50%,
+      oklch(0.6 0.01 0) 100%
+    ) 1;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+.pixel-border-inset {
+  border-style: inset;
+  border-width: 3px;
+  border-color: oklch(0.3 0.01 0) oklch(0.5 0.01 0) oklch(0.5 0.01 0) oklch(0.3 0.01 0);
+}
+
+.pixel-border-outset {
+  border-style: outset;
+  border-width: 3px;
+  border-color: oklch(0.5 0.01 0) oklch(0.3 0.01 0) oklch(0.3 0.01 0) oklch(0.5 0.01 0);
+}
+
+/* Texture overlay utility */
+.minecraft-texture {
+  position: relative;
+}
+
+.minecraft-texture::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    );
+  pointer-events: none;
+  z-index: 1;
 }
 
 :root {
@@ -124,37 +236,59 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Minecraft Color Palette - Dark Theme */
+  /* Dirt Brown background - dark, earthy */
+  --background: oklch(0.25 0.03 40);
+  --foreground: oklch(0.95 0 0);
+  
+  /* Stone Gray cards - inventory panel style */
+  --card: oklch(0.4 0.01 0);
+  --card-foreground: oklch(0.95 0 0);
+  
+  /* Popover uses stone gray */
+  --popover: oklch(0.4 0.01 0);
+  --popover-foreground: oklch(0.95 0 0);
+  
+  /* Grass Green primary - vibrant Minecraft green */
+  --primary: oklch(0.7 0.15 140);
+  --primary-foreground: oklch(0.98 0 0);
+  
+  /* Wood Brown secondary */
+  --secondary: oklch(0.45 0.05 40);
+  --secondary-foreground: oklch(0.95 0 0);
+  
+  /* Cobblestone muted */
+  --muted: oklch(0.35 0.01 0);
+  --muted-foreground: oklch(0.65 0 0);
+  
+  /* Diamond Blue accent */
+  --accent: oklch(0.6 0.12 220);
+  --accent-foreground: oklch(0.98 0 0);
+  
+  /* Nether Red destructive */
+  --destructive: oklch(0.6 0.2 25);
+  
+  /* Stone borders */
+  --border: oklch(0.5 0.01 0 / 0.3);
+  --input: oklch(0.35 0.02 40 / 0.5);
+  --ring: oklch(0.7 0.15 140);
+  
+  /* Chart colors - Minecraft themed */
+  --chart-1: oklch(0.7 0.15 140); /* Grass Green */
+  --chart-2: oklch(0.75 0.15 220); /* Diamond Blue */
+  --chart-3: oklch(0.8 0.15 85); /* Gold */
+  --chart-4: oklch(0.6 0.2 25); /* Nether Red */
+  --chart-5: oklch(0.45 0.05 40); /* Wood Brown */
+  
+  /* Sidebar - darker stone */
+  --sidebar: oklch(0.3 0.02 0);
+  --sidebar-foreground: oklch(0.95 0 0);
+  --sidebar-primary: oklch(0.7 0.15 140);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.4 0.01 0);
+  --sidebar-accent-foreground: oklch(0.95 0 0);
+  --sidebar-border: oklch(0.5 0.01 0 / 0.3);
+  --sidebar-ring: oklch(0.7 0.15 140);
 }
 
 @layer base {

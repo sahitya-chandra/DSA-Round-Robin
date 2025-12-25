@@ -91,19 +91,19 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white p-6 pt-24 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-400"></div>
+      <div className="min-h-screen bg-background text-foreground p-6 pt-24 flex items-center justify-center minecraft-texture">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   // --- COMPONENTS ---
   const ProfileHeader = () => (
-    <Card className="p-6 sm:p-8 bg-slate-900/50 border border-white/10 rounded-3xl backdrop-blur-xl shadow-2xl">
+    <Card className="p-6 sm:p-8 bg-card border-2 border-border backdrop-blur-xl shadow-2xl minecraft-texture">
       <div className="flex flex-col sm:flex-row justify-between gap-6">
         <div>
           <motion.h1
-            className="text-5xl font-black bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent"
+            className="text-5xl font-black text-primary font-minecraft"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6, ease: easeOut }}
@@ -111,27 +111,27 @@ export default function ProfilePage() {
             {displayUsername}
           </motion.h1>
 
-          <p className="text-sm text-slate-400 mt-3 flex items-center gap-2">
-            <Calendar size={16} className="text-cyan-400" />
+          <p className="text-sm text-muted-foreground mt-3 flex items-center gap-2">
+            <Calendar size={16} className="text-primary" />
             Player since 2025 • {activeDays} active days
           </p>
 
-          <div className="flex gap-4 mt-3 text-sm text-slate-400">
+          <div className="flex gap-4 mt-3 text-sm text-muted-foreground">
             <span className="flex items-center gap-1">
-              <Trophy size={14} className="text-purple-400" /> {stats.rating} rating
+              <Trophy size={14} className="text-accent" /> {stats.rating} rating
             </span>
             <span className="flex items-center gap-1">
-              <TrendingUp size={14} className="text-pink-400" /> {winRate}% win rate
+              <TrendingUp size={14} className="text-primary" /> {winRate}% win rate
             </span>
           </div>
         </div>
 
         <div className="text-right">
-          <p className="text-sm text-slate-400">Current Rating</p>
+          <p className="text-sm text-muted-foreground">Current Rating</p>
           <div className="flex items-center justify-end gap-3 mt-1">
-            <Trophy size={28} className="text-cyan-400" />
+            <Trophy size={28} className="text-primary" />
             <motion.span
-              className="text-5xl font-black bg-gradient-to-r from-cyan-300 to-purple-300 bg-clip-text text-transparent"
+              className="text-5xl font-black text-primary font-minecraft"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.3, ease: easeOut }}
@@ -139,8 +139,8 @@ export default function ProfilePage() {
               {stats.rating}
             </motion.span>
           </div>
-          <p className="text-xs text-slate-500 mt-2">
-            Peak: <span className="text-purple-300">{stats.bestRating}</span>
+          <p className="text-xs text-muted-foreground mt-2">
+            Peak: <span className="text-accent">{stats.bestRating}</span>
           </p>
         </div>
       </div>
@@ -156,27 +156,27 @@ export default function ProfilePage() {
         { label: "Win Rate", value: `${winRate}%`, icon: TrendingUp },
         { label: "Streak", value: stats.winStreak, icon: Flame },
       ].map(({ label, value, icon: Icon }) => (
-        <Card key={label} className="bg-slate-900/50 border border-white/5 rounded-2xl text-center py-5 hover:bg-slate-800/80 transition-colors">
-          <Icon className="mx-auto mb-2 text-cyan-400" size={22} />
-          <div className="text-2xl font-bold text-white">{value}</div>
-          <p className="text-xs text-slate-400 mt-1 uppercase">{label}</p>
+        <Card key={label} className="bg-card border-2 border-border text-center py-5 hover:brightness-110 transition-all minecraft-texture pixel-border-outset">
+          <Icon className="mx-auto mb-2 text-primary" size={22} />
+          <div className="text-2xl font-bold text-card-foreground font-minecraft">{value}</div>
+          <p className="text-xs text-muted-foreground mt-1 uppercase font-minecraft">{label}</p>
         </Card>
       ))}
     </div>
   );
 
   const ActivityBarGraph = () => (
-    <Card className="bg-slate-900/50 border border-white/10 rounded-3xl p-6 backdrop-blur-lg">
+    <Card className="bg-card border-2 border-border p-6 backdrop-blur-lg minecraft-texture">
       <header className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2">
-          <Activity size={20} className="text-purple-400" />
-          <h2 className="text-xl font-semibold text-white">Daily Match Activity Trend</h2>
+          <Activity size={20} className="text-accent" />
+          <h2 className="text-xl font-semibold text-card-foreground font-minecraft">Daily Match Activity Trend</h2>
         </div>
-        <span className="text-sm text-slate-400">{totalMatches} total matches</span>
+        <span className="text-sm text-muted-foreground">{totalMatches} total matches</span>
       </header>
 
-      <div className="h-40 flex items-end overflow-x-auto pb-4 border-b border-slate-800 relative">
-        <div className="absolute left-0 bottom-0 top-0 w-8 text-xs text-slate-500 flex flex-col justify-between pt-1 pb-2 pointer-events-none">
+      <div className="h-40 flex items-end overflow-x-auto pb-4 border-b-2 border-border relative">
+        <div className="absolute left-0 bottom-0 top-0 w-8 text-xs text-muted-foreground flex flex-col justify-between pt-1 pb-2 pointer-events-none">
           <span className="text-right pr-1">{maxCount}</span>
           <span className="text-right pr-1">{Math.floor(maxCount / 2)}</span>
           <span className="text-right pr-1">0</span>
@@ -204,8 +204,8 @@ export default function ProfilePage() {
                   title={title}
                 >
                   <motion.div
-                    className={`w-full rounded-t shadow-md ${
-                      isToday ? "bg-cyan-400" : "bg-purple-700/80"
+                    className={`w-full shadow-md pixel-border-outset ${
+                      isToday ? "bg-primary" : "bg-accent/80"
                     }`}
                     style={{ height: `${height}%` }}
                     initial={{ scaleY: 0 }}
@@ -217,44 +217,44 @@ export default function ProfilePage() {
             })}
           </AnimatePresence>
         </div>
-        <div className="absolute bottom-0 right-0 pb-1 text-xs text-cyan-400">Today</div>
+        <div className="absolute bottom-0 right-0 pb-1 text-xs text-primary font-minecraft">Today</div>
       </div>
     </Card>
   );
 
   const RecentMatches = () => (
-    <Card className="bg-slate-900/50 border border-white/10 rounded-3xl p-6 backdrop-blur-lg">
-      <h2 className="text-xl font-semibold mb-4 text-white">Recent Matches</h2>
+    <Card className="bg-card border-2 border-border p-6 backdrop-blur-lg minecraft-texture">
+      <h2 className="text-xl font-semibold mb-4 text-card-foreground font-minecraft">Recent Matches</h2>
       <div className="flex flex-col gap-3">
         {matches.map((m) => {
           const isWin = m.result === "Win";
           return (
             <div
               key={m.id}
-              className={`flex justify-between items-center px-5 py-4 rounded-2xl border transition-all duration-200 ${
+              className={`flex justify-between items-center px-5 py-4 border-2 transition-all duration-200 minecraft-texture pixel-border-outset ${
                 isWin
-                  ? "border-cyan-500/20 bg-cyan-900/10"
-                  : "border-pink-500/20 bg-pink-900/10"
-              } hover:border-white/20`}
+                  ? "border-primary/30 bg-primary/10"
+                  : "border-destructive/30 bg-destructive/10"
+              } hover:brightness-110`}
             >
               <div>
-                <p className="font-semibold text-lg">
+                <p className="font-semibold text-lg font-minecraft">
                   vs{" "}
-                  <span className={isWin ? "text-cyan-400" : "text-pink-400"}>
+                  <span className={isWin ? "text-primary" : "text-destructive"}>
                     {m.opponent}
                   </span>
                 </p>
-                <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                   <Calendar size={12} /> {m.date}
                 </p>
               </div>
               <div className="text-right">
-                <p className={`text-sm font-semibold ${isWin ? "text-cyan-400" : "text-pink-400"}`}>
+                <p className={`text-sm font-semibold font-minecraft ${isWin ? "text-primary" : "text-destructive"}`}>
                   {m.result}
                 </p>
-                <p className="font-mono text-white mt-1">
+                <p className="font-mono text-card-foreground mt-1">
                   {m.score}
-                  <span className={`text-xs ml-2 ${isWin ? "text-cyan-400" : "text-pink-400"}`}>
+                  <span className={`text-xs ml-2 ${isWin ? "text-primary" : "text-destructive"}`}>
                     {m.ratingChange > 0 ? `+${m.ratingChange}` : m.ratingChange}
                   </span>
                 </p>
@@ -267,7 +267,7 @@ export default function ProfilePage() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white p-6 pt-24">
+    <div className="min-h-screen bg-background text-foreground p-6 pt-24 minecraft-texture">
       <div className="max-w-5xl mx-auto space-y-8">
         <ProfileHeader />
         <QuickStats />
