@@ -10,8 +10,8 @@ export const auth = betterAuth({
 	}),
 	emailAndPassword: { 
     enabled: true, 
-  }, 
-
+  },
+	trustedOrigins: ["https://dsa-round-robin.onrender.com"],
 });
 
 export const nextHandler = toNextJsHandler(auth);
