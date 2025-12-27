@@ -10,3 +10,4 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
 export default prisma
 export * from '@prisma/client';
+export type { Question } from '@prisma/client';

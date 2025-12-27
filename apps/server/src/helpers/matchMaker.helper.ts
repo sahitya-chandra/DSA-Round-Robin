@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-import prisma, { Question } from "@repo/db";
+import prisma from "@repo/db";
+import type { Question } from "@repo/db";
 import { connection as redis } from "@repo/queue";
 import {
   ACTIVE_MATCH_PREFIX,
