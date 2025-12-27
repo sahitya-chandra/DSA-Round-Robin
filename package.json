@@ -18,7 +18,8 @@
     "db:start": "docker compose up -d postgres",
     "services:start": "docker compose up -d",
     "services:stop": "docker compose down",
-    "services:reset": "docker compose down -v"
+    "services:reset": "docker compose down -v",
+    "postinstall": "pnpm --filter @repo/db run generate"
   },
   "devDependencies": {
     "dotenv-cli": "^10.0.0",
