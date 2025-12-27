@@ -49,7 +49,7 @@ export async function createMatch(
   }
 
   const matchId = uuidv4();
-  const mqPayload = questions.map((q, i) => ({
+  const mqPayload = questions.map((q: Question, i: number) => ({
     questionData: q,
     order: i + 1,
   }));

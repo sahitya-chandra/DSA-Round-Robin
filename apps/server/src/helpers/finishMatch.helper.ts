@@ -11,7 +11,7 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
 
   const requesterId = raw.requesterId!;
   const opponentId = raw.opponentId!;
-  const questions = raw.questions ? JSON.parse(raw.questions) : [];
+  const questions: Array<{ questionData: { id: string }, order: number }> = raw.questions ? JSON.parse(raw.questions) : [];
   const startedAt = raw.startedAt ? new Date(raw.startedAt) : new Date();
   const endedAt = new Date();
 
@@ -23,17 +23,11 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
     redis.hgetall(oSubKey),
   ]);
 
-  // console.log("rHash keys:", Object.keys(rHash));
-  // console.log("oHash keys:", Object.keys(oHash));
-
   const parseHash = (hash: Record<string, string>) => 
     Object.values(hash).map((s) => JSON.parse(s));
 
   const rSubs = parseHash(rHash);
   const oSubs = parseHash(oHash);
-
-  // console.log("rSubs parsed:", rSubs);
-  // console.log("oSubs parsed:", oSubs);
 
   const computeScore = (subs: any[]) => {
     const solved = new Map<number, any>();
@@ -60,13 +54,13 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
     if (rScore > oScore) winnerId = requesterId;
     else if (oScore > rScore) winnerId = opponentId;
     else {
-      const rSum = Array.from(rSolved.values()).reduce((acc, s) => acc + new Date(s.createdAt).getTime(), 0);
-      const oSum = Array.from(oSolved.values()).reduce((acc, s) => acc + new Date(s.createdAt).getTime(), 0);
+      const rSum = Array.from(rSolved.values()).reduce((acc: number, s: any) => acc + new Date(s.createdAt).getTime(), 0);
+      const oSum = Array.from(oSolved.values()).reduce((acc: number, s: any) => acc + new Date(s.createdAt).getTime(), 0);
       winnerId = rSum === oSum ? null : (rSum < oSum ? requesterId : opponentId);
     }
   }
 
-  await prisma.$transaction(async (tx) => {
+  await prisma.$transaction(async (tx: any) => {
     const requester = await tx.user.findUnique({ where: { id: requesterId }, select: { rating: true } });
     const opponent = await tx.user.findUnique({ where: { id: opponentId }, select: { rating: true } });
 
@@ -102,7 +96,7 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
         },
         questions: {
           createMany: {
-            data: questions.map((q: any) => ({
+            data: questions.map((q) => ({
               questionId: q.questionData.id,
               order: q.order,
             })),
@@ -112,7 +106,6 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
     });
 
     const allSubs = [...rSubs, ...oSubs];
-    // console.log("Saving submissions:", allSubs.length);
 
     for (const s of allSubs) {
       await tx.submission.create({

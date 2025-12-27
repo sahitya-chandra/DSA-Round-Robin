@@ -22,7 +22,7 @@ export const searchFriend = async (req: Request, res: Response) => {
     });
 
     const results = await Promise.all(
-      users.map(async (user) => {
+      users.map(async (user: any) => {
         const existingReq = await prisma.friendRequest.findFirst({
           where: {
             OR: [
@@ -109,7 +109,7 @@ export const getAllFriendReq = async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
     });
 
-    const formatted = requests.map((r) => ({
+    const formatted = requests.map((r: any) => ({
       id: r.id,
       fromUser: r.requester,
     }));
@@ -195,7 +195,7 @@ export const getFriends = async (req: Request, res: Response) => {
       },
     });
 
-    const list = friends.map((f) =>
+    const list = friends.map((f: any) =>
       f.userAId === userId ? f.userB : f.userA
     );
 

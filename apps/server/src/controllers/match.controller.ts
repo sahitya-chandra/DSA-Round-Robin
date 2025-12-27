@@ -23,8 +23,8 @@ export const matchController = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const cancelMatchController = async (req: Request, res: Response) => {
-  const userId = (req as any).user?.id;
+export const cancelMatchController = async (req: AuthRequest, res: Response) => {
+  const userId = req.user?.id;
   if (!userId) return res.status(401).json({ error: "unauthenticated" });
 
   try {

@@ -7,7 +7,7 @@ export const setQuestions = async (req: Request, res: Response) => {
       any[]
     >`SELECT * FROM "Question" ORDER BY RANDOM() LIMIT 5`;
 
-    const questions = randomQuestions.map((q) => ({
+    const questions = randomQuestions.map((q: any) => ({
       ...q,
       testcases: q.testcases ?? [],
     }));
