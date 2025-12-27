@@ -1,13 +1,24 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Zap, Code2, Moon, Upload, TrendingUp, Users } from "lucide-react";
 import { MatchCard } from "@/components/Dashboard/MatchCard";
 import { useMatchMaker } from "@/hooks/useMatchMaker";
+import { API_BASE_URL } from "@/lib/api";
 
 
 export default function DashboardPage() {
   const { startMatch } = useMatchMaker();
+
+  useEffect(() => {
+    async function check() {
+      await fetch(`${API_BASE_URL}/api/health`, {
+        credentials: "include",
+      });
+    }
+
+    check()
+  }, [])
 
   return (
     <div className="w-full animate-fade-in">

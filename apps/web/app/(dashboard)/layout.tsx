@@ -7,16 +7,12 @@ import { Loader } from "@/components/Dashboard/Loader";
 import { useMatchListener } from "@/hooks/useMatchListener";
 import { useMatchStores } from "@/stores/useMatchStore";
 import { useMatchMaker } from "@/hooks/useMatchMaker";
-import { API_BASE_URL } from "@/lib/api";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await fetch(`${API_BASE_URL}/api/health`, {
-    credentials: "include",
-  });
   useMatchListener();
   const { queued } = useMatchStores();
   const { cancelMatch } = useMatchMaker();
