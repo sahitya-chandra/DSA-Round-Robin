@@ -12,6 +12,10 @@ export const auth = betterAuth({
     enabled: true, 
   },
 	advanced: {
+		defaultCookieAttributes: {
+      sameSite: "none",
+      secure: true,
+    },
 		crossSubDomainCookies: {
 			enabled: true,
 			domain: "https://dsa-round-robin.onrender.com",
