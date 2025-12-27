@@ -26,6 +26,9 @@
     "@repo/typescript-config": "workspace:*",
     "@repo/ui": "workspace:*",
     "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
     "@uiw/codemirror-theme-vscode": "^4.25.2",
     "@uiw/react-codemirror": "^4.25.2",
     "axios": "^1.12.2",
@@ -46,9 +49,6 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
     "eslint": "^9.34.0"
   }
 }

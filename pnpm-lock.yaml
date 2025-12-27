@@ -121,6 +121,15 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.13
+      '@types/node':
+        specifier: ^20
+        version: 20.19.17
+      '@types/react':
+        specifier: ^19
+        version: 19.1.0
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.1.1(@types/react@19.1.0)
       '@uiw/codemirror-theme-vscode':
         specifier: ^4.25.2
         version: 4.25.2(@codemirror/language@6.11.3)(@codemirror/state@6.5.2)(@codemirror/view@6.38.6)
@@ -176,15 +185,6 @@ importers:
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@types/node':
-        specifier: ^20
-        version: 20.19.17
-      '@types/react':
-        specifier: ^19
-        version: 19.1.0
-      '@types/react-dom':
-        specifier: ^19
-        version: 19.1.1(@types/react@19.1.0)
       eslint:
         specifier: ^9.34.0
         version: 9.34.0(jiti@2.5.1)
