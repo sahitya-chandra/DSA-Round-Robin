@@ -1,18 +1,44 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
-  "globalDependencies": [".env*"],
+  "globalDependencies": [
+    ".env*"
+  ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [ "dist/**", ".next/**", "!.next/cache/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "outputs": [
+        "dist/**",
+        ".next/**",
+        "!.next/cache/**"
+      ],
+      "env": [
+        "DATABASE_URL",
+        "BETTER_AUTH_SECRET",
+        "BETTER_AUTH_URL",
+        "NEXT_PUBLIC_API_URL",
+        "CLIENT_URL",
+        "NODE_ENV",
+        "SERVER_PORT",
+        "HOME_DIR",
+        "REDIS_URL"
+      ]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": [
+        "^lint"
+      ]
     },
     "check-types": {
-      "dependsOn": ["^check-types"]
+      "dependsOn": [
+        "^check-types"
+      ]
     },
     "dev": {
       "cache": false,
@@ -27,16 +53,25 @@
     },
     "db:migrate": {
       "cache": false,
-      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ]
     },
     "db:studio": {
       "persistent": true,
       "cache": false,
-      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ]
     },
     "db:seed": {
       "cache": false,
-      "inputs": ["$TURBO_DEFAULT$", ".env*"]
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ]
     }
   }
 }
