@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "main": "./dist/types.js",
-  "types": "./dist/types.d.ts",
+  "types": "./src/types.ts",
   "exports": {
     ".": {
-      "types": "./dist/types.d.ts",
+      "types": "./src/types.ts",
       "default": "./dist/types.js"
     }
   },
