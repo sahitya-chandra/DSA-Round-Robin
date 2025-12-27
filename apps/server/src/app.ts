@@ -6,12 +6,13 @@ import submitRouter from "./routes/submit.route";
 import setQuestions from "./routes/setQuestions.route";
 import matchRouter from "./routes/match.route";
 import chatRouter from "./routes/chat.route";
+import { CLIENT_URL } from "./config/config";
 
 const app: Application = express();
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: CLIENT_URL,
     credentials: true,
   })
 );

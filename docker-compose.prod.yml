@@ -1,0 +1,81 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-dsa_round_robin}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.2
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      SERVER_PORT: ${SERVER_PORT:-5000}
+      NODE_ENV: production
+    ports:
+      - "${SERVER_PORT:-5000}:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      DATABASE_URL: ${DATABASE_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      server:
+        condition: service_started
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    restart: unless-stopped
+    environment:
+      REDIS_URL: ${REDIS_URL}
+      # HOME_DIR must match the path MOUNTED from the host for Docker-in-Docker to work
+      HOME_DIR: /tmp/dsa_round_robin
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/dsa_round_robin:/tmp/dsa_round_robin
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  pg_data:
+  redis_data:
