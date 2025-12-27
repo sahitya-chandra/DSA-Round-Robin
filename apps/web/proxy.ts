@@ -6,7 +6,8 @@ export async function proxy(request: NextRequest) {
   
   // Check for session token (better-auth usually uses "better-auth.session_token")
   // Or checking for the cookie presence is a fast initial check for middleware
-  const sessionToken = request.cookies.get("better-auth.session_token");
+  const tokenKey = process.env.NODE_ENV === "production" ? "__Secure-better-auth.session_token" : "better-auth.session_token"
+  const sessionToken = request.cookies.get(tokenKey);
 
   // 1. Protected Routes: /dashboard, /code (except public assets if any)
   const isProtectedRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/code");
