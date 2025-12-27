@@ -1,4 +1,4 @@
-import express, { Application } from "express";
+import express, { Application, Response } from "express";
 import cors from "cors";
 
 import friendRouter from "./routes/social.route";
@@ -24,6 +24,9 @@ app.use("/api/submit", submitRouter);
 app.use("/api/setquestions", setQuestions);
 app.use("/api/match", matchRouter);
 app.use("/api/chat", chatRouter);
+app.get("/api/health", (res: Response) => {
+  return res.status(200).json({ msg: "ok"})
+})
 
 export { app };
 
