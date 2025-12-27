@@ -17,12 +17,12 @@
   "author": "",
   "license": "ISC",
   "description": "",
-  "devDependencies": {
-    "@repo/typescript-config": "workspace:*",
-    "@types/node": "^22.15.3"
-  },
+  "devDependencies": {},
   "dependencies": {
     "@repo/types": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "typescript": "^5.9.2",
     "bullmq": "^5.58.7",
     "ioredis": "^5.8.0"
   }

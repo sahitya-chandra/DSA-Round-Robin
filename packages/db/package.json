@@ -24,12 +24,12 @@
   "license": "ISC",
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
-    "@types/node": "^22.15.3",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "ts-node": "^10.9.2"
   },
   "dependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "typescript": "^5.9.2",
     "prisma": "^6.16.2",
     "@prisma/client": "6.16.2"
   }

@@ -16,10 +16,11 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@repo/typescript-config": "workspace:*"
-  },
+  "devDependencies": {},
   "dependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.15.3",
+    "typescript": "^5.9.2",
     "zod": "^4.1.11"
   }
 }
