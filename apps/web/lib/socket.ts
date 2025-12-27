@@ -7,6 +7,7 @@ export function getSocket(userId: string): Socket {
   if (!socket) {
     socket = io(API_BASE_URL, {
       withCredentials: true,
+      transports: ["websocket"],
 			reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,

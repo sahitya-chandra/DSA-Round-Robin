@@ -5,7 +5,13 @@ import { CLIENT_URL } from '../config/config';
 let io: Server;
 
 export const initIo = (server: http.Server) => {
-  io = new Server(server);
+  io = new Server(server, {
+    cors: {
+      origin: CLIENT_URL,
+      credentials: true,
+    },
+    transports: ["websocket"],
+  });
   return io;
 };
 

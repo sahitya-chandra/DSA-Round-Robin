@@ -3,7 +3,7 @@ import { Hero } from "@/components/Landing/Hero";
 import { Features } from "@/components/Landing/Features";
 import { Footer } from "@/components/Landing/Footer";
 
-const Page = async () => {
+const Page = () => {
   // const session = await auth.api.getSession({
   //   headers: await headers(),
   // });
