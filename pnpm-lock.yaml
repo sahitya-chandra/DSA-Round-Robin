@@ -42,6 +42,18 @@ importers:
       '@repo/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@types/cors':
+        specifier: ^2.8.19
+        version: 2.8.19
+      '@types/express':
+        specifier: ^5.0.3
+        version: 5.0.3
+      '@types/node':
+        specifier: ^24.5.2
+        version: 24.5.2
       cors:
         specifier: ^2.8.5
         version: 2.8.5
@@ -61,18 +73,6 @@ importers:
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../../packages/eslint-config
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
-      '@types/cors':
-        specifier: ^2.8.19
-        version: 2.8.19
-      '@types/express':
-        specifier: ^5.0.3
-        version: 5.0.3
-      '@types/node':
-        specifier: ^24.5.2
-        version: 24.5.2
 
   apps/web:
     dependencies:
