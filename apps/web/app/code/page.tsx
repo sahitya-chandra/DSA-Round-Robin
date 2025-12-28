@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import CodeEditor from "@/components/editor/editor";
-import { authClient } from "@repo/auth";
+import { authClient } from "@/lib/auth-client";
 import {
   Loader2,
   ChevronLeft,

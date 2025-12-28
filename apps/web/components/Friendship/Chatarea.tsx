@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
 import { SendHorizonal, Loader2, Menu, UserPlus, LayoutDashboard } from "lucide-react";
-import { authClient } from "@repo/auth";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/api";
 

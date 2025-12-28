@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { authClient } from "@repo/auth";
+import { authClient } from "@/lib/auth-client";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 

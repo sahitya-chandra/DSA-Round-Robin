@@ -10,7 +10,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@repo/auth";
+import { authClient } from "@/lib/auth-client";
 
 const UserProfile = () => {
   const { data: session, isPending } = authClient.useSession();

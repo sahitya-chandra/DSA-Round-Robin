@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import CodeEditor from "@/components/editor/editor";
 import { useParams, useRouter } from "next/navigation";
-import { authClient } from "@repo/auth";
+import { authClient } from "@/lib/auth-client";
 import { useMatchStore } from "@/stores/matchStore";
 import { useMatchResultStore } from "@/stores/matchResultStore";
 import { Play, Code2, Clock, Zap, AlertCircle, ChevronDown } from "lucide-react";

@@ -1,8 +1,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { toNextJsHandler } from "better-auth/next-js";
 import prisma from "@repo/db";
-import { fromNodeHeaders } from "better-auth/node";
+import { CLIENT_URL } from "../config/config";
 
 export const auth = betterAuth({
 	database: prismaAdapter(prisma, {
@@ -11,10 +10,7 @@ export const auth = betterAuth({
 	emailAndPassword: { 
     enabled: true, 
   }, 
-
+	trustedOrigins: [
+		CLIENT_URL,
+  ],
 });
-
-export const nextHandler = toNextJsHandler(auth);
-export * from "./auth-client";
-
-export default fromNodeHeaders

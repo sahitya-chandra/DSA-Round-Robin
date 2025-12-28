@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence, easeOut } from "framer-motion";
 import { Card } from "@/components/ui/card";
-import { authClient } from "@repo/auth";
+import { authClient } from "@/lib/auth-client";
 import {
   TrendingUp,
   Trophy,
@@ -57,7 +57,7 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getProfileData();
+        const data = await getProfileData(session);
         if (data) {
           // @ts-ignore - Date serialization issue between server/client
           setProfileData(data);

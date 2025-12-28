@@ -1,13 +1,8 @@
 "use server";
 
-import { auth } from "@repo/auth";
 import prisma from "@repo/db";
-import { headers } from "next/headers";
 
-export async function getProfileData() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export async function getProfileData(session: { user: { id: string }} | null) {
 
   if (!session?.user) {
     return null;

@@ -11,13 +11,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { authClient } from "@repo/auth";
 import { formSchema } from "@repo/types";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { User, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { authClient } from "@/lib/auth-client";
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);

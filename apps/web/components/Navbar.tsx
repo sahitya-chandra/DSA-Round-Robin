@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { authClient } from "@repo/auth";
+import { authClient } from "@/lib/auth-client";
 import { Menu, X, Code2, MessageSquare, User, LogOut, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,

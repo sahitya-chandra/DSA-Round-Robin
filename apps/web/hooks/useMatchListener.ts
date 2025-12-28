@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useSocket } from "@/hooks/useSocket";
 import { useRouter } from "next/navigation";
-import { authClient } from "@repo/auth";
+import { authClient } from "@/lib/auth-client";
 import { useMatchStores } from "@/stores/useMatchStore";
 
 export const useMatchListener = () => {

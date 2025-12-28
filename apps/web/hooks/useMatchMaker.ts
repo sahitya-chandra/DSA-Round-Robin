@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { authClient } from "@repo/auth";
+import { authClient } from "@/lib/auth-client";
 import { useMatchStores } from "@/stores/useMatchStore";
 import { API_BASE_URL } from "@/lib/api";
 

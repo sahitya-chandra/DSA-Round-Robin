@@ -1,5 +1,6 @@
-import fromNodeHeaders, { auth } from "@repo/auth"
+import { fromNodeHeaders } from "better-auth/node"
 import { NextFunction, Request, Response } from "express"
+import { auth } from "../lib/auth"
 
 export const isActiveSession = async (req: Request, res: Response, next: NextFunction) => {
 	console.log(req.headers)

@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { authClient } from "@repo/auth";
+import { authClient } from "@/lib/auth-client";
 import { API_BASE_URL } from "@/lib/api";
 
 interface Friend {
