@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import CodeEditor from "@/components/editor/editor";
 import { authClient } from "@/lib/auth-client";
 import {
@@ -179,12 +180,36 @@ const DsaPracticeApp: React.FC = () => {
 
   if (!userId) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-slate-950 text-slate-200">
-        <div className="flex flex-col items-center gap-4 p-10 bg-slate-800 rounded-xl shadow-2xl border border-slate-700">
-          <AlertCircle className="w-10 h-10 text-amber-400 animate-pulse" />
-          <h2 className="text-2xl font-extrabold text-white">Authentication Required</h2>
-          <p className="text-base text-slate-400 font-medium">
-            Please log in to start your DSA practice session.
+      <div className="h-screen w-full flex items-center justify-center bg-background text-foreground minecraft-texture">
+        <div className="flex flex-col items-center gap-6 p-10 bg-card border-4 border-border pixel-border-outset shadow-2xl max-w-md">
+          {/* Minecraft Steve Thinking */}
+          <div className="pixel-border-inset bg-muted p-4">
+            <Image
+              src="/minecraft-steve-thinking.png"
+              alt="Minecraft Steve Thinking"
+              width={200}
+              height={200}
+              className="pixelated"
+              priority
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-8 h-8 text-destructive animate-pulse" />
+            <h2 className="text-2xl font-extrabold text-foreground font-minecraft">
+              Access Denied
+            </h2>
+          </div>
+          <div className="text-center space-y-2">
+            <p className="text-lg text-foreground font-minecraft font-bold">
+              🔒 Authentication Required
+            </p>
+            <p className="text-sm text-muted-foreground font-minecraft">
+              Please log in to start your DSA practice session
+            </p>
+          </div>
+          <div className="w-full h-1 bg-border pixel-border-inset"></div>
+          <p className="text-xs text-muted-foreground font-minecraft text-center">
+            Steve is thinking... where did you go?
           </p>
         </div>
       </div>
@@ -193,9 +218,27 @@ const DsaPracticeApp: React.FC = () => {
 
   if (loadingQuestions) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-slate-950 text-white text-xl font-bold">
-        <Loader2 className="w-8 h-8 animate-spin mb-4 text-violet-400" />
-        <p className="tracking-widest text-slate-300">LOADING QUESTIONS...</p>
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-background text-foreground minecraft-texture">
+        <div className="flex flex-col items-center gap-6 p-10 bg-card border-4 border-border pixel-border-outset shadow-2xl">
+          {/* Minecraft Steve Thinking */}
+          <div className="pixel-border-inset bg-muted p-4">
+            <Image
+              src="/minecraft-steve-thinking.png"
+              alt="Steve Thinking"
+              width={200}
+              height={200}
+              className="pixelated animate-bounce"
+              priority
+            />
+          </div>
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="tracking-widest text-foreground font-minecraft font-bold text-lg">
+            LOADING QUESTIONS...
+          </p>
+          <p className="text-muted-foreground text-sm font-minecraft">
+            Steve is thinking hard about your challenges
+          </p>
+        </div>
       </div>
     );
   }
