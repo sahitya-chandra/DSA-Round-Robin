@@ -1,5 +1,6 @@
 import PrismaClient from "@repo/db";
 import { Request, Response } from "express";
+import { AuthRequest } from "../types/types";
 
 const prisma = PrismaClient;
 
@@ -180,9 +181,9 @@ export const rejectReq = async (req: Request, res: Response) => {
  * 👯 Get Friends list
  * Body: { userId }
  */
-export const getFriends = async (req: Request, res: Response) => {
+export const getFriends = async (req: AuthRequest, res: Response) => {
   try {
-    const { userId } = req.body;
+    const userId = req.user?.id;
     if (!userId) return res.status(400).json({ error: "Missing userId" });
 
     const friends = await prisma.friend.findMany({

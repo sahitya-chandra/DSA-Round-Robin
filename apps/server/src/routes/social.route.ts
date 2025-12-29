@@ -7,6 +7,7 @@ import {
   rejectReq,
   getFriends,
 } from "../controllers/socail.controller";
+import { isActiveSession } from "../middleware/middleware";
 
 const router  : express.Router= express.Router();
 
@@ -15,6 +16,6 @@ router.post("/request", friendReq);
 router.get("/requests", getAllFriendReq);
 router.post("/accept", acceptFriendReq);
 router.post("/reject", rejectReq);
-router.post("/friends", getFriends);
+router.get("/friends", isActiveSession, getFriends);
 
 export default router;

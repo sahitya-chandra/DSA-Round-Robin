@@ -7,6 +7,7 @@ import { useMatchProgressStore } from "@/stores/matchProgressStore";
 import { useMatchResultStore } from "@/stores/matchResultStore";
 import { useMatchStores } from "@/stores/useMatchStore";
 import { API_BASE_URL } from "@/lib/api";
+import { useFriendsListStore } from "@/stores/friendsListStore";
 
 export function useSocket(userId: string, slug?: string) {
   const router = useRouter();
@@ -14,6 +15,7 @@ export function useSocket(userId: string, slug?: string) {
   const { updateSubmission, resetSubmissions} = useSubmissionsStore.getState()
   const { markSolved, resetProgress } = useMatchProgressStore.getState();
   const { setResult } = useMatchResultStore.getState()
+  const { setOnlineUsers } = useFriendsListStore.getState()
   const { setQueued } = useMatchStores();
   const [socket, setSocket] = useState<any>(null);
 
@@ -91,13 +93,16 @@ export function useSocket(userId: string, slug?: string) {
         console.log("Socket connected, rejoining match if any...");
         joinExistingMatch();
     };
-
+    
     s.on("connect", handleConnect);
     s.on("match_started", onMatchStarted);
     s.on("match:ready", onMatchReady);
     s.on("submission_result", onSubmissionResult);
     s.on("opponent_submission_passed", onOpponentPassed);
     s.on("match:finished", onMatchFinished);
+    s.on('onlineUsers', (users: string[]) => {
+      setOnlineUsers(users)
+    })
     s.on("connect_error", (err) => console.log("Connect error:", err.message));
 
      if (s.connected) {
