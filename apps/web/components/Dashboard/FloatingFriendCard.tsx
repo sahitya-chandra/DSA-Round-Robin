@@ -20,7 +20,36 @@ export const FloatingFriendCard: React.FC<FloatingFriendCardProps> = ({
   const [search, setSearch] = useState("");
   const { loading } = useFriendDuel()
   const friendsList = useFriendsListStore((s) => s.friendsList);
-  const onlineUsers = useFriendsListStore((s) => s.onlineUsers); 
+  const onlineUsers = useFriendsListStore((s) => s.onlineUsers);
+  const [invitingUserId, setInvitingUserId] = useState<string | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+
+  const isCooldownActive = cooldownUntil !== null && Date.now() < cooldownUntil;
+  const remainingSeconds = cooldownUntil
+    ? Math.ceil((cooldownUntil - Date.now()) / 1000)
+    : 0;
+
+  const handleInvite = async (friendId: string) => {
+    if (isCooldownActive) return;
+
+    try {
+      setInvitingUserId(friendId);
+
+      console.log("Inviting friend:", friendId);
+
+      const cooldownMs = 10_000;
+      setCooldownUntil(Date.now() + cooldownMs);
+
+      setTimeout(() => {
+        setInvitingUserId(null);
+        setCooldownUntil(null);
+      }, cooldownMs);
+    } catch (err) {
+      console.error("Invite failed", err);
+      setInvitingUserId(null);
+      setCooldownUntil(null);
+    }
+  };
 
   const filteredFriends = useMemo(() => {
     if (!Array.isArray(friendsList)) return [];
@@ -32,8 +61,8 @@ export const FloatingFriendCard: React.FC<FloatingFriendCardProps> = ({
       }))
       .filter(
         (f) =>
-          f.name.toLowerCase().includes(search.toLowerCase()) ||
-          f.email.toLowerCase().includes(search.toLowerCase())
+          f.name.toLowerCase().includes(search.toLowerCase().trim()) ||
+          f.email.toLowerCase().includes(search.toLowerCase().trim())
       );
   }, [friendsList, onlineUsers, search]);
 
@@ -184,7 +213,26 @@ export const FloatingFriendCard: React.FC<FloatingFriendCardProps> = ({
                         <span className="font-minecraft text-sm flex-1 truncate">
                           {f.name}
                         </span>
-                        <span className="text-xs text-green-500">Duel</span>
+                        <button
+                          disabled={isCooldownActive}
+                          onClick={() => handleInvite(f.id)}
+                          className={`
+                            text-xs px-3 py-1
+                            border-2 pixel-border-outset font-minecraft
+                            transition
+                            ${
+                              isCooldownActive
+                                ? "bg-muted text-muted-foreground cursor-not-allowed opacity-60"
+                                : "bg-green-600 text-white hover:bg-green-700"
+                            }
+                          `}
+                        >
+                          {invitingUserId === f.id
+                            ? "Invited"
+                            // : isCooldownActive
+                            // ? "Cooldown"
+                            : "Invite"}
+                        </button>
                       </div>
                     ))
                   ) : (
@@ -213,9 +261,6 @@ export const FloatingFriendCard: React.FC<FloatingFriendCardProps> = ({
                         <span className="w-2 h-2 rounded-full bg-gray-400" />
                         <span className="font-minecraft text-sm flex-1 truncate text-muted-foreground">
                           {f.name}
-                        </span>
-                        <span className="text-xs text-muted-foreground opacity-60">
-                          Offline
                         </span>
                       </div>
                     ))
