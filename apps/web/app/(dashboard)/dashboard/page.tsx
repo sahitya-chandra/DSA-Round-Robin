@@ -1,14 +1,15 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Zap, Code2, Moon, Upload, TrendingUp, Users } from "lucide-react";
 import { MatchCard } from "@/components/Dashboard/MatchCard";
+import { FloatingFriendCard } from "@/components/Dashboard/FloatingFriendCard";
 import { useMatchMaker } from "@/hooks/useMatchMaker";
 import { API_BASE_URL } from "@/lib/api";
 
-
 export default function DashboardPage() {
   const { startMatch } = useMatchMaker();
+  const [isFriendsCardOpen, setFriendsCardOpen] = useState(false);
 
   useEffect(() => {
     async function check() {
@@ -16,9 +17,8 @@ export default function DashboardPage() {
         credentials: "include",
       });
     }
-
-    check()
-  }, [])
+    check();
+  }, []);
 
   return (
     <div className="w-full animate-fade-in">
@@ -48,20 +48,17 @@ export default function DashboardPage() {
           description="Sharpen your skills alone"
           icon={Code2}
           colorClass="text-yellow-500 bg-yellow-500/10"
-          onClick={() => window.location.href = "/code"} 
+          onClick={() => (window.location.href = "/code")}
         />
-        
+
         <MatchCard
           title="FRIEND DUEL"
           description="Private battle with your buddy"
           icon={Upload}
           colorClass="text-pink-500 bg-pink-500/10"
-          // tag="New"
-          onClick={() => {}} // TODO: Implement Friend Duel logic
-          locked={true} // Locking for now as logic is specific
+          onClick={() => setFriendsCardOpen(true)}
         />
-        
-        {/* Row 2 - Locked/Extra */}
+
         <MatchCard
           title="ALGORITHM DUELS"
           description="Topic specific battles"
@@ -71,7 +68,11 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Loader moved to Global Layout */}
+      {/* Floating Friend Duel Card */}
+      <FloatingFriendCard
+        isOpen={isFriendsCardOpen}
+        onClose={() => setFriendsCardOpen(false)}
+      />
     </div>
   );
 }

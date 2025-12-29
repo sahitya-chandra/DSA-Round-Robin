@@ -18,6 +18,8 @@ export function setupSockets(io: Server) {
       userSockets.set(userId, socket.id);
       socketToUser.set(socket.id, userId);
       socket.join(userId);
+
+      io.emit('onlineUsers', Array.from(userSockets.keys()));
       console.log(`User ${userId} → socket ${socket.id}`);
     });
 

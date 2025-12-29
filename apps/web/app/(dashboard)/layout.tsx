@@ -7,6 +7,7 @@ import { Loader } from "@/components/Dashboard/Loader";
 import { useMatchListener } from "@/hooks/useMatchListener";
 import { useMatchStores } from "@/stores/useMatchStore";
 import { useMatchMaker } from "@/hooks/useMatchMaker";
+import { useFriendDuel } from "@/hooks/useFriendDuel";
 
 export default function DashboardLayout({
   children,
@@ -16,6 +17,7 @@ export default function DashboardLayout({
   useMatchListener();
   const { queued } = useMatchStores();
   const { cancelMatch } = useMatchMaker();
+  useFriendDuel();
   
   return (
     <div className="h-screen bg-background text-foreground font-sans selection:bg-primary/20 minecraft-texture flex flex-row overflow-hidden">
