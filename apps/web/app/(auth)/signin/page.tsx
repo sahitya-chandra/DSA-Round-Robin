@@ -178,6 +178,13 @@ export default function SignInPage() {
             <Button 
               variant="outline" 
               className="w-full"
+              type="button"
+              onClick={async () => {
+                await authClient.signIn.social({
+                  provider: "google",
+                  callbackURL: "/dashboard",
+                });
+              }}
             >
                <svg className="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M21.9 12.2c0-.7-.1-1.4-.2-2.1H12v3.9h5.4c-.2 1.3-.8 2.5-1.7 3.4v2.5h3.2c1.9-1.8 3-4.5 3-7.7z"/><path fill="currentColor" d="M12 22c3.3 0 6.1-1.1 8.2-3.1l-3.2-2.5c-.9.6-2.1 1-3.7 1-2.8 0-5.2-1.9-6.1-4.4H2.7v2.6C4.8 20.3 8.2 22 12 22z"/><path fill="currentColor" d="M5.9 14.8c-.3-.9-.4-1.9-.4-2.8s.1-1.9.4-2.8V6.6H2.7C2 8.1 1.7 10 1.7 12s.3 3.9 1 5.4l3.2-2.6z"/><path fill="currentColor" d="M12 5.5c1.8 0 3.3.6 4.6 1.8l2.8-2.8C18.1 2.5 15.2 1 12 1c-3.8 0-7.2 1.7-9.3 4.4l3.2 2.6c.9-2.5 3.3-4.2 6.1-4.2z"/></svg>
               Google
