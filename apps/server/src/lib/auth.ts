@@ -12,5 +12,14 @@ export const auth = betterAuth({
   }, 
 	trustedOrigins: [
 		CLIENT_URL,
-  ],
+	],
+	advanced: {
+		crossSubDomainCookies: {
+			enabled: true,
+		},
+		cookieAttributes: {
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "lax",
+		},
+	},
 });
