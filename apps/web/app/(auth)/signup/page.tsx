@@ -189,7 +189,7 @@ export default function Page() {
               onClick={async () => {
                 await authClient.signIn.social({
                   provider: "google",
-                  callbackURL: "/dashboard",
+                  callbackURL: `${window.location.origin}/dashboard`,
                 });
               }}
             >
