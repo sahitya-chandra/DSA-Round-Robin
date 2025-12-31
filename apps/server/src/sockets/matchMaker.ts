@@ -10,11 +10,12 @@ export function startMatchMaker(io: Server) {
   const blockingRedis = redis.duplicate();
 
   (async function loop() {
-    console.log("Matchmaker started with BLPOP");
+    console.log("Matchmaker started (atomic Redis + sockets)");
+
     while (true) {
       try {
-        const result = await blockingRedis.brpop(WAITING_LIST, 0); 
-        if (!result) continue; 
+        const result = await blockingRedis.brpop(WAITING_LIST, 0);
+        if (!result) continue;
 
         const requesterId = result[1];
         
@@ -26,22 +27,26 @@ export function startMatchMaker(io: Server) {
           continue;
         }
 
-        console.log(`Matchmaker: Pairing ${requesterId} vs ${opponentId}`);
-        const match = await createMatch(requesterId, opponentId);
+        console.log(`Matchmaker: ${requesterId} vs ${opponentId}`);
 
-        if (!match) {
-          console.warn(
-            `Matchmaker: failed to create match for ${requesterId} vs ${opponentId}`
-          );
+        let match;
+        try {
+          match = await createMatch(requesterId, opponentId);
+        } catch (err) {
+          console.error("createMatch failed, requeueing users", err);
+
+          await redis.rpush(WAITING_LIST, requesterId);
+          await redis.rpush(WAITING_LIST, opponentId);
+
           continue;
         }
 
-        const {
-          matchId,
-          questions,
-          startedAt,
-          duration,
-        } = match;
+        if (!match) {
+          console.warn("createMatch returned null");
+          continue;
+        }
+
+        const { matchId, questions, startedAt, duration } = match;
 
         const reqSocketId = userSockets.get(requesterId);
         const oppSocketId = userSockets.get(opponentId);
@@ -49,6 +54,7 @@ export function startMatchMaker(io: Server) {
         const reqSocket = reqSocketId
           ? io.sockets.sockets.get(reqSocketId)
           : null;
+
         const oppSocket = oppSocketId
           ? io.sockets.sockets.get(oppSocketId)
           : null;
@@ -56,10 +62,13 @@ export function startMatchMaker(io: Server) {
         if (reqSocket) reqSocket.join(matchId);
         if (oppSocket) oppSocket.join(matchId);
 
-        io.to(matchId).emit("match:ready", { matchId, startedAt });
+        io.to(matchId).emit("match:ready", {
+          matchId,
+          startedAt,
+        });
 
-        if (requesterId) {
-          io.to(requesterId).emit("match_started", {
+        if (reqSocket) {
+          reqSocket.emit("match_started", {
             matchId,
             opponentId,
             questions,
@@ -68,8 +77,8 @@ export function startMatchMaker(io: Server) {
           });
         }
 
-        if (opponentId) {
-          io.to(opponentId).emit("match_started", {
+        if (oppSocket) {
+          oppSocket.emit("match_started", {
             matchId,
             opponentId: requesterId,
             questions,
@@ -82,7 +91,7 @@ export function startMatchMaker(io: Server) {
           `Emitted match_started and match:ready for ${matchId} (requester: ${requesterId}, opponent: ${opponentId})`
         );
       } catch (err) {
-        console.error("Match-maker error:", err);
+        console.error("Matchmaker loop error:", err);
         await sleep(1000);
       }
     }

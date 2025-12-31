@@ -7,6 +7,8 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useFriendDuel } from "@/hooks/useFriendDuel";
 import { useFriendsListStore } from "@/stores/friendsListStore";
+import { authClient } from "@/lib/auth-client";
+import { useSocket } from "@/hooks/useSocket";
 
 type FloatingFriendCardProps = {
   isOpen: boolean;
@@ -29,13 +31,19 @@ export const FloatingFriendCard: React.FC<FloatingFriendCardProps> = ({
     ? Math.ceil((cooldownUntil - Date.now()) / 1000)
     : 0;
 
+  const { data: session } = authClient.useSession();
+  const userId = session?.user?.id;
+  const userName = session?.user?.name;
+  const socket = useSocket(userId || "");
+
   const handleInvite = async (friendId: string) => {
-    if (isCooldownActive) return;
+    if (isCooldownActive || !socket) return;
 
     try {
       setInvitingUserId(friendId);
 
       console.log("Inviting friend:", friendId);
+      socket.emit("invite_friend", { friendId, inviterName: userName });
 
       const cooldownMs = 10_000;
       setCooldownUntil(Date.now() + cooldownMs);

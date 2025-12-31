@@ -22,6 +22,7 @@ export function useSocket(userId: string, slug?: string) {
   useEffect(() => {
     if (!userId) return;
     const s = getSocket(userId);
+    setSocket(s);
 
     const onMatchStarted = (data: any) => {
       console.log("Match started:", data);
