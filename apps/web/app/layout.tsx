@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Press_Start_2P } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
+import { FriendInvitationListener } from "@/components/FriendInvitationListener";
 
 const inter = Inter({ subsets: ["latin"] });
 const minecraftFont = Press_Start_2P({ 
@@ -24,6 +26,8 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${inter.className} ${minecraftFont.variable}`}>
         {children}
+        <Toaster />
+        <FriendInvitationListener />
       </body>
     </html>
   );

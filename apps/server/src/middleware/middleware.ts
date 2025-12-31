@@ -3,7 +3,6 @@ import { NextFunction, Request, Response } from "express"
 import { auth } from "../lib/auth"
 
 export const isActiveSession = async (req: Request, res: Response, next: NextFunction) => {
-	console.log(req.headers)
 	const session = await auth.api.getSession({
 		headers: fromNodeHeaders(req.headers)
 	})

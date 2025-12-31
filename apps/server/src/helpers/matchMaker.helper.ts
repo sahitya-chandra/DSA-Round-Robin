@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from "uuid";
 import prisma from "@repo/db";
 import type { Question } from "@repo/db";
 import { connection as redis } from "@repo/queue";
@@ -7,7 +6,6 @@ import {
   USER_MATCH_PREFIX,
   MATCH_DURATION_SECONDS,
   MATCH_TTL,
-  WAITING_LIST,
 } from "../utils/constants";
 
 export interface CreatedMatch {
@@ -23,76 +21,123 @@ export interface CreatedMatch {
   duration: number;
 }
 
+/**
+ * Deterministic match key for idempotency
+ */
+function matchKey(a: string, b: string) {
+  return `${[a, b].sort().join(":")}`;
+}
+
 export async function createMatch(
   requesterId: string,
   opponentId: string
 ): Promise<CreatedMatch | null> {
-  const [rMatch, oMatch] = await Promise.all([
-    redis.get(`${USER_MATCH_PREFIX}${requesterId}`),
-    redis.get(`${USER_MATCH_PREFIX}${opponentId}`),
-  ]);
+  const matchId = matchKey(requesterId, opponentId);
+  const lockKey = `${matchId}:lock`;
 
-  if (rMatch || oMatch) {
-    if (!rMatch) await redis.lpush(WAITING_LIST, requesterId);
-    if (!oMatch) await redis.lpush(WAITING_LIST, opponentId);
+  /**
+   * acquire idempotency lock
+   */
+  const lock = await redis.set(lockKey, "1", "PX", 5000, "NX");
+  if (!lock) {
+    // Another instance is already creating this match
     return null;
   }
 
-  const questions = await prisma.$queryRaw<Question[]>`
-    SELECT * FROM "Question" ORDER BY RANDOM() LIMIT 5
-  `;
+  try {
+    const existing = await redis.hget(
+      `${ACTIVE_MATCH_PREFIX}${matchId}`,
+      "status"
+    );
 
-  if (!questions || questions.length === 0) {
-    await redis.lpush(WAITING_LIST, requesterId);
-    await redis.lpush(WAITING_LIST, opponentId);
-    console.warn("No questions available - cannot create match");
-    return null;
+    if (existing) {
+      return null;
+    }
+
+    const reserve = await redis
+      .multi()
+      .set(
+        `${USER_MATCH_PREFIX}${requesterId}`,
+        matchId,
+        "EX",
+        MATCH_TTL,
+        "NX"
+      )
+      .set(
+        `${USER_MATCH_PREFIX}${opponentId}`,
+        matchId,
+        "EX",
+        MATCH_TTL,
+        "NX"
+      )
+      .exec();
+
+    if (!reserve || reserve.some(([err, res]) => err || res !== "OK")) {
+      // One of the users was already reserved
+      return null;
+    }
+
+    const questions = await prisma.$queryRaw<Question[]>`
+      SELECT * FROM "Question"
+      ORDER BY RANDOM()
+      LIMIT 5
+    `;
+
+    if (!questions || questions.length === 0) {
+      // rollback
+      await redis.del(
+        `${USER_MATCH_PREFIX}${requesterId}`,
+        `${USER_MATCH_PREFIX}${opponentId}`
+      );
+      return null;
+    }
+
+    const questionPayload = questions.map((q, i) => ({
+      questionData: q,
+      order: i + 1,
+    }));
+
+    const startedAt = new Date().toISOString();
+    const expiresAt = new Date(
+      Date.now() + MATCH_DURATION_SECONDS * 1000
+    ).toISOString();
+
+    await redis
+      .multi()
+      .hmset(
+        `${ACTIVE_MATCH_PREFIX}${matchId}`,
+        "status",
+        "RUNNING",
+        "requesterId",
+        requesterId,
+        "opponentId",
+        opponentId,
+        "questions",
+        JSON.stringify(questionPayload),
+        "startedAt",
+        startedAt,
+        "duration",
+        `${MATCH_DURATION_SECONDS}`,
+        "expiresAt",
+        expiresAt
+      )
+      .expire(`${ACTIVE_MATCH_PREFIX}${matchId}`, MATCH_TTL)
+      .exec();
+
+    console.log(`Match created: ${matchId}`);
+
+    return {
+      matchId,
+      requesterId,
+      opponentId,
+      questions: questionPayload,
+      startedAt,
+      expiresAt,
+      duration: MATCH_DURATION_SECONDS,
+    };
+  } catch (err) {
+    throw new Error(`match creation failed ${err}`)
+  } finally {
+    await redis.del(lockKey);
   }
-
-  const matchId = uuidv4();
-  const mqPayload = questions.map((q: Question, i: number) => ({
-    questionData: q,
-    order: i + 1,
-  }));
-
-  const startedAt = new Date().toISOString();
-  const expiresAt = new Date(
-    Date.now() + MATCH_DURATION_SECONDS * 1000
-  ).toISOString();
-
-  await redis.hmset(
-    `${ACTIVE_MATCH_PREFIX}${matchId}`,
-    "status",
-    "RUNNING",
-    "requesterId",
-    requesterId,
-    "opponentId",
-    opponentId,
-    "questions",
-    JSON.stringify(mqPayload),
-    "startedAt",
-    startedAt,
-    "duration",
-    `${MATCH_DURATION_SECONDS}`,
-    "expiresAt",
-    expiresAt
-  );
-  await redis.expire(`${ACTIVE_MATCH_PREFIX}${matchId}`, MATCH_TTL);
-
-  await Promise.all([
-    redis.set(`${USER_MATCH_PREFIX}${requesterId}`, matchId, "EX", MATCH_TTL),
-    redis.set(`${USER_MATCH_PREFIX}${opponentId}`, matchId, "EX", MATCH_TTL),
-  ]);
-
-  console.log(`Match ${matchId} created – ${requesterId} vs ${opponentId}`);
-
-  return {
-    matchId,
-    requesterId,
-    opponentId,
-    questions: mqPayload,
-    startedAt,
-    expiresAt,
-    duration: MATCH_DURATION_SECONDS,
-  };
 }
