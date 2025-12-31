@@ -54,7 +54,7 @@ export default function Page() {
         return;
       }
 			console.log("data", data)
-			router.push("/");
+			router.replace("/dashboard");
       setSuccessMsg("Account created successfully!");
       e.currentTarget?.reset();
     } catch (err) {

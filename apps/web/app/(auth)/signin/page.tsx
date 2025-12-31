@@ -55,7 +55,7 @@ export default function SignInPage() {
       
       console.log("Sign-in successful", data);
       setSuccessMsg("Signed in successfully!");
-      router.push("/");
+      router.replace("/dashboard");
       e.currentTarget?.reset();
 
     } catch (err) {
