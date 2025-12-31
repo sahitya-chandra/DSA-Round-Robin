@@ -48,16 +48,18 @@ const Chatarea: React.FC<ChatAreaProps> = ({
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
 
-  // ---- Auto-scroll ----
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, incomingInvite]);
 
-  // ---- Socket setup ----
   useEffect(() => {
     if (!userId) return;
 
-    socket = io(`${API_BASE_URL}/friends`, { auth: { userId } });
+    socket = io(`${API_BASE_URL}/friends`, { 
+      auth: { userId },
+      withCredentials: true,
+      transports: ["websocket"], 
+    });
 
     socket.on("connect", () => {
       console.log("[Socket] Connected:", socket?.id);
@@ -94,7 +96,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
       if (fromUserId === currentChatterID) setIsTyping(false);
     });
 
-    // ✅ When backend emits matchStarted, both users redirect
+    // When backend emits matchStarted, both users redirect
     socket.on("matchStarted", ({ matchId }) => {
       console.log("[Socket] Match started:", matchId);
       setMessages((prev) => [
@@ -135,7 +137,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     fetchMessages();
   }, [currentChatterID, userId]);
 
-  // ---- Typing ----
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMsg(e.target.value);
     if (socket && currentChatterID) {
@@ -147,7 +148,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     }
   };
 
-  // ---- Send message ----
   const handleSend = async () => {
     if (!newMsg.trim() || !currentChatterID || !userId) return;
     setSending(true);
@@ -174,7 +174,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     }
   };
 
-  // ---- Send match invite ----
   const handleInvite = useCallback(() => {
     if (!socket || !userId || !currentChatterID) return;
     if (inviteStatus === "pending" || inviteStatus === "sending") return;
@@ -201,7 +200,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     setInviteStatus("pending");
   }, [socket, userId, currentChatterID, userName, inviteStatus]);
 
-  // ---- Respond to invite ----
   const handleInviteResponse = async (accepted: boolean) => {
     if (!socket || !incomingInvite) return;
 
@@ -231,7 +229,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     setIncomingInvite(null);
   };
 
-  // ---- UI ----
   return (
     <div className="flex flex-col flex-1 bg-background text-foreground font-minecraft">
       {/* Header */}

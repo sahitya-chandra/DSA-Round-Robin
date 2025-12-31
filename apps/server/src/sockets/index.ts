@@ -129,6 +129,7 @@ export function setupSockets(io: Server) {
       // }
 
       const inviterSocketId = userSockets.get(inviterId);
+      const friendSocketId = userSockets.get(friendId)
 
       if (response === "accept") {
         const inviterActiveMatch = await redis.get(`${USER_MATCH_PREFIX}${inviterId}`);
@@ -154,11 +155,11 @@ export function setupSockets(io: Server) {
 
           const { matchId, questions, startedAt, duration } = match;
 
-          // Join rooms
-          socket.join(matchId);
-          if (inviterSocketId) {
+          if (inviterSocketId && friendSocketId) {
             const inviterSocket = io.sockets.sockets.get(inviterSocketId);
+            const friendSocket = io.sockets.sockets.get(friendSocketId)
             inviterSocket?.join(matchId);
+            friendSocket?.join(matchId)
           }
 
           const commonPayload = {
@@ -168,10 +169,11 @@ export function setupSockets(io: Server) {
             duration,
           };
 
+          io.to(matchId).emit("match:ready", { matchId, startedAt });
+
           io.to(inviterId).emit("match_started", { ...commonPayload, opponentId: friendId });
           io.to(friendId).emit("match_started", { ...commonPayload, opponentId: inviterId });
           
-          io.to(matchId).emit("match:ready", { matchId, startedAt });
           // clearInviteTimeout(inviterId, friendId);
 
         } catch (err) {

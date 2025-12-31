@@ -25,7 +25,7 @@ export interface CreatedMatch {
  * Deterministic match key for idempotency
  */
 function matchKey(a: string, b: string) {
-  return `match:${[a, b].sort().join(":")}`;
+  return `${[a, b].sort().join(":")}`;
 }
 
 export async function createMatch(
