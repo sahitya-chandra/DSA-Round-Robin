@@ -36,7 +36,7 @@ app.get("/api/me", async (req, res) => {
 	return res.json(session);
 });
 app.get("/api/health", (req: Request, res: Response) => {
-  return res.status(200).json({ msg: "ok"})
+  return res.status(200).json({ msg: "ok" })
 })
 
 export { app };
