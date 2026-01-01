@@ -112,6 +112,119 @@ export async function getProfileData(session: { user: { id: string }} | null) {
     .map(([date, count]) => ({ date, count }))
     .reverse();
 
+  // Fetch user submissions with question details for topic analysis
+  const submissions = await prisma.submission.findMany({
+    where: {
+      userId: userId,
+    },
+    select: {
+      id: true,
+      questionId: true,
+      status: true,
+      createdAt: true,
+    },
+  });
+
+  // Fetch all unique questions from submissions
+  const questionIds = [...new Set(submissions.map(s => s.questionId))];
+  const questions = await prisma.question.findMany({
+    where: {
+      id: {
+        in: questionIds,
+      },
+    },
+    select: {
+      id: true,
+      category: true,
+      difficulty: true,
+      question: true,
+    },
+  });
+
+  // Create a map of questionId to question details
+  const questionMap = new Map(questions.map(q => [q.id, q]));
+
+  // Group submissions by topic and calculate success rates
+  const topicAnalysis: Record<string, {
+    total: number;
+    failed: number;
+    passed: number;
+    failedQuestions: Array<{
+      id: number;
+      question: string;
+      difficulty: string;
+      attempts: number;
+    }>;
+    successRate: number;
+  }> = {};
+
+  // Track failed questions with attempt counts
+  const failedQuestionsMap = new Map<number, number>();
+
+  submissions.forEach((submission) => {
+    const question = questionMap.get(submission.questionId);
+    if (!question) return;
+
+    const category = question.category;
+    
+    if (!topicAnalysis[category]) {
+      topicAnalysis[category] = {
+        total: 0,
+        failed: 0,
+        passed: 0,
+        failedQuestions: [],
+        successRate: 0,
+      };
+    }
+
+    // Count as failed if status is not ACCEPTED/PASSED
+    const isFailed = submission.status !== "ACCEPTED" && submission.status !== "PASSED";
+    
+    if (isFailed) {
+      failedQuestionsMap.set(
+        submission.questionId,
+        (failedQuestionsMap.get(submission.questionId) || 0) + 1
+      );
+    }
+  });
+
+  // Get unique questions per topic
+  const questionsByTopic = new Map<string, Set<number>>();
+  submissions.forEach((submission) => {
+    const question = questionMap.get(submission.questionId);
+    if (!question) return;
+    
+    if (!questionsByTopic.has(question.category)) {
+      questionsByTopic.set(question.category, new Set());
+    }
+    questionsByTopic.get(question.category)!.add(submission.questionId);
+  });
+
+  // Calculate stats per topic
+  questionsByTopic.forEach((questionIds, category) => {
+    const categoryQuestions = Array.from(questionIds);
+    const failedInCategory = categoryQuestions.filter(qId => failedQuestionsMap.has(qId));
+    const passedInCategory = categoryQuestions.filter(qId => !failedQuestionsMap.has(qId));
+
+    topicAnalysis[category] = {
+      total: categoryQuestions.length,
+      failed: failedInCategory.length,
+      passed: passedInCategory.length,
+      failedQuestions: failedInCategory.map(qId => {
+        const q = questionMap.get(qId)!;
+        return {
+          id: q.id,
+          question: q.question,
+          difficulty: q.difficulty,
+          attempts: failedQuestionsMap.get(qId) || 0,
+        };
+      }),
+      successRate: categoryQuestions.length > 0 
+        ? Math.round((passedInCategory.length / categoryQuestions.length) * 100)
+        : 0,
+    };
+  });
+
   return {
     user: {
       name: user.name,
@@ -130,5 +243,6 @@ export async function getProfileData(session: { user: { id: string }} | null) {
     },
     matches: recentMatches,
     activity,
+    topicAnalysis,
   };
 }
