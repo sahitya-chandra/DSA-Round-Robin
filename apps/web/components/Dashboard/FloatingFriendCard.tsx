@@ -190,7 +190,7 @@ export const FloatingFriendCard: React.FC<FloatingFriendCardProps> = ({
                 </CardTitle>
               </CardHeader>
 
-              <CardContent className="flex flex-col gap-4">
+              <CardContent className="flex flex-col gap-4 max-h-[400px] overflow-y-auto custom-scrollbar">
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}

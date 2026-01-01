@@ -42,7 +42,7 @@ export function SidebarContent({ className, onItemClick }: { className?: string,
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 space-y-2 py-4">
+      <nav className="flex-1 px-4 space-y-2 py-4 overflow-y-auto custom-scrollbar">
         {sidebarItems.map((item) => {
           const isActive = pathname === item.href;
           return (
