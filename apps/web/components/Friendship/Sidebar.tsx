@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import Friends from "./Friends";
 import { API_BASE_URL } from "@/lib/api";
+import { Spinner } from "@/components/ui/spinner";
 
 interface User {
   id: string;
@@ -198,7 +199,9 @@ const Sidebar: React.FC<SidebarProps> = ({
         />
 
         {isSearching && (
-          <p className="mt-2 text-muted-foreground text-sm">Searching...</p>
+          <div className="mt-2 flex justify-center">
+            <Spinner size="sm" />
+          </div>
         )}
         {!isSearching && searchInput.trim() && searchResults.length === 0 && (
           <p className="mt-2 text-muted-foreground text-sm">No users found</p>
@@ -259,7 +262,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       {showRequests && (
         <div className="p-4 border-t border-border overflow-y-auto">
           {loadingRequests ? (
-            <p className="text-muted-foreground text-sm">Loading requests…</p>
+            <div className="flex justify-center py-4">
+              <Spinner size="sm" text="Loading requests..." />
+            </div>
           ) : friendRequests.length > 0 ? (
             friendRequests.map((req) => (
               <div

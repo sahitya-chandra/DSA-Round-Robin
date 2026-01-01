@@ -14,10 +14,11 @@ import { Label } from "@/components/ui/label";
 import { formSchema } from "@repo/types";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { User, Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import { User, Mail, Lock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { authClient } from "@/lib/auth-client";
+import { InlineSpinner } from "@/components/ui/spinner";
 
 export default function Page() {
   const [isLoading, setIsLoading] = useState(false);
@@ -157,7 +158,7 @@ export default function Page() {
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <InlineSpinner className="mr-2" />
                     Creating account...
                   </>
                 ) : (

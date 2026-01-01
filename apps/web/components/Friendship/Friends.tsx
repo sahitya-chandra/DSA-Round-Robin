@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { API_BASE_URL } from "@/lib/api";
+import { ListItemSkeleton } from "@/components/ui/skeleton";
 
 interface Friend {
   id: string;
@@ -49,15 +50,6 @@ const Friends: React.FC<FriendsProps> = ({
     fetchFriends();
   }, [session?.user?.id]);
 
-  const Skeleton = () => (
-    <div className="flex items-center justify-between p-2 md:p-3 mb-2 bg-muted pixel-border animate-pulse">
-      <div className="flex items-center space-x-2 md:space-x-3">
-        <span className="w-2 h-2 md:w-3 md:h-3 bg-secondary rounded-full"></span>
-        <div className="h-3 md:h-4 w-20 md:w-24 bg-secondary rounded"></div>
-      </div>
-    </div>
-  );
-
   const handleFriendClick = (friend: Friend) => {
     setCurrentChatter(friend.name);
     setCurrentChatterID(friend.id);
@@ -70,7 +62,7 @@ const Friends: React.FC<FriendsProps> = ({
       </h3>
 
       {loading ? (
-        Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} />)
+        Array.from({ length: 8 }).map((_, i) => <ListItemSkeleton key={i} />)
       ) : friends.length === 0 ? (
         <p className="text-muted-foreground text-sm mt-2 px-1">No friends found.</p>
       ) : (

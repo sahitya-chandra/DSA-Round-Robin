@@ -11,15 +11,16 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
+import { CardSkeleton } from "@/components/ui/skeleton";
 
 const UserProfile = () => {
   const { data: session, isPending } = authClient.useSession();
 console.log("Session data:", session);
   if (isPending) {
     return (
-      <Card className="w-full max-w-md mx-auto mt-10 p-6 text-center bg-gray-950 border-gray-800">
-        <CardContent className="text-gray-400">Loading...</CardContent>
-      </Card>
+      <div className="w-full max-w-md mx-auto mt-10">
+        <CardSkeleton />
+      </div>
     );
   }
 
