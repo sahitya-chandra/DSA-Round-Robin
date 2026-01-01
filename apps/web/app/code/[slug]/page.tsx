@@ -209,6 +209,12 @@ const App: React.FC = () => {
     timeLeft <= 60 ? "text-rose-400" : timeLeft <= 120 ? "text-amber-400" : "text-emerald-400";
 
   return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="h-full w-full"
+    >
     <CodeEnvironment
       header={
         <div className="relative bg-card border-b-2 border-border minecraft-texture">
@@ -363,7 +369,7 @@ const App: React.FC = () => {
                   disabled={finishing}
                   className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold text-destructive hover:text-destructive hover:bg-destructive/10 transition-all border-2 border-destructive pixel-border-outset active:pixel-border-inset font-minecraft whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {finishing ? "Giving up..." : "Give up"}
+                  Give up
                 </motion.button>
               </div>
 
@@ -513,6 +519,7 @@ const App: React.FC = () => {
         />
       }
     />
+    </motion.div>
   );
 };
 

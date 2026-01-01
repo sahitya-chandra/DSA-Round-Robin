@@ -361,7 +361,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
             {inviteStatus === "pending" ? (
               <>
                 <Loader2 size={14} className="sm:w-[18px] sm:h-[18px] animate-spin" />
-                <span className="hidden sm:inline ml-1">Waiting...</span>
+                <span className="hidden sm:inline ml-1">Waiting</span>
               </>
             ) : (
               <>

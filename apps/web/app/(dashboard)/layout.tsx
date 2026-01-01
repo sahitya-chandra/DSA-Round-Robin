@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import { Sidebar } from "@/components/Dashboard/Sidebar";
 import { MobileSidebar } from "@/components/Dashboard/MobileSidebar";
 import { Loader } from "@/components/Dashboard/Loader";
+import { LoadingScreen } from "@/components/Dashboard/LoadingScreen";
+import { authClient } from "@/lib/auth-client";
 import { useMatchListener } from "@/hooks/useMatchListener";
 import { useMatchStores } from "@/stores/useMatchStore";
 import { useMatchMaker } from "@/hooks/useMatchMaker";
@@ -14,11 +16,21 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { isPending, data: session } = authClient.useSession();
   useMatchListener();
-  const { queued } = useMatchStores();
+  const { queued, matchFound } = useMatchStores();
   const { cancelMatch } = useMatchMaker();
   useFriendDuel();
   
+  useEffect(() => {
+    useMatchStores.getState().setMatchFound(false);
+    useMatchStores.getState().setQueued(false);
+  }, []);
+
+  if (isPending) {
+    return <LoadingScreen isLoading={true} />;
+  }
+
   return (
     <div className="h-screen bg-background text-foreground font-sans selection:bg-primary/20 minecraft-texture flex flex-row overflow-hidden">
       <MobileSidebar />
@@ -30,7 +42,7 @@ export default function DashboardLayout({
         </div>
       </main>
       <Loader 
-        isOpen={queued} 
+        isOpen={queued || matchFound} 
         onCancel={cancelMatch} 
         mode="BLITZ DUEL" 
       />

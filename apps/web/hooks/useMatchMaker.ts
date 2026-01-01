@@ -17,27 +17,40 @@ export const useMatchMaker = () => {
       router.push("/signin");
       return;
     }
+    
+    setQueued(true);
     setLoading(true);
 
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/match`, {
-        method: "POST",
-        credentials: "include",
-      });
-
-      const data = await res.json();
-      console.log("Match API response:", data);
-
-      if (data.status === "queued" || data.status === "already_queued") {
-        setQueued(true);
+    setTimeout(async () => {
+      if (!useMatchStores.getState().queued) {
         setLoading(false);
-      } else if (data.status === "already_in_match" && data.matchId) {
-        router.push(`/code/${data.matchId}`);
+        return;
       }
-    } catch (error) {
-      console.error("Match error:", error);
-      setLoading(false);
-    }
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/match`, {
+          method: "POST",
+          credentials: "include",
+        });
+
+        const data = await res.json();
+        console.log("Match API response:", data);
+
+        if (!useMatchStores.getState().queued) {
+             return;
+        }
+
+        if (data.status === "queued" || data.status === "already_queued") {
+          setLoading(false);
+        } else if (data.status === "already_in_match" && data.matchId) {
+          router.push(`/code/${data.matchId}`);
+        }
+      } catch (error) {
+        console.error("Match error:", error);
+        setQueued(false);
+        setLoading(false);
+      }
+    }, 1000);
   };
 
   const cancelMatch = async () => {

@@ -12,8 +12,10 @@ import {
   Zap,
   AlertCircle,
   RefreshCw,
+  ArrowLeft,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 import { useSubmissionsStore } from "@/stores/submissionStore";
 import { useSocket } from "@/hooks/useSocket";
@@ -53,16 +55,10 @@ const getDefaultCode = (lang: string): string => {
   }
 };
 
-
-
-
-
-
-
-
 const DsaPracticeApp: React.FC = () => {
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id ?? "";
+  const router = useRouter();
 
   const practiceMatchId = `practice:${userId}`;
   const submissions = useSubmissionsStore((state) => state.submissions);
@@ -309,6 +305,13 @@ const DsaPracticeApp: React.FC = () => {
       header={
         <header className="relative bg-card border-b-2 border-border minecraft-texture">
           <div className="relative px-6 py-3 flex items-center gap-4">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="p-2 mr-2 bg-secondary hover:bg-secondary/80 border-2 border-border pixel-border-outset active:pixel-border-inset transition-all"
+              title="Back to Dashboard"
+            >
+              <ArrowLeft className="w-5 h-5 text-foreground" />
+            </button>
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center shadow-2xl shadow-violet-500/40 transform hover:scale-105 transition-transform duration-300">
               <Zap className="w-5 h-5 text-white" />
             </div>

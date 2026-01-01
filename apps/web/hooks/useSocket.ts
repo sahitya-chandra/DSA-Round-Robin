@@ -5,36 +5,22 @@ import { useRouter } from "next/navigation";
 import { useSubmissionsStore } from "@/stores/submissionStore";
 import { useMatchProgressStore } from "@/stores/matchProgressStore";
 import { useMatchResultStore } from "@/stores/matchResultStore";
-import { useMatchStores } from "@/stores/useMatchStore";
 import { API_BASE_URL } from "@/lib/api";
 import { useFriendsListStore } from "@/stores/friendsListStore";
 
 export function useSocket(userId: string, slug?: string) {
   const router = useRouter();
-  const { setMatchData, setTiming, resetMatchData } = useMatchStore.getState();
+  const { resetMatchData } = useMatchStore.getState();
   const { updateSubmission, resetSubmissions} = useSubmissionsStore.getState()
   const { markSolved, resetProgress } = useMatchProgressStore.getState();
   const { setResult } = useMatchResultStore.getState()
   const { setOnlineUsers } = useFriendsListStore.getState()
-  const { setQueued } = useMatchStores();
   const [socket, setSocket] = useState<any>(null);
 
   useEffect(() => {
     if (!userId) return;
     const s = getSocket(userId);
     setSocket(s);
-
-    const onMatchStarted = (data: any) => {
-      console.log("Match started:", data);
-      setMatchData({
-        matchId: data.matchId,
-        opponentId: data.opponentId,
-        questions: data.questions,
-      });
-      setTiming(data.startedAt, data.duration);
-      router.push(`/code/${data.matchId}`);
-      setQueued(false)
-    };
 
     const onMatchReady = (data: { matchId: string; startedAt: string }) => {
       console.log("match:ready → Match is ready to start", data);
@@ -96,7 +82,6 @@ export function useSocket(userId: string, slug?: string) {
     };
     
     s.on("connect", handleConnect);
-    s.on("match_started", onMatchStarted);
     s.on("match:ready", onMatchReady);
     s.on("submission_result", onSubmissionResult);
     s.on("opponent_submission_passed", onOpponentPassed);

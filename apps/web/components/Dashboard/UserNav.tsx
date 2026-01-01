@@ -21,10 +21,10 @@ export function UserNav() {
 
   const handleSignOut = async () => {
       await authClient.signOut();
-      router.push("/"); // Middleware will handle redirect to / if needed, or stays at signin
+      router.push("/");
   };
 
-  if (!session) return null; // Or return a Skeleton
+  if (!session) return null;
 
   return (
     <DropdownMenu>

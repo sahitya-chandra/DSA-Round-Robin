@@ -72,7 +72,9 @@ export function Loader({ isOpen, onCancel, mode = "BLITZ duel" }: LoaderProps) {
             </div>
             <div className="flex flex-col">
               <span className="text-xs uppercase tracking-widest text-muted-foreground font-minecraft">Status</span>
-              <span className="font-bold text-sm font-minecraft">Searching for {mode}...</span>
+              <span className="font-bold text-sm font-minecraft">
+                {`Searching for ${mode}`}
+              </span>
             </div>
           </motion.div>
 
@@ -114,7 +116,9 @@ export function Loader({ isOpen, onCancel, mode = "BLITZ duel" }: LoaderProps) {
               </div>
             </div>
 
-            <h2 className="text-3xl font-black text-foreground mb-4 font-minecraft tracking-tight">MATCHMAKING</h2>
+            <h2 className="text-3xl font-black text-foreground mb-4 font-minecraft tracking-tight">
+              MATCHMAKING
+            </h2>
             <p className="text-muted-foreground text-center mb-10 max-w-[280px] leading-relaxed">
               Establishing connection... Finding a worthy challenger for your level.
             </p>
