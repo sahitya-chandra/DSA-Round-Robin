@@ -13,7 +13,7 @@ interface Developer {
 
 const developers: Developer[] = [
   {
-    name: "Divyashu",
+    name: "Divyanshu",
     role: "Full Stack Developer",
     github: "https://github.com/DivyanshuVortex",
     linkedin: "https://www.linkedin.com/in/divyanshu-chandra-66074926b/",
