@@ -128,9 +128,11 @@ int main() {
     }
   };
 
+  const [finishing, setFinishing] = useState(false);
+
   const finish = async () => {
     if (!params.slug || !session?.user?.id) return;
-    setLoading(true);
+    setFinishing(true);
     try {
       await fetch(`${API_BASE_URL}/api/match/finish/${params.slug}`, {
         method: "POST",
@@ -141,7 +143,7 @@ int main() {
     } catch (err) {
       console.error("Finish error:", err);
     } finally {
-      setLoading(false);
+      setFinishing(false);
     }
   };
 
@@ -335,9 +337,10 @@ int main() {
               <div className="order-2 lg:order-3">
                 <button
                   onClick={finish}
-                  className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold text-destructive hover:text-destructive hover:bg-destructive/10 transition-all border-2 border-destructive pixel-border-outset active:pixel-border-inset font-minecraft whitespace-nowrap"
+                  disabled={finishing}
+                  className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold text-destructive hover:text-destructive hover:bg-destructive/10 transition-all border-2 border-destructive pixel-border-outset active:pixel-border-inset font-minecraft whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Give up
+                  {finishing ? "Giving up..." : "Give up"}
                 </button>
               </div>
             </div>

@@ -22,9 +22,6 @@ export interface CreatedMatch {
   duration: number;
 }
 
-/**
- * Deterministic match key for idempotency
- */
 function matchKey(a: string, b: string, c: string) {
   return `${[a, b, c].sort().join(":")}`;
 }
@@ -36,14 +33,13 @@ export async function createMatch(
   const matchId = matchKey(requesterId, opponentId, uuidv4());
   const lockKey = `${matchId}:lock`;
 
-  /**
-   * acquire idempotency lock
-   */
   const lock = await redis.set(lockKey, "1", "PX", 5000, "NX");
   if (!lock) {
     // Another instance is already creating this match
     return null;
   }
+
+  let keysReserved = false;
 
   try {
     const existing = await redis.hget(
@@ -73,10 +69,28 @@ export async function createMatch(
       )
       .exec();
 
-    if (!reserve || reserve.some(([err, res]) => err || res !== "OK")) {
-      // One of the users was already reserved
-      return null;
+    if (!reserve || reserve.length < 2) {
+        return null;
     }
+
+    const r1 = reserve[0];
+    const r2 = reserve[1];
+
+    if (!r1 || !r2) return null;
+
+    const [err1, res1] = r1;
+    const [err2, res2] = r2;
+
+    const ok1 = !err1 && res1 === "OK";
+    const ok2 = !err2 && res2 === "OK";
+
+    if (!ok1 || !ok2) {
+        if (ok1) await redis.del(`${USER_MATCH_PREFIX}${requesterId}`);
+        if (ok2) await redis.del(`${USER_MATCH_PREFIX}${opponentId}`);
+        return null;
+    }
+
+    keysReserved = true;
 
     const questions = await prisma.$queryRaw<Question[]>`
       SELECT * FROM "Question"
@@ -85,12 +99,7 @@ export async function createMatch(
     `;
 
     if (!questions || questions.length === 0) {
-      // rollback
-      await redis.del(
-        `${USER_MATCH_PREFIX}${requesterId}`,
-        `${USER_MATCH_PREFIX}${opponentId}`
-      );
-      return null;
+      throw new Error("No questions found");
     }
 
     const questionPayload = questions.map((q, i) => ({
@@ -137,7 +146,14 @@ export async function createMatch(
       duration: MATCH_DURATION_SECONDS,
     };
   } catch (err) {
-    throw new Error(`match creation failed ${err}`)
+    if (keysReserved) {
+        await redis.del(
+            `${USER_MATCH_PREFIX}${requesterId}`,
+            `${USER_MATCH_PREFIX}${opponentId}`
+        );
+    }
+    console.error("Match creation failed:", err);
+    throw err;
   } finally {
     await redis.del(lockKey);
   }

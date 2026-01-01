@@ -3,11 +3,13 @@ import { userSockets, socketToUser } from "../utils/utils";
 import { subscriberClient } from "@repo/queue";
 import { startMatchMaker } from "./matchMaker";
 import { createMatch } from "../helpers/matchMaker.helper";
+import { finishMatchById } from "../helpers/finishMatch.helper";
 import { connection as redis } from "@repo/queue";
 import {
   ACTIVE_MATCH_PREFIX,
   USER_MATCH_PREFIX,
   WAITING_LIST,
+  SUBMISSIONS_PREFIX,
 } from "../utils/constants";
 
 // const inviteTimeouts = new Map<string, NodeJS.Timeout>()
@@ -222,6 +224,32 @@ export function setupSockets(io: Server) {
       );
 
       if (result.passed) {
+        try {
+          const rawMatch = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${matchId}`);
+          if (rawMatch && rawMatch.questions) {
+            const questions = JSON.parse(rawMatch.questions);
+            const totalQuestions = questions.length;
+
+            const subHashKey = `${SUBMISSIONS_PREFIX}${matchId}:${userId}`;
+            const userSubs = await redis.hgetall(subHashKey);
+            const solvedIds = new Set<number>();
+            
+            Object.values(userSubs).forEach((s: string) => {
+              const sub = JSON.parse(s);
+              if (sub.status === "DONE" && sub.result?.passed) {
+                solvedIds.add(sub.questionId);
+              }
+            });
+
+            if (solvedIds.size === totalQuestions) {
+               console.log(`User ${userId} solved all questions! Finishing match ${matchId}.`);
+               await finishMatchById(matchId, { winnerId: userId });
+            }
+          }
+        } catch (err) {
+            console.error("Error checking for auto-finish:", err);
+        }
+
         const room = io.sockets.adapter.rooms.get(matchId);
         if (room) {
           for (const socketId of room) {

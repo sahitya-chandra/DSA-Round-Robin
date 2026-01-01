@@ -1,4 +1,5 @@
 import { connection as redis } from "@repo/queue";
+import prisma from "@repo/db";
 import { finishMatchById } from "../helpers/finishMatch.helper";
 import {
   ACTIVE_MATCH_PREFIX,
@@ -18,12 +19,13 @@ export type QueueStatus =
 export async function queueUserForMatch(
   userId: string
 ): Promise<QueueStatus> {
-  const activeMatch = await redis.get(`${USER_MATCH_PREFIX}${userId}`);
-  if (activeMatch) {
-    return { status: "already_in_match", matchId: activeMatch };
-  }
+  try {
+    const activeMatch = await redis.get(`${USER_MATCH_PREFIX}${userId}`);
+    if (activeMatch) {
+      return { status: "already_in_match", matchId: activeMatch };
+    }
 
-  const LUA_ADD_IF_NOT_EXISTS = `
+    const LUA_ADD_IF_NOT_EXISTS = `
       if redis.call('lpos', KEYS[1], ARGV[1]) == false then
         redis.call('lpush', KEYS[1], ARGV[1])
         return 1
@@ -31,18 +33,22 @@ export async function queueUserForMatch(
       return 0
     `;
 
-  const added = await redis.eval(
-    LUA_ADD_IF_NOT_EXISTS,
-    1,
-    WAITING_LIST,
-    userId
-  );
+    const added = await redis.eval(
+      LUA_ADD_IF_NOT_EXISTS,
+      1,
+      WAITING_LIST,
+      userId
+    );
 
-  if (added === 0) {
-    return { status: "already_queued" };
+    if (added === 0) {
+      return { status: "already_queued" };
+    }
+
+    return { status: "queued" };
+  } catch (err) {
+    console.error("queueUserForMatch error:", err);
+    throw new Error("internal_error");
   }
-
-  return { status: "queued" };
 }
 
 export async function cancelQueuedMatch(userId: string): Promise<void> {
@@ -53,16 +59,43 @@ export async function finishMatchForUser(
   matchId: string,
   userId: string
 ): Promise<void> {
-  const raw = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${matchId}`);
-  if (!raw || (raw.requesterId !== userId && raw.opponentId !== userId)) {
-    const err: any = new Error("not a participant");
-    err.code = "FORBIDDEN";
-    throw err;
-  }
+  try {
+    const raw = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${matchId}`);
+    
+    if (!raw || Object.keys(raw).length === 0) {
+      const dbMatch = await prisma.match.findUnique({
+        where: { id: matchId },
+        include: { participants: true }
+      });
 
-  const winnerId =
-    raw.opponentId === userId ? raw.requesterId : raw.opponentId;
-  await finishMatchById(matchId, { winnerId });
+      if (dbMatch && dbMatch.status === "FINISHED") {
+        const isParticipant = dbMatch.participants.some(p => p.userId === userId);
+        if (isParticipant) {
+          return;
+        }
+      }
+      
+      const err: any = new Error("not a participant or match not found");
+      err.code = "FORBIDDEN";
+      throw err;
+    }
+
+    if (raw.requesterId !== userId && raw.opponentId !== userId) {
+      const err: any = new Error("not a participant");
+      err.code = "FORBIDDEN";
+      throw err;
+    }
+
+    const winnerId =
+      raw.opponentId === userId ? raw.requesterId : raw.opponentId;
+    await finishMatchById(matchId, { winnerId });
+  } catch (err: any) {
+    if (err.code === "FORBIDDEN") {
+      throw err;
+    }
+    console.error("finishMatchForUser error:", err);
+    throw new Error("internal_error");
+  }
 }
 
 export interface MatchView {
@@ -79,38 +112,46 @@ export async function getMatchForUser(
   matchId: string,
   userId: string
 ): Promise<MatchView> {
-  const matchKey = `${ACTIVE_MATCH_PREFIX}${matchId}`;
-  const data = await redis.hgetall(matchKey);
+  try {
+    const matchKey = `${ACTIVE_MATCH_PREFIX}${matchId}`;
+    const data = await redis.hgetall(matchKey);
 
-  if (!data || !data.status) {
-    const err: any = new Error("not found");
-    err.code = "NOT_FOUND";
-    throw err;
+    if (!data || !data.status) {
+      const err: any = new Error("not found");
+      err.code = "NOT_FOUND";
+      throw err;
+    }
+
+    if (data.status !== "RUNNING") {
+      const err: any = new Error("match ended");
+      err.code = "NOT_RUNNING";
+      throw err;
+    }
+
+    if (data.requesterId !== userId && data.opponentId !== userId) {
+      const err: any = new Error("forbidden");
+      err.code = "FORBIDDEN";
+      throw err;
+    }
+
+    const questions = data.questions ? JSON.parse(data.questions) : [];
+
+    return {
+      matchId,
+      requesterId: data.requesterId!,
+      opponentId: data.opponentId!,
+      status: data.status,
+      startedAt: data.startedAt!,
+      duration: data.duration!,
+      questions,
+    };
+  } catch (err: any) {
+    if (["NOT_FOUND", "NOT_RUNNING", "FORBIDDEN"].includes(err.code)) {
+      throw err;
+    }
+    console.error("getMatchForUser error:", err);
+    throw new Error("internal_error");
   }
-
-  if (data.status !== "RUNNING") {
-    const err: any = new Error("match ended");
-    err.code = "NOT_RUNNING";
-    throw err;
-  }
-
-  if (data.requesterId !== userId && data.opponentId !== userId) {
-    const err: any = new Error("forbidden");
-    err.code = "FORBIDDEN";
-    throw err;
-  }
-
-  const questions = data.questions ? JSON.parse(data.questions) : [];
-
-  return {
-    matchId,
-    requesterId: data.requesterId!,
-    opponentId: data.opponentId!,
-    status: data.status,
-    startedAt: data.startedAt!,
-    duration: data.duration!,
-    questions,
-  };
 }
 
 export async function createManualMatch(
