@@ -8,8 +8,5 @@ export const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || "http://localhost:
 
 export const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 
-export const JUDGE0_URL = process.env.JUDGE0_URL || "https://judge0-ce.p.rapidapi.com";
-export const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY || "";
-
 export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";

@@ -7,14 +7,15 @@ import { ACTIVE_MATCH_PREFIX, MATCH_TTL, SUBMISSIONS_PREFIX } from "../utils/con
 export const submitMatchController = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
   const { matchId, questionId, code, language } = req.body;
+  const safeMatchId = decodeURIComponent(matchId);
   if (!userId) return res.status(401).json({ error: "unauthenticated" });
-  if (!matchId || !questionId || !code) return res.status(400).json({ error: "bad request" });
+  if (!safeMatchId || !questionId || !code) return res.status(400).json({ error: "bad request" });
 
   const ALLOWED_LANGS = ["cpp", "python", "javascript"] as const;
   const lang = ALLOWED_LANGS.includes(language as any) ? language : "cpp";
 
   try {
-    const raw = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${matchId}`);
+    const raw = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${safeMatchId}`);
     if (!raw || raw.status !== "RUNNING") return res.status(400).json({ error: "match not running" });
 
     if (raw.requesterId !== userId && raw.opponentId !== userId) {
@@ -42,7 +43,7 @@ export const submitMatchController = async (req: AuthRequest, res: Response) => 
     console.log("submission", submission)
     console.log("testcases", qObj)
 
-    const subHashKey = `${SUBMISSIONS_PREFIX}${matchId}:${userId}`;
+    const subHashKey = `${SUBMISSIONS_PREFIX}${safeMatchId}:${userId}`;
     await redis.hset(subHashKey, submissionId, JSON.stringify(submission));
     await redis.expire(subHashKey, MATCH_TTL);
 
@@ -51,7 +52,7 @@ export const submitMatchController = async (req: AuthRequest, res: Response) => 
       language: lang,
       testcases: qObj.questionData.testcases ?? [],
       submissionId,
-      matchId,
+      matchId: safeMatchId,
       userId,
       questionId,
     },

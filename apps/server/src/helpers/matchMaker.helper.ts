@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import prisma from "@repo/db";
 import type { Question } from "@repo/db";
 import { connection as redis } from "@repo/queue";
@@ -24,15 +25,15 @@ export interface CreatedMatch {
 /**
  * Deterministic match key for idempotency
  */
-function matchKey(a: string, b: string) {
-  return `${[a, b].sort().join(":")}`;
+function matchKey(a: string, b: string, c: string) {
+  return `${[a, b, c].sort().join(":")}`;
 }
 
 export async function createMatch(
   requesterId: string,
   opponentId: string
 ): Promise<CreatedMatch | null> {
-  const matchId = matchKey(requesterId, opponentId);
+  const matchId = matchKey(requesterId, opponentId, uuidv4());
   const lockKey = `${matchId}:lock`;
 
   /**
