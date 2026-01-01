@@ -24,8 +24,9 @@ interface Message {
   type?: "text" | "invite" | "system";
 }
 
-const Chatarea: React.FC<ChatAreaProps> = ({
+let chatSocket: Socket | null = null;
 
+const Chatarea: React.FC<ChatAreaProps> = ({
   currentChatter,
   currentChatterID,
   setIsSidebarOpen,
@@ -46,24 +47,31 @@ const Chatarea: React.FC<ChatAreaProps> = ({
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
   const isCooldownActive = cooldownUntil !== null && Date.now() < cooldownUntil;
 
-
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id;
   const userName = session?.user?.name || "Unknown";
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
-  const socket = useSocket(userId || "");
-
+  
+  // rootSocket for invitations (matches handleInvite implementation)
+  const rootSocket = useSocket(userId || "");
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, incomingInvite]);
 
+  // ---- Chat Socket (/friends) for Messaging and Typing ----
   useEffect(() => {
-    if (!socket || !userId) return;
+    if (!userId) return;
 
-    socket.on("receiveMessage", (msg: Message) => {
-      console.log("[Socket] receiveMessage:", msg);
+    chatSocket = io(`${API_BASE_URL}/friends`, { 
+      auth: { userId },
+      withCredentials: true,
+      transports: ["websocket"], 
+    });
+
+    chatSocket.on("receiveMessage", (msg: Message) => {
+      console.log("[ChatSocket] receiveMessage:", msg);
       if (
         msg.senderId === currentChatterID ||
         msg.receiverId === currentChatterID ||
@@ -73,17 +81,26 @@ const Chatarea: React.FC<ChatAreaProps> = ({
       }
     });
 
-    socket.on("typing", ({ fromUserId }: { fromUserId: string }) => {
+    chatSocket.on("typing", ({ fromUserId }) => {
       if (fromUserId === currentChatterID) setIsTyping(true);
     });
 
-    socket.on("stopTyping", ({ fromUserId }: { fromUserId: string }) => {
+    chatSocket.on("stopTyping", ({ fromUserId }) => {
       if (fromUserId === currentChatterID) setIsTyping(false);
     });
 
-    // Invitation logic (from dashboard)
-    socket.on("friend_invite", (invite: any) => {
-      console.log("Received friend invite:", invite);
+    return () => {
+      chatSocket?.disconnect();
+      chatSocket = null;
+    };
+  }, [userId, currentChatterID]);
+
+  // ---- Root Socket for Invitations (Friend Duel) ----
+  useEffect(() => {
+    if (!rootSocket || !userId) return;
+
+    rootSocket.on("friend_invite", (invite: any) => {
+      console.log("[RootSocket] Received friend invite:", invite);
       setIncomingInvite({
         fromUserId: invite.fromUserId,
         fromUserName: invite.fromUserName,
@@ -91,13 +108,9 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     });
 
     return () => {
-      socket.off("receiveMessage");
-      socket.off("typing");
-      socket.off("stopTyping");
-      socket.off("friend_invite");
+      rootSocket.off("friend_invite");
     };
-  }, [socket, userId, currentChatterID]);
-
+  }, [rootSocket, userId]);
 
   // ---- Load chat history ----
   useEffect(() => {
@@ -120,11 +133,11 @@ const Chatarea: React.FC<ChatAreaProps> = ({
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMsg(e.target.value);
-    if (socket && currentChatterID) {
-      socket.emit("typing", { toUserId: currentChatterID });
+    if (chatSocket && currentChatterID) {
+      chatSocket.emit("typing", { toUserId: currentChatterID });
       clearTimeout((window as any).typingTimeout);
       (window as any).typingTimeout = setTimeout(() => {
-        socket?.emit("stopTyping", { toUserId: currentChatterID });
+        chatSocket?.emit("stopTyping", { toUserId: currentChatterID });
       }, 1500);
     }
   };
@@ -142,7 +155,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
       type: "text",
     };
 
-    socket?.emit("sendMessage", messageData);
+    chatSocket?.emit("sendMessage", messageData);
     setMessages((prev) => [...prev, messageData]);
     setNewMsg("");
     setSending(false);
@@ -156,12 +169,12 @@ const Chatarea: React.FC<ChatAreaProps> = ({
   };
 
   const handleInvite = useCallback(() => {
-    if (isCooldownActive || !socket || !currentChatterID) return;
+    if (isCooldownActive || !rootSocket || !currentChatterID) return;
 
     setInviteStatus("sending");
     console.log("[Invite] Sending invite to", currentChatterID);
 
-    socket.emit("invite_friend", {
+    rootSocket.emit("invite_friend", {
       friendId: currentChatterID,
       inviterName: userName,
     });
@@ -185,17 +198,15 @@ const Chatarea: React.FC<ChatAreaProps> = ({
       setInviteStatus("idle");
       setCooldownUntil(null);
     }, cooldownMs);
-  }, [socket, userId, currentChatterID, userName, isCooldownActive, currentChatter]);
-
+  }, [rootSocket, userId, currentChatterID, userName, isCooldownActive, currentChatter]);
 
   const handleInviteResponse = async (accepted: boolean) => {
-    if (!socket || !incomingInvite) return;
+    if (!rootSocket || !incomingInvite) return;
 
-    socket.emit("respond_invite", {
+    rootSocket.emit("respond_invite", {
       fromUserId: incomingInvite.fromUserId,
       accepted,
     });
-
 
     const systemMsg: Message = {
       id: `sys-${Date.now()}`,
@@ -237,7 +248,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-5 space-y-3 hide-scrollbar relative pb-20">
+      <div className="flex-1 overflow-y-auto p-5 space-y-3 custom-scrollbar relative pb-20">
         <AnimatePresence>
           {messages.length ? (
             messages.map((msg) => (
@@ -276,23 +287,23 @@ const Chatarea: React.FC<ChatAreaProps> = ({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Typing indicator */}
+      {/* Typing indicator (Old Style restored as requested) */}
       <AnimatePresence>
         {isTyping && (
           <motion.div
             key="typing-indicator"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20"
+            initial={{ opacity: 0, y: 35 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.4 }}
+            className="absolute bottom-24 left-6 text-sm text-muted-foreground italic"
           >
-            <div className="bg-card/90 backdrop-blur-sm px-4 py-1.5 border pixel-border shadow-lg text-foreground text-xs font-minecraft italic">
+            <div className="bg-card px-3 py-1 border pixel-border shadow-sm text-foreground">
               {currentChatter} is typing...
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
 
       {/* Invite modal */}
       <AnimatePresence>

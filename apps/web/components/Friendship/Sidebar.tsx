@@ -260,7 +260,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       </div>
 
       {showRequests && (
-        <div className="p-4 border-t border-border overflow-y-auto">
+        <div className="p-4 border-t border-border overflow-y-auto max-h-48 custom-scrollbar">
           {loadingRequests ? (
             <div className="flex justify-center py-4">
               <Spinner size="sm" text="Loading requests..." />
