@@ -27,6 +27,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { getProfileData } from "../actions/profile";
+import { PageSpinner } from "@/components/ui/spinner";
 
 // --- TYPES ---
 interface Match {
@@ -116,14 +117,7 @@ export default function ProfilePage() {
   ];
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="font-minecraft animate-pulse text-primary">Loading Player Data...</p>
-        </div>
-      </div>
-    );
+    return <PageSpinner text="Loading Player Data..." />;
   }
 
   return (

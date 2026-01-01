@@ -7,7 +7,8 @@ import {
   PanelGroup,
   PanelResizeHandle,
 } from "react-resizable-panels";
-import { ChevronDown, ChevronUp, Code2, Play, RefreshCw, Loader2 } from "lucide-react";
+import { ChevronDown, ChevronUp, Code2, Play, RefreshCw } from "lucide-react";
+import { InlineSpinner } from "@/components/ui/spinner";
 
 interface CodeEnvironmentProps {
   header: React.ReactNode;
@@ -203,7 +204,7 @@ export const CodeEnvironment: React.FC<CodeEnvironmentProps> = ({
                 >
                   {editorPanel.isLoading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <InlineSpinner />
                       Running...
                     </>
                   ) : (
@@ -238,7 +239,7 @@ export const CodeEnvironment: React.FC<CodeEnvironmentProps> = ({
             <div className="flex-1 overflow-y-auto px-4 md:px-6 py-4 md:py-5 space-y-4 custom-scrollbar">
               {resultsPanel.status === "running" && !resultsPanel.submissionResult ? (
                 <div className="h-full flex flex-col items-center justify-center text-center animate-pulse">
-                  <Loader2 className="w-10 h-10 text-primary animate-spin mb-4" />
+                  <InlineSpinner className="w-10 h-10 mb-4" />
                   <p className="text-muted-foreground font-minecraft">
                     Evaluating your code...
                   </p>
