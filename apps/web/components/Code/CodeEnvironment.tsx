@@ -9,6 +9,8 @@ import {
 } from "react-resizable-panels";
 import { ChevronDown, ChevronUp, Code2, Play, RefreshCw } from "lucide-react";
 import { InlineSpinner } from "@/components/ui/spinner";
+import { motion, AnimatePresence } from "framer-motion";
+
 
 interface CodeEnvironmentProps {
   header: React.ReactNode;
@@ -124,16 +126,24 @@ export const CodeEnvironment: React.FC<CodeEnvironmentProps> = ({
             </p>
           )}
         </div>
-        <button
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
           className="p-1 hover:bg-accent/50 transition-colors pixel-border-outset active:pixel-border-inset"
           onClick={toggleResultPanel}
         >
-          {isResultCollapsed ? (
-            <ChevronUp className="w-4 h-4 text-foreground" />
-          ) : (
-            <ChevronDown className="w-4 h-4 text-foreground" />
-          )}
-        </button>
+          <motion.div
+            initial={false}
+            animate={{ rotate: isResultCollapsed ? 180 : 0 }}
+          >
+            {isResultCollapsed ? (
+              <ChevronUp className="w-4 h-4 text-foreground" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-foreground" />
+            )}
+          </motion.div>
+        </motion.button>
+
       </div>
     </div>
   );
@@ -158,8 +168,7 @@ export const CodeEnvironment: React.FC<CodeEnvironmentProps> = ({
       </div>
 
       <div
-        className="flex-1 overflow-y-auto px-5 py-5 space-y-4 scrollbar-hide"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        className="flex-1 overflow-y-auto px-5 py-5 space-y-4 custom-scrollbar"
       >
         {questionPanel.content}
       </div>
@@ -187,33 +196,37 @@ export const CodeEnvironment: React.FC<CodeEnvironmentProps> = ({
                   >
                     <RefreshCw className="w-3.5 h-3.5 md:w-4 md:h-4" />
                   </button>
+
+              )}
+              <select
+                className="bg-secondary text-secondary-foreground border-2 border-border px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer pixel-border-inset font-minecraft"
+                value={editorPanel.language}
+                onChange={(e) => editorPanel.setLanguage(e.target.value)}
+              >
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="cpp">C++</option>
+              </select>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={editorPanel.onSubmit}
+                disabled={editorPanel.isLoading}
+                className="px-3 md:px-5 py-1.5 md:py-2 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/30 transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2 text-xs md:text-sm pixel-border-outset active:pixel-border-inset font-minecraft whitespace-nowrap"
+              >
+                {editorPanel.isLoading ? (
+                  <>
+                    <InlineSpinner />
+                    Running...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" fill="white" />
+                    Submit
+                  </>
                 )}
-                <select
-                  className="bg-secondary text-secondary-foreground border-2 border-border px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer pixel-border-inset font-minecraft"
-                  value={editorPanel.language}
-                  onChange={(e) => editorPanel.setLanguage(e.target.value)}
-                >
-                  <option value="javascript">JavaScript</option>
-                  <option value="python">Python</option>
-                  <option value="cpp">C++</option>
-                </select>
-                <button
-                  onClick={editorPanel.onSubmit}
-                  disabled={editorPanel.isLoading}
-                  className="px-3 md:px-5 py-1.5 md:py-2 bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/30 transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 md:gap-2 text-xs md:text-sm pixel-border-outset active:pixel-border-inset font-minecraft whitespace-nowrap"
-                >
-                  {editorPanel.isLoading ? (
-                    <>
-                      <InlineSpinner />
-                      Running...
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4" fill="white" />
-                      Submit
-                    </>
-                  )}
-                </button>
+              </motion.button>
+
               </div>
             </div>
 
@@ -379,26 +392,41 @@ export const CodeEnvironment: React.FC<CodeEnvironmentProps> = ({
 
       {/* Mobile Tabs */}
       <div className="md:hidden flex border-b-2 border-border bg-card">
-        <button
+        <motion.button
+          whileTap={{ y: -2 }}
           onClick={() => setActiveTab("problem")}
-          className={`flex-1 py-3 text-sm font-bold font-minecraft transition-colors ${
+          className={`flex-1 py-3 text-sm font-bold font-minecraft transition-colors relative ${
             activeTab === "problem"
-              ? "bg-primary/10 text-primary border-b-2 border-primary"
+              ? "text-primary bg-primary/5"
               : "text-muted-foreground hover:bg-secondary/50"
           }`}
         >
           Problem
-        </button>
-        <button
+          {activeTab === "problem" && (
+            <motion.div
+              layoutId="mobileTab"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+            />
+          )}
+        </motion.button>
+        <motion.button
+          whileTap={{ y: -2 }}
           onClick={() => setActiveTab("code")}
-          className={`flex-1 py-3 text-sm font-bold font-minecraft transition-colors ${
+          className={`flex-1 py-3 text-sm font-bold font-minecraft transition-colors relative ${
             activeTab === "code"
-              ? "bg-primary/10 text-primary border-b-2 border-primary"
+              ? "text-primary bg-primary/5"
               : "text-muted-foreground hover:bg-secondary/50"
           }`}
         >
           Code
-        </button>
+          {activeTab === "code" && (
+            <motion.div
+              layoutId="mobileTab"
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+            />
+          )}
+        </motion.button>
+
       </div>
 
       <div className="flex flex-1 min-h-0">
@@ -425,22 +453,7 @@ export const CodeEnvironment: React.FC<CodeEnvironmentProps> = ({
 
       {footer}
 
-      <style jsx global>{`
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-          height: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: #475569;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background-color: #0f172a;
-        }
-      `}</style>
     </div>
   );
 };
+

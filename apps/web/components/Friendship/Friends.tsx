@@ -56,8 +56,8 @@ const Friends: React.FC<FriendsProps> = ({
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-2 md:p-4 hide-scrollbar font-minecraft">
-      <h3 className="font-semibold text-muted-foreground mb-2 md:mb-3 text-sm md:text-lg px-1">
+    <div className="flex-1 overflow-y-auto p-2 md:p-4 custom-scrollbar font-minecraft">
+      <h3 className="font-semibold text-muted-foreground mb-2 md:mb-3 text-sm md:text-lg px-1 text-balance">
         Current Friends
       </h3>
 

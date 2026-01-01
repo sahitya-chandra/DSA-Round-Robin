@@ -74,6 +74,22 @@ export default function CodeEditor({
     ".cm-scroller": {
       fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
       lineHeight: "1.6",
+      "&::-webkit-scrollbar": {
+        width: "8px",
+        height: "8px",
+      },
+      "&::-webkit-scrollbar-track": {
+        backgroundColor: "oklch(0.25 0.03 40)",
+        borderRadius: "4px",
+      },
+      "&::-webkit-scrollbar-thumb": {
+        backgroundColor: "oklch(0.7 0.15 140)",
+        borderRadius: "4px",
+        border: "1px solid oklch(0.3 0.02 0)",
+      },
+      "&::-webkit-scrollbar-thumb:hover": {
+        backgroundColor: "oklch(0.75 0.15 140)",
+      },
     },
     ".cm-foldPlaceholder": {
       backgroundColor: "oklch(0.45 0.05 40)", // Wood brown
@@ -81,6 +97,7 @@ export default function CodeEditor({
       color: "oklch(0.75 0.15 220)", // Diamond blue
     },
   });
+
 
   return (
     <div className="h-full w-full bg-card overflow-hidden border-2 border-border minecraft-texture pixel-border-outset">
