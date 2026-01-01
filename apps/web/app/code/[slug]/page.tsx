@@ -13,6 +13,26 @@ import { useSocket } from "@/hooks/useSocket";
 import { ResultCard } from "@/components/Dashboard/ResultCard";
 import { CodeEnvironment } from "@/components/Code/CodeEnvironment";
 import { API_BASE_URL } from "@/lib/api";
+import { motion } from "framer-motion";
+
+
+const getDefaultCode = (lang: string): string => {
+  switch (lang) {
+    case "javascript":
+      return `function solve(input) {\n    console.log("DSA RoundRobin");\n    return input;\n}\n`;
+    case "python":
+      return `def solve(input):\n    print("DSA RoundRobin")\n    return input\n`;
+    case "cpp":
+    default:
+      return `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "DSA RoundRobin" << endl;\n    return 0;\n}`;
+  }
+};
+
+
+
+
+
+
 
 const App: React.FC = () => {
   const params = useParams();
@@ -39,13 +59,14 @@ const App: React.FC = () => {
   const [opponent, setOpponent] = useState<{ name: string } | null>(null);
   const { data: session } = authClient.useSession();
   useSocket(session?.user?.id as string, params.slug as string);
-  const [code, setCode] = useState<string>(`#include <iostream>
-using namespace std;
+  const [codeMap, setCodeMap] = useState<Record<string, string>>({
+    cpp: getDefaultCode("cpp"),
+  });
+  const code = codeMap[selectedLang] || getDefaultCode(selectedLang);
+  const setCode = (newCode: string) => {
+    setCodeMap(prev => ({ ...prev, [selectedLang]: newCode }));
+  };
 
-int main() {
-    cout << "Hello, world!" << endl;
-    return 0;
-}`);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
 
   const isHeaderLoading = !hydrated || loadingQuestions;
@@ -335,14 +356,17 @@ int main() {
 
               {/* Action Section - Order 2 (Mobile/Tablet) / Order 3 (Desktop) */}
               <div className="order-2 lg:order-3">
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={finish}
                   disabled={finishing}
                   className="px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-semibold text-destructive hover:text-destructive hover:bg-destructive/10 transition-all border-2 border-destructive pixel-border-outset active:pixel-border-inset font-minecraft whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {finishing ? "Giving up..." : "Give up"}
-                </button>
+                </motion.button>
               </div>
+
             </div>
           </div>
         </div>
@@ -353,7 +377,9 @@ int main() {
         difficultyStyles: getDifficultyStyles(currentQuestion?.questionData.difficulty),
         navigation: questionData.length > 1 && (
           <div className="flex items-center gap-2">
-            <button
+            <motion.button
+              whileHover={{ x: -4 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() =>
                 setCurrentQIndex((i) => (i > 0 ? i - 1 : questionData.length - 1))
               }
@@ -361,20 +387,23 @@ int main() {
             >
               <ChevronDown className="w-4 h-4 rotate-90 group-hover:-translate-x-0.5 transition-transform" />
               <span className="text-sm font-semibold text-secondary-foreground">Prev</span>
-            </button>
+            </motion.button>
             <div className="px-4 py-2.5 bg-accent/20 border-2 border-accent pixel-border-outset text-center min-w-[80px]">
               <span className="text-sm font-bold text-accent-foreground font-minecraft">
                 {currentQIndex + 1} / {questionData.length}
               </span>
             </div>
-            <button
+            <motion.button
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setCurrentQIndex((i) => (i + 1) % questionData.length)}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/80 transition-all border-2 border-border pixel-border-outset active:pixel-border-inset group"
             >
               <span className="text-sm font-semibold text-secondary-foreground">Next</span>
               <ChevronDown className="w-4 h-4 -rotate-90 group-hover:translate-x-0.5 transition-transform" />
-            </button>
+            </motion.button>
           </div>
+
         ),
         content: loadingQuestions ? (
           <div className="space-y-4">

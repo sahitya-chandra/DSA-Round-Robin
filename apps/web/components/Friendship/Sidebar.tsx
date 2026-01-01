@@ -210,7 +210,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Search Results */}
       {!isSearching && searchResults.length > 0 && (
-        <div className="px-4 mt-2 space-y-2">
+        <div className="px-4 mt-2 space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
           {searchResults.map((user) => {
             const isSending = activeSendIds.includes(user.id);
             const isPending = user.friendStatus === "PENDING";
@@ -299,7 +299,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {/* ✅ Friends List */}
-      <div className="flex-1 overflow-y-auto border-t border-border mt-2">
+      <div className="flex-1 border-t border-border mt-2 overflow-hidden flex flex-col">
         <Friends
           setCurrentChatter={setCurrentChatter}
           setCurrentChatterID={setCurrentChatterID}

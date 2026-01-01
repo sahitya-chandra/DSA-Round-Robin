@@ -13,6 +13,8 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
+import { motion } from "framer-motion";
+
 import { useSubmissionsStore } from "@/stores/submissionStore";
 import { useSocket } from "@/hooks/useSocket";
 import { CodeEnvironment } from "@/components/Code/CodeEnvironment";
@@ -42,14 +44,21 @@ type CodeMap = {
 const getDefaultCode = (lang: string): string => {
   switch (lang) {
     case "javascript":
-      return `function solve(input) {\n  // Implement your logic here\n  return input;\n}\n`;
+      return `function solve(input) {\n    console.log("DSA RoundRobin");\n    return input;\n}\n`;
     case "python":
-      return `def solve(input):\n  # Implement your logic here\n  return input\n`;
+      return `def solve(input):\n    print("DSA RoundRobin")\n    return input\n`;
     case "cpp":
     default:
-      return `#include <iostream>\nusing namespace std;\n\nint main() {\n  // Implement your logic here\n  cout << "Hello, world!" << endl;\n  return 0;\n}`;
+      return `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "DSA RoundRobin" << endl;\n    return 0;\n}`;
   }
 };
+
+
+
+
+
+
+
 
 const DsaPracticeApp: React.FC = () => {
   const { data: session } = authClient.useSession();
@@ -320,25 +329,30 @@ const DsaPracticeApp: React.FC = () => {
         difficultyStyles: getDifficultyStyles(currentQuestion.questionData.difficulty),
         navigation: questionData.length > 1 && (
           <div className="flex items-center gap-3 mt-4">
-            <button
+            <motion.button
+              whileHover={{ x: -4 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handlePrevQuestion}
               className="flex-1 flex items-center justify-center px-4 py-2 bg-secondary border-2 border-border pixel-border-outset hover:bg-secondary/80 text-sm font-semibold active:pixel-border-inset disabled:opacity-50"
               disabled={currentQIndex === 0}
             >
               <ChevronLeft className="w-4 h-4 mr-1 text-primary" />
               Prev
-            </button>
+            </motion.button>
             <div className="px-4 py-2 border-2 border-primary bg-primary/10 rounded-lg text-sm font-bold text-primary pixel-border-inset min-w-[80px] text-center font-minecraft">
               {currentQIndex + 1} / {questionData.length}
             </div>
-            <button
+            <motion.button
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handleNextQuestion}
               className="flex-1 flex items-center justify-center px-4 py-2 bg-secondary border-2 border-border pixel-border-outset hover:bg-secondary/80 text-sm font-semibold active:pixel-border-inset disabled:opacity-50"
               disabled={currentQIndex === questionData.length - 1}
             >
               Next
               <ChevronRight className="w-4 h-4 ml-1 text-primary" />
-            </button>
+            </motion.button>
+
           </div>
         ),
         content: (

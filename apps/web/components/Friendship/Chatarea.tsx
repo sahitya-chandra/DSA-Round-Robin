@@ -4,6 +4,7 @@ import { io, Socket } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
 import { SendHorizonal, Loader2, Menu, UserPlus, LayoutDashboard } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { useSocket } from "@/hooks/useSocket";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/api";
 
@@ -23,9 +24,8 @@ interface Message {
   type?: "text" | "invite" | "system";
 }
 
-let socket: Socket | null = null;
-
 const Chatarea: React.FC<ChatAreaProps> = ({
+
   currentChatter,
   currentChatterID,
   setIsSidebarOpen,
@@ -42,43 +42,28 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     fromUserName: string;
   } | null>(null);
 
+  // Invite cool-down state (harmonized with dashboard)
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const isCooldownActive = cooldownUntil !== null && Date.now() < cooldownUntil;
+
+
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id;
   const userName = session?.user?.name || "Unknown";
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const router = useRouter();
+  const socket = useSocket(userId || "");
+
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, incomingInvite]);
 
   useEffect(() => {
-    if (!userId) return;
-
-    socket = io(`${API_BASE_URL}/friends`, { 
-      auth: { userId },
-      withCredentials: true,
-      transports: ["websocket"], 
-    });
-
-    socket.on("connect", () => {
-      console.log("[Socket] Connected:", socket?.id);
-    });
-
-    socket.on("disconnect", () => {
-      console.log("[Socket] Disconnected");
-    });
+    if (!socket || !userId) return;
 
     socket.on("receiveMessage", (msg: Message) => {
       console.log("[Socket] receiveMessage:", msg);
-
-      if (msg.type === "invite") {
-        setIncomingInvite({
-          fromUserId: msg.senderId,
-          fromUserName: currentChatter || "Unknown",
-        });
-      }
-
       if (
         msg.senderId === currentChatterID ||
         msg.receiverId === currentChatterID ||
@@ -88,35 +73,31 @@ const Chatarea: React.FC<ChatAreaProps> = ({
       }
     });
 
-    socket.on("typing", ({ fromUserId }) => {
+    socket.on("typing", ({ fromUserId }: { fromUserId: string }) => {
       if (fromUserId === currentChatterID) setIsTyping(true);
     });
 
-    socket.on("stopTyping", ({ fromUserId }) => {
+    socket.on("stopTyping", ({ fromUserId }: { fromUserId: string }) => {
       if (fromUserId === currentChatterID) setIsTyping(false);
     });
 
-    // When backend emits matchStarted, both users redirect
-    socket.on("matchStarted", ({ matchId }) => {
-      console.log("[Socket] Match started:", matchId);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `sys-${Date.now()}`,
-          senderId: userId!,
-          receiverId: currentChatterID!,
-          content: "Match started! Redirecting...",
-          createdAt: new Date().toISOString(),
-          type: "system",
-        },
-      ]);
-      setTimeout(() => router.push(`/code/${matchId}`), 1000);
+    // Invitation logic (from dashboard)
+    socket.on("friend_invite", (invite: any) => {
+      console.log("Received friend invite:", invite);
+      setIncomingInvite({
+        fromUserId: invite.fromUserId,
+        fromUserName: invite.fromUserName,
+      });
     });
 
     return () => {
-      socket?.disconnect();
+      socket.off("receiveMessage");
+      socket.off("typing");
+      socket.off("stopTyping");
+      socket.off("friend_invite");
     };
-  }, [userId, currentChatterID]);
+  }, [socket, userId, currentChatterID]);
+
 
   // ---- Load chat history ----
   useEffect(() => {
@@ -175,44 +156,46 @@ const Chatarea: React.FC<ChatAreaProps> = ({
   };
 
   const handleInvite = useCallback(() => {
-    if (!socket || !userId || !currentChatterID) return;
-    if (inviteStatus === "pending" || inviteStatus === "sending") return;
+    if (isCooldownActive || !socket || !currentChatterID) return;
 
     setInviteStatus("sending");
     console.log("[Invite] Sending invite to", currentChatterID);
 
-    socket.emit("matchInvite", {
-      fromUserId: userId,
-      fromUserName: userName,
-      toUserId: currentChatterID,
+    socket.emit("invite_friend", {
+      friendId: currentChatterID,
+      inviterName: userName,
     });
+
+    const cooldownMs = 10_000;
+    setCooldownUntil(Date.now() + cooldownMs);
 
     const inviteMsg: Message = {
       id: `invite-${Date.now()}`,
-      senderId: userId,
+      senderId: userId!,
       receiverId: currentChatterID,
-      content: `${userName} invited you to a 1v1 match.`,
+      content: `You invited ${currentChatter} to a 1v1 match.`,
       createdAt: new Date().toISOString(),
-      type: "invite",
+      type: "system",
     };
 
     setMessages((prev) => [...prev, inviteMsg]);
     setInviteStatus("pending");
-  }, [socket, userId, currentChatterID, userName, inviteStatus]);
+
+    setTimeout(() => {
+      setInviteStatus("idle");
+      setCooldownUntil(null);
+    }, cooldownMs);
+  }, [socket, userId, currentChatterID, userName, isCooldownActive, currentChatter]);
+
 
   const handleInviteResponse = async (accepted: boolean) => {
     if (!socket || !incomingInvite) return;
 
-    console.log(
-      `[InviteResponse] ${userId} ${
-        accepted ? "ACCEPTED" : "DECLINED"
-      } invite from ${incomingInvite.fromUserId}`
-    );
-
-    socket.emit("respondInvite", {
+    socket.emit("respond_invite", {
       fromUserId: incomingInvite.fromUserId,
       accepted,
     });
+
 
     const systemMsg: Message = {
       id: `sys-${Date.now()}`,
@@ -298,18 +281,18 @@ const Chatarea: React.FC<ChatAreaProps> = ({
         {isTyping && (
           <motion.div
             key="typing-indicator"
-            initial={{ opacity: 0, y: 35 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.4 }}
-            className="absolute bottom-24 left-6 text-sm text-muted-foreground italic"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20"
           >
-            <div className="bg-card px-3 py-1 border pixel-border shadow-sm text-foreground">
+            <div className="bg-card/90 backdrop-blur-sm px-4 py-1.5 border pixel-border shadow-lg text-foreground text-xs font-minecraft italic">
               {currentChatter} is typing...
             </div>
           </motion.div>
         )}
       </AnimatePresence>
+
 
       {/* Invite modal */}
       <AnimatePresence>

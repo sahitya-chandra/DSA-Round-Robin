@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { Swords, Brain, Users, Zap, Trophy, Code } from "lucide-react";
 
 const features = [
@@ -43,40 +43,107 @@ const features = [
   },
 ];
 
-export const Features = () => {
+const FeatureCard = ({ feature, index }: { feature: typeof features[0], index: number }) => {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+
+  const mouseXSpring = useSpring(x);
+  const mouseYSpring = useSpring(y);
+
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ["15deg", "-15deg"]);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ["-15deg", "15deg"]);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const width = rect.width;
+    const height = rect.height;
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const xPct = mouseX / width - 0.5;
+    const yPct = mouseY / height - 0.5;
+
+    x.set(xPct);
+    y.set(yPct);
+  };
+
+  const handleMouseLeave = () => {
+    x.set(0);
+    y.set(0);
+  };
+
   return (
-    <section className="py-24 bg-background relative overflow-hidden minecraft-texture">
-      <div className="container px-4 md:px-6 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4 font-minecraft">
-            Everything you need to <span className="text-primary">excel</span>
-          </h2>
-          <p className="text-muted-foreground text-lg">
-            A complete platform designed to help you master coding interviews and competitive programming.
-          </p>
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: index * 0.1, ease: "easeOut" }}
+      viewport={{ once: true }}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{
+        rotateX,
+        rotateY,
+        transformStyle: "preserve-3d",
+      }}
+      className="group relative p-8 bg-card border-2 minecraft-texture pixel-border-outset active:pixel-border-inset hover:bg-muted/5 transition-colors cursor-default select-none"
+    >
+      <div 
+        style={{ transform: "translateZ(50px)" }}
+        className="relative z-10"
+      >
+        <div className={`w-14 h-14 bg-accent pixel-border-outset mb-6 flex items-center justify-center relative group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300`}>
+          <feature.icon className="w-7 h-7 text-primary group-hover:rotate-12 transition-transform" />
+          
+          {/* Subtle glow effect behind icon */}
+          <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="group relative p-8 bg-card border-2 minecraft-texture transition-all hover:-translate-y-1 hover:shadow-xl pixel-border-outset active:pixel-border-inset"
-            >
-              <div className={`absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none`} />
-              
-              <div className={`w-12 h-12 bg-accent pixel-border-outset mb-6 flex items-center justify-center relative z-10`}>
-                <feature.icon className="w-6 h-6 text-primary" />
-              </div>
+        <h3 className="text-xl font-bold text-card-foreground mb-3 font-minecraft group-hover:text-primary transition-colors">
+          {feature.title}
+        </h3>
+        <p className="text-muted-foreground leading-relaxed">
+          {feature.description}
+        </p>
+      </div>
 
-              <h3 className="text-xl font-bold text-card-foreground mb-3 font-minecraft">{feature.title}</h3>
-              <p className="text-muted-foreground leading-relaxed">
-                {feature.description}
-              </p>
-            </motion.div>
+      {/* Card highlight effect */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+    </motion.div>
+  );
+};
+
+export const Features = () => {
+  return (
+    <section className="py-32 bg-background relative overflow-hidden minecraft-texture">
+      {/* Background Decoration */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent/5 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="container px-4 md:px-6 relative z-10">
+        <div className="text-center max-w-3xl mx-auto mb-20 text-balance">
+          <motion.h2 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-4xl md:text-6xl font-bold text-foreground mb-6 font-minecraft tracking-tight"
+          >
+            Everything you need to <span className="text-primary italic">excel</span>
+          </motion.h2>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            viewport={{ once: true }}
+            className="text-muted-foreground text-lg md:text-xl font-medium"
+          >
+            A complete platform designed to help you master coding interviews and competitive programming.
+          </motion.p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {features.map((feature, index) => (
+            <FeatureCard key={index} feature={feature} index={index} />
           ))}
         </div>
       </div>
