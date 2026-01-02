@@ -86,6 +86,8 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
 
           const newRatingR = Math.round(rRating + K * (actualScoreR - expectedScoreR));
           const newRatingO = Math.round(oRating + K * ((1 - actualScoreR) - expectedScoreO));
+          const ratingChangeR = newRatingR - rRating;
+          const ratingChangeO = newRatingO - oRating;
 
           await tx.user.update({ where: { id: requesterId }, data: { rating: newRatingR } });
           await tx.user.update({ where: { id: opponentId }, data: { rating: newRatingO } });
@@ -99,8 +101,8 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
               endedAt,
               participants: {
                 create: [
-                  { userId: requesterId },
-                  { userId: opponentId },
+                  { userId: requesterId, ratingChange: ratingChangeR },
+                  { userId: opponentId, ratingChange: ratingChangeO },
                 ],
               },
               questions: {
@@ -116,19 +118,19 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
 
           const allSubs = [...rSubs, ...oSubs];
 
-          for (const s of allSubs) {
-            await tx.submission.create({
-              data: {
-                id: s.id,
-                userId: s.userId,
-                questionId: s.questionId,
-                matchId,
-                code: s.code,
-                status: s.status === "DONE" && s.result?.passed ? "ACCEPTED" : "REJECTED",
-                createdAt: new Date(s.createdAt),
-              },
-            });
-          }
+          await tx.submission.createMany({
+            data: allSubs.map((s) => ({
+              id: s.id,
+              userId: s.userId,
+              questionId: s.questionId,
+              matchId,
+              code: s.code,
+              status: s.status === "DONE" && s.result?.passed ? "ACCEPTED" : "REJECTED",
+              createdAt: new Date(s.createdAt),
+            })),
+          });
+        }, {
+          timeout: 20000,
         });
 
         await redis.del(`${ACTIVE_MATCH_PREFIX}${matchId}`);

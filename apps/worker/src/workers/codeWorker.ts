@@ -1,4 +1,5 @@
 import { createCodeWorker, publisherClient, connection as redis } from "@repo/queue";
+import { parseError } from "../utils/errorParser";
 import { exec } from "child_process";
 import fs from "fs/promises";
 import path from "path";
@@ -84,7 +85,8 @@ let runCmd = "";
       try {
         output = (await fs.readFile(path.join(tempDir, `output_${i}.txt`), "utf-8")).trim();
       } catch (e) {
-        output = `Runtime Error / No Output\nLogs: ${dockerStderr}`;
+        const parsed = parseError(dockerStderr, language);
+        output = `Error: ${parsed.type}${parsed.line ? ` (Line ${parsed.line})` : ""}\n${parsed.message}`;
       }
 
       const passed = output === expected;
