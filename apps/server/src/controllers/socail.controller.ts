@@ -61,6 +61,15 @@ export const searchFriend = async (req: Request, res: Response) => {
  * 📤 Send Friend Request
  * Body: { userId, friendId }
  */
+// ... imports
+import { getIo } from "../utils/socketInstance";
+
+// ... existing code
+
+/**
+ * 📤 Send Friend Request
+ * Body: { userId, friendId }
+ */
 export const friendReq = async (req: Request, res: Response) => {
   try {
     const { userId, friendId } = req.body;
@@ -79,11 +88,24 @@ export const friendReq = async (req: Request, res: Response) => {
     if (existing)
       return res.status(200).json({ success: false, message: "Already exists" });
 
-    await prisma.friendRequest.create({
+    const newRequest = await prisma.friendRequest.create({
       data: {
         requesterId: userId,
         addresseeId: friendId,
       },
+      include: {
+        requester: { select: { id: true, name: true, email: true } }
+      }
+    });
+
+    // Emit socket event to the recipient
+    const io = getIo();
+    io.to(friendId).emit("friend_request_received", {
+        request: {
+            id: newRequest.id,
+            fromUser: newRequest.requester,
+            createdAt: newRequest.createdAt
+        }
     });
 
     res.json({ success: true, message: "Friend request sent" });

@@ -2,11 +2,13 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { motion, AnimatePresence } from "framer-motion";
-import { SendHorizonal, Loader2, Menu, UserPlus, LayoutDashboard } from "lucide-react";
+import { SendHorizonal, Loader2, Menu, LayoutDashboard } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 import { useSocket } from "@/hooks/useSocket";
 import { useRouter } from "next/navigation";
 import { API_BASE_URL } from "@/lib/api";
+import { useFriendsListStore } from "@/stores/friendsListStore";
 
 interface ChatAreaProps {
   isSidebarOpen: boolean;
@@ -35,17 +37,19 @@ const Chatarea: React.FC<ChatAreaProps> = ({
   const [newMsg, setNewMsg] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [sending, setSending] = useState(false);
-  const [inviteStatus, setInviteStatus] = useState<
-    "idle" | "sending" | "pending" | "expired"
-  >("idle");
   const [incomingInvite, setIncomingInvite] = useState<{
     fromUserId: string;
     fromUserName: string;
   } | null>(null);
 
-  // Invite cool-down state (harmonized with dashboard)
-  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
-  const isCooldownActive = cooldownUntil !== null && Date.now() < cooldownUntil;
+  const { pendingRequests, unreadMessages, clearUnread } = useFriendsListStore();
+  const totalUnreadInfo = Object.values(unreadMessages).reduce((a, b) => a + b, 0);
+
+  useEffect(() => {
+    if (currentChatterID) {
+      clearUnread(currentChatterID);
+    }
+  }, [currentChatterID, messages]);
 
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id;
@@ -58,9 +62,28 @@ const Chatarea: React.FC<ChatAreaProps> = ({
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, incomingInvite]);
+  }, [messages, incomingInvite, isTyping]);
 
-  // ---- Chat Socket (/friends) for Messaging and Typing ----
+
+      <AnimatePresence>
+        {isTyping && (
+          <motion.div
+            key="typing-indicator"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute bottom-[calc(100%-10px)] left-4 text-xs text-muted-foreground italic z-20 mb-2 pointer-events-none"
+          >
+             <div className="bg-card/80 backdrop-blur-sm px-3 py-1 border pixel-border shadow-sm text-foreground rounded-md flex items-center gap-2">
+               <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-duration:1s]"></span>
+               <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s] [animation-duration:1s]"></span>
+               <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s] [animation-duration:1s]"></span>
+               <span className="ml-1">{currentChatter} is typing...</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
   useEffect(() => {
     if (!userId) return;
 
@@ -95,24 +118,22 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     };
   }, [userId, currentChatterID]);
 
-  // ---- Root Socket for Invitations (Friend Duel) ----
   useEffect(() => {
     if (!rootSocket || !userId) return;
 
-    rootSocket.on("friend_invite", (invite: any) => {
+    rootSocket.on("invite_received", (invite: any) => {
       console.log("[RootSocket] Received friend invite:", invite);
       setIncomingInvite({
-        fromUserId: invite.fromUserId,
-        fromUserName: invite.fromUserName,
+        fromUserId: invite.inviterId,
+        fromUserName: invite.inviterName,
       });
     });
 
     return () => {
-      rootSocket.off("friend_invite");
+      rootSocket.off("invite_received");
     };
   }, [rootSocket, userId]);
 
-  // ---- Load chat history ----
   useEffect(() => {
     if (!currentChatterID || !userId) return;
     const fetchMessages = async () => {
@@ -167,45 +188,12 @@ const Chatarea: React.FC<ChatAreaProps> = ({
       handleSend();
     }
   };
-
-  const handleInvite = useCallback(() => {
-    if (isCooldownActive || !rootSocket || !currentChatterID) return;
-
-    setInviteStatus("sending");
-    console.log("[Invite] Sending invite to", currentChatterID);
-
-    rootSocket.emit("invite_friend", {
-      friendId: currentChatterID,
-      inviterName: userName,
-    });
-
-    const cooldownMs = 10_000;
-    setCooldownUntil(Date.now() + cooldownMs);
-
-    const inviteMsg: Message = {
-      id: `invite-${Date.now()}`,
-      senderId: userId!,
-      receiverId: currentChatterID,
-      content: `You invited ${currentChatter} to a 1v1 match.`,
-      createdAt: new Date().toISOString(),
-      type: "system",
-    };
-
-    setMessages((prev) => [...prev, inviteMsg]);
-    setInviteStatus("pending");
-
-    setTimeout(() => {
-      setInviteStatus("idle");
-      setCooldownUntil(null);
-    }, cooldownMs);
-  }, [rootSocket, userId, currentChatterID, userName, isCooldownActive, currentChatter]);
-
   const handleInviteResponse = async (accepted: boolean) => {
     if (!rootSocket || !incomingInvite) return;
 
-    rootSocket.emit("respond_invite", {
-      fromUserId: incomingInvite.fromUserId,
-      accepted,
+    rootSocket.emit("invite_response", {
+      inviterId: incomingInvite.fromUserId,
+      response: accepted ? "accept" : "reject",
     });
 
     const systemMsg: Message = {
@@ -225,14 +213,16 @@ const Chatarea: React.FC<ChatAreaProps> = ({
 
   return (
     <div className="flex flex-col flex-1 bg-background text-foreground font-minecraft">
-      {/* Header */}
       <div className="flex items-center justify-between border-b border-border p-2 sm:p-3">
         <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 min-w-0 flex-1">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="md:hidden p-1.5 sm:p-2 pixel-border-outset bg-card text-foreground hover:brightness-110 flex-shrink-0"
+            className="md:hidden p-1.5 sm:p-2 pixel-border-outset bg-card text-foreground hover:brightness-110 flex-shrink-0 relative"
           >
             <Menu size={18} className="sm:w-5 sm:h-5" />
+            {(pendingRequests.length > 0 || totalUnreadInfo > 0) && (
+              <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-red-500 rounded-full ring-1 ring-background translate-x-1/3 -translate-y-1/3" />
+            )}
           </button>
           <h2 className="text-sm sm:text-base md:text-lg font-semibold truncate text-foreground min-w-0">
             {currentChatter || "Select a friend"}
@@ -247,7 +237,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
         </button>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-5 space-y-3 custom-scrollbar relative pb-20">
         <AnimatePresence>
           {messages.length ? (
@@ -286,26 +275,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
         </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Typing indicator (Old Style restored as requested) */}
-      <AnimatePresence>
-        {isTyping && (
-          <motion.div
-            key="typing-indicator"
-            initial={{ opacity: 0, y: 35 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.4 }}
-            className="absolute bottom-24 left-6 text-sm text-muted-foreground italic"
-          >
-            <div className="bg-card px-3 py-1 border pixel-border shadow-sm text-foreground">
-              {currentChatter} is typing...
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Invite modal */}
       <AnimatePresence>
         {incomingInvite && (
           <motion.div
@@ -339,9 +308,30 @@ const Chatarea: React.FC<ChatAreaProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Input area */}
+
       {currentChatterID && (
-        <div className="p-1.5 sm:p-3 bg-secondary border-t border-border flex items-center gap-1 sm:gap-2 sticky bottom-0 z-10 transition-colors">
+        <div className="p-1.5 sm:p-3 bg-secondary border-t border-border flex items-center gap-1 sm:gap-2 sticky bottom-0 z-10 transition-colors relative">
+           <AnimatePresence>
+            {isTyping && (
+              <motion.div
+                key="typing-indicator"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute bottom-full left-4 mb-2 z-20 pointer-events-none"
+              >
+                <div className="bg-card/90 backdrop-blur-sm px-3 py-1.5 border pixel-border shadow-sm text-foreground rounded-md flex items-center gap-2 text-xs font-minecraft">
+                  <div className="flex gap-1">
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-duration:1s]"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s] [animation-duration:1s]"></span>
+                    <span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s] [animation-duration:1s]"></span>
+                  </div>
+                  <span>{currentChatter} is typing...</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <input
             className="flex-1 bg-input text-foreground pixel-border-inset px-1.5 sm:px-4 py-1.5 sm:py-2.5 outline-none focus:ring-2 focus:ring-primary placeholder-muted-foreground text-xs sm:text-sm font-minecraft min-w-0"
             value={newMsg}
@@ -349,27 +339,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
             onKeyDown={handleKeyDown}
             placeholder={`Message ${currentChatter}...`}
           />
-          <button
-            onClick={handleInvite}
-            disabled={inviteStatus === "pending" || inviteStatus === "sending"}
-            className={`flex items-center justify-center gap-0 sm:gap-2 px-1.5 sm:px-4 py-1.5 sm:py-2.5 pixel-border-outset text-xs sm:text-sm font-medium text-primary-foreground shadow-md transition-all flex-shrink-0 ${
-              inviteStatus === "pending"
-                ? "bg-muted cursor-wait"
-                : "bg-accent hover:brightness-110"
-            }`}
-          >
-            {inviteStatus === "pending" ? (
-              <>
-                <Loader2 size={14} className="sm:w-[18px] sm:h-[18px] animate-spin" />
-                <span className="hidden sm:inline ml-1">Waiting</span>
-              </>
-            ) : (
-              <>
-                <UserPlus size={14} className="sm:w-[18px] sm:h-[18px]" />
-                <span className="hidden sm:inline ml-1">Invite</span>
-              </>
-            )}
-          </button>
           <button
             onClick={handleSend}
             disabled={sending}

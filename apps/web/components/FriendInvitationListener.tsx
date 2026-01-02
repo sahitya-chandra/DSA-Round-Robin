@@ -6,20 +6,94 @@ import { authClient } from "@/lib/auth-client";
 import { useSocket } from "@/hooks/useSocket";
 import { MinecraftToast } from "./MinecraftToast";
 import { useRouter } from "next/navigation";
-
+import { useFriendsListStore } from "@/stores/friendsListStore";
+import { FriendRequestToast } from "./FriendRequestToast";
 export const FriendInvitationListener = () => {
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id;
   const socket = useSocket(userId || "");
   const router = useRouter();
+  const { addPendingRequest, removePendingRequest, setOnlineUsers } = useFriendsListStore();
 
   // const respondedInvitesRef = useRef<Set<string>>(new Set());
   // const markResponded = (inviterId: string) => {
   //   respondedInvitesRef.current.add(inviterId);
   // };
 
+  const handleAccept = async (requestId: string, t: string | number) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/social/accept`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId }),
+      });
+
+      if (res.ok) {
+        removePendingRequest(requestId);
+        toast.success("Friend request accepted");
+      } else {
+        toast.error("Failed to accept request");
+      }
+    } catch (error) {
+      toast.error("Error accepting request");
+    } finally {
+      toast.dismiss(t);
+    }
+  };
+
+  const handleReject = async (requestId: string, t: string | number) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/social/reject`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ requestId }),
+      });
+
+      if (res.ok) {
+        removePendingRequest(requestId);
+        toast.info("Friend request rejected");
+      } else {
+        toast.error("Failed to reject request");
+      }
+    } catch (error) {
+      toast.error("Error rejecting request");
+    } finally {
+      toast.dismiss(t);
+    }
+  };
+
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !userId) return;
+
+    const handleFriendRequestReceived = (data: { requestId: string; senderId: string; senderName: string; senderEmail: string }) => {
+        console.log("Friend request received:", data);
+        
+        const newRequest = {
+            id: data.requestId,
+            fromUser: {
+                id: data.senderId,
+                name: data.senderName,
+                email: data.senderEmail
+            }
+        };
+        
+        addPendingRequest(newRequest);
+
+        toast.custom(
+            (t) => (
+                <FriendRequestToast
+                  requesterName={data.senderName}
+                  onAccept={() => handleAccept(data.requestId, t)}
+                  onReject={() => handleReject(data.requestId, t)}
+                />
+            ),
+            { duration: Infinity }
+        );
+    };
+
+    const handleOnlineUsers = (users: string[]) => {
+      setOnlineUsers(users);
+    };
 
     const handleInviteReceived = (data: { inviterId: string; inviterName?: string }) => {
       console.log("Invite received:", data);
@@ -86,6 +160,8 @@ export const FriendInvitationListener = () => {
     socket.on("invite_error", handleInviteError);
     socket.on("invite_rejected", handleInviteRejected);
     socket.on("friend_busy", handleFriendBusy);
+    socket.on("friend_request_received", handleFriendRequestReceived);
+    socket.on("onlineUsers", handleOnlineUsers);
 
     return () => {
       socket.off("invite_accepted", handleInviteAccepted)
@@ -94,8 +170,10 @@ export const FriendInvitationListener = () => {
       socket.off("invite_error", handleInviteError);
       socket.off("invite_rejected", handleInviteRejected);
       socket.off("friend_busy", handleFriendBusy);
+      socket.off("friend_request_received", handleFriendRequestReceived);
+      socket.off("onlineUsers", handleOnlineUsers);
     };
-  }, [socket, router]);
+  }, [socket, router, addPendingRequest, removePendingRequest, setOnlineUsers]);
 
   return null;
 };

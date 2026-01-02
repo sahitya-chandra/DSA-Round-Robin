@@ -329,9 +329,15 @@ const App: React.FC = () => {
 
                     <div className="bg-card px-2 md:px-4 py-1.5 md:py-2 border-2 border-accent pixel-border-outset minecraft-texture">
                       <div className="flex items-center gap-1.5 md:gap-2.5">
-                        <div className="w-6 h-6 md:w-9 md:h-9 bg-accent pixel-border-outset flex items-center justify-center text-accent-foreground font-bold text-[10px] md:text-xs font-minecraft">
+                        <div 
+                          className="w-6 h-6 md:w-9 md:h-9 bg-accent pixel-border-outset flex items-center justify-center text-accent-foreground font-bold text-[10px] md:text-xs font-minecraft cursor-help"
+                          title={opponent?.name || "Opponent"}
+                        >
                           {opponent?.name?.[0]?.toUpperCase() ?? "OPP"}
                         </div>
+                        <span className="text-[8px] md:text-xs font-bold text-muted-foreground max-w-[40px] md:max-w-[100px] truncate font-minecraft">
+                          {opponent?.name || "Opponent"}
+                        </span>
                         <div className="flex gap-0.5 md:gap-1.5">
                           {questionData.map((q, i) => {
                             const oppSolved = opponentProgress[q.questionData.id] ?? false;
