@@ -11,125 +11,132 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
 
   const requesterId = raw.requesterId!;
   const opponentId = raw.opponentId!;
-  const questions: Array<{ questionData: { id: string }, order: number }> = raw.questions ? JSON.parse(raw.questions) : [];
-  const startedAt = raw.startedAt ? new Date(raw.startedAt) : new Date();
-  const endedAt = new Date();
 
-  const rSubKey = `${SUBMISSIONS_PREFIX}${matchId}:${requesterId}`;
-  const oSubKey = `${SUBMISSIONS_PREFIX}${matchId}:${opponentId}`;
+  try {
+    const questions: Array<{ questionData: { id: string }, order: number }> = raw.questions ? JSON.parse(raw.questions) : [];
+    const startedAt = raw.startedAt ? new Date(raw.startedAt) : new Date();
+    const endedAt = new Date();
 
-  const [rHash, oHash] = await Promise.all([
-    redis.hgetall(rSubKey),
-    redis.hgetall(oSubKey),
-  ]);
+    const rSubKey = `${SUBMISSIONS_PREFIX}${matchId}:${requesterId}`;
+    const oSubKey = `${SUBMISSIONS_PREFIX}${matchId}:${opponentId}`;
 
-  const parseHash = (hash: Record<string, string>) => 
-    Object.values(hash).map((s) => JSON.parse(s));
+    const [rHash, oHash] = await Promise.all([
+      redis.hgetall(rSubKey),
+      redis.hgetall(oSubKey),
+    ]);
 
-  const rSubs = parseHash(rHash);
-  const oSubs = parseHash(oHash);
+    const parseHash = (hash: Record<string, string>) => 
+      Object.values(hash || {}).map((s) => JSON.parse(s));
 
-  const computeScore = (subs: any[]) => {
-    const solved = new Map<number, any>();
-    for (const s of subs) {
-      if (!s.result || s.status !== "DONE") continue;
-      if (!s.result.passed) continue;
-      const qid = s.questionId;
-      if (!solved.has(qid) || new Date(s.createdAt) < new Date(solved.get(qid).createdAt)) {
-        solved.set(qid, s);
+    const rSubs = parseHash(rHash || {});
+    const oSubs = parseHash(oHash || {});
+
+    const computeScore = (subs: any[]) => {
+      const solved = new Map<number, any>();
+      for (const s of subs) {
+        if (!s.result || s.status !== "DONE") continue;
+        if (!s.result.passed) continue;
+        const qid = s.questionId;
+        if (!solved.has(qid) || new Date(s.createdAt) < new Date(solved.get(qid).createdAt)) {
+          solved.set(qid, s);
+        }
+      }
+      return solved;
+    };
+
+    const rSolved = computeScore(rSubs);
+    const oSolved = computeScore(oSubs);
+
+    const rScore = rSolved.size;
+    const oScore = oSolved.size;
+
+    let winnerId = opts.winnerId ?? null;
+
+    if (!winnerId) {
+      if (rScore > oScore) winnerId = requesterId;
+      else if (oScore > rScore) winnerId = opponentId;
+      else {
+        const rSum = Array.from(rSolved.values()).reduce((acc: number, s: any) => acc + new Date(s.createdAt).getTime(), 0);
+        const oSum = Array.from(oSolved.values()).reduce((acc: number, s: any) => acc + new Date(s.createdAt).getTime(), 0);
+        winnerId = rSum === oSum ? null : (rSum < oSum ? requesterId : opponentId);
       }
     }
-    return solved;
-  };
 
-  const rSolved = computeScore(rSubs);
-  const oSolved = computeScore(oSubs);
+    await prisma.$transaction(async (tx: any) => {
+      const requester = await tx.user.findUnique({ where: { id: requesterId }, select: { rating: true } });
+      const opponent = await tx.user.findUnique({ where: { id: opponentId }, select: { rating: true } });
 
-  const rScore = rSolved.size;
-  const oScore = oSolved.size;
+      const rRating = requester?.rating || 1200;
+      const oRating = opponent?.rating || 1200;
 
-  let winnerId = opts.winnerId ?? null;
+      const K = 32;
+      const expectedScoreR = 1 / (1 + Math.pow(10, (oRating - rRating) / 400));
+      const expectedScoreO = 1 / (1 + Math.pow(10, (rRating - oRating) / 400));
 
-  if (!winnerId) {
-    if (rScore > oScore) winnerId = requesterId;
-    else if (oScore > rScore) winnerId = opponentId;
-    else {
-      const rSum = Array.from(rSolved.values()).reduce((acc: number, s: any) => acc + new Date(s.createdAt).getTime(), 0);
-      const oSum = Array.from(oSolved.values()).reduce((acc: number, s: any) => acc + new Date(s.createdAt).getTime(), 0);
-      winnerId = rSum === oSum ? null : (rSum < oSum ? requesterId : opponentId);
-    }
-  }
+      let actualScoreR = 0.5; // Draw
+      if (winnerId === requesterId) actualScoreR = 1;
+      else if (winnerId === opponentId) actualScoreR = 0;
 
-  await prisma.$transaction(async (tx: any) => {
-    const requester = await tx.user.findUnique({ where: { id: requesterId }, select: { rating: true } });
-    const opponent = await tx.user.findUnique({ where: { id: opponentId }, select: { rating: true } });
+      const newRatingR = Math.round(rRating + K * (actualScoreR - expectedScoreR));
+      const newRatingO = Math.round(oRating + K * ((1 - actualScoreR) - expectedScoreO));
 
-    const rRating = requester?.rating || 1200;
-    const oRating = opponent?.rating || 1200;
+      await tx.user.update({ where: { id: requesterId }, data: { rating: newRatingR } });
+      await tx.user.update({ where: { id: opponentId }, data: { rating: newRatingO } });
 
-    const K = 32;
-    const expectedScoreR = 1 / (1 + Math.pow(10, (oRating - rRating) / 400));
-    const expectedScoreO = 1 / (1 + Math.pow(10, (rRating - oRating) / 400));
-
-    let actualScoreR = 0.5; // Draw
-    if (winnerId === requesterId) actualScoreR = 1;
-    else if (winnerId === opponentId) actualScoreR = 0;
-
-    const newRatingR = Math.round(rRating + K * (actualScoreR - expectedScoreR));
-    const newRatingO = Math.round(oRating + K * ((1 - actualScoreR) - expectedScoreO));
-
-    await tx.user.update({ where: { id: requesterId }, data: { rating: newRatingR } });
-    await tx.user.update({ where: { id: opponentId }, data: { rating: newRatingO } });
-
-    await tx.match.create({
-      data: {
-        id: matchId,
-        status: "FINISHED",
-        winnerId,
-        startedAt,
-        endedAt,
-        participants: {
-          create: [
-            { userId: requesterId },
-            { userId: opponentId },
-          ],
-        },
-        questions: {
-          createMany: {
-            data: questions.map((q) => ({
-              questionId: q.questionData.id,
-              order: q.order,
-            })),
+      await tx.match.create({
+        data: {
+          id: matchId,
+          status: "FINISHED",
+          winnerId,
+          startedAt,
+          endedAt,
+          participants: {
+            create: [
+              { userId: requesterId },
+              { userId: opponentId },
+            ],
+          },
+          questions: {
+            createMany: {
+              data: questions.map((q) => ({
+                questionId: q.questionData.id,
+                order: q.order,
+              })),
+            },
           },
         },
-      },
+      });
+
+      const allSubs = [...rSubs, ...oSubs];
+
+      for (const s of allSubs) {
+        await tx.submission.create({
+          data: {
+            id: s.id,
+            userId: s.userId,
+            questionId: s.questionId,
+            matchId,
+            code: s.code,
+            status: s.status === "DONE" && s.result?.passed ? "ACCEPTED" : "REJECTED",
+            createdAt: new Date(s.createdAt),
+          },
+        });
+      }
     });
 
-    const allSubs = [...rSubs, ...oSubs];
+    await redis.del(`${ACTIVE_MATCH_PREFIX}${matchId}`);
+    await redis.del(`${USER_MATCH_PREFIX}${requesterId}`);
+    await redis.del(`${USER_MATCH_PREFIX}${opponentId}`);
+    await redis.del(rSubKey);
+    await redis.del(oSubKey);
 
-    for (const s of allSubs) {
-      await tx.submission.create({
-        data: {
-          id: s.id,
-          userId: s.userId,
-          questionId: s.questionId,
-          matchId,
-          code: s.code,
-          status: s.status === "DONE" && s.result?.passed ? "ACCEPTED" : "REJECTED",
-          createdAt: new Date(s.createdAt),
-        },
-      });
-    }
-  });
+    const payload = { event: "match_finished", data: { matchId, winnerId } };
+    await publisherClient.publish("match_events", JSON.stringify(payload));
 
-  await redis.del(`${ACTIVE_MATCH_PREFIX}${matchId}`);
-  await redis.del(`${USER_MATCH_PREFIX}${requesterId}`);
-  await redis.del(`${USER_MATCH_PREFIX}${opponentId}`);
-  await redis.del(rSubKey);
-  await redis.del(oSubKey);
-
-  const payload = { event: "match_finished", data: { matchId, winnerId } };
-  await publisherClient.publish("match_events", JSON.stringify(payload));
-
-  return { matchId, winnerId, rScore, oScore };
+    return { matchId, winnerId, rScore, oScore };
+  } catch (err) {
+    console.error("finishMatchById error, reverting status to RUNNING:", err);
+    await redis.hset(key, "status", "RUNNING");
+    throw err;
+  }
 }
