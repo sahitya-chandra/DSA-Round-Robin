@@ -69,49 +69,48 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
           }
         }
 
-    await prisma.$transaction(async (tx: any) => {
-      const requester = await tx.user.findUnique({ where: { id: requesterId }, select: { rating: true } });
-      const opponent = await tx.user.findUnique({ where: { id: opponentId }, select: { rating: true } });
+        await prisma.$transaction(async (tx: any) => {
+          const requester = await tx.user.findUnique({ where: { id: requesterId }, select: { rating: true } });
+          const opponent = await tx.user.findUnique({ where: { id: opponentId }, select: { rating: true } });
 
-      const rRating = requester?.rating || 1200;
-      const oRating = opponent?.rating || 1200;
+          const rRating = requester?.rating || 1200;
+          const oRating = opponent?.rating || 1200;
 
-      const K = 32;
-      const expectedScoreR = 1 / (1 + Math.pow(10, (oRating - rRating) / 400));
-      const expectedScoreO = 1 / (1 + Math.pow(10, (rRating - oRating) / 400));
+          const K = 32;
+          const expectedScoreR = 1 / (1 + Math.pow(10, (oRating - rRating) / 400));
+          const expectedScoreO = 1 / (1 + Math.pow(10, (rRating - oRating) / 400));
 
-      let actualScoreR = 0.5; // Draw
-      if (winnerId === requesterId) actualScoreR = 1;
-      else if (winnerId === opponentId) actualScoreR = 0;
+          let actualScoreR = 0.5; // Draw
+          if (winnerId === requesterId) actualScoreR = 1;
+          else if (winnerId === opponentId) actualScoreR = 0;
 
-      const newRatingR = Math.round(rRating + K * (actualScoreR - expectedScoreR));
-      const newRatingO = Math.round(oRating + K * ((1 - actualScoreR) - expectedScoreO));
+          const newRatingR = Math.round(rRating + K * (actualScoreR - expectedScoreR));
+          const newRatingO = Math.round(oRating + K * ((1 - actualScoreR) - expectedScoreO));
 
-      const ratingChangeR = newRatingR - rRating;
-      const ratingChangeO = newRatingO - oRating;
+          await tx.user.update({ where: { id: requesterId }, data: { rating: newRatingR } });
+          await tx.user.update({ where: { id: opponentId }, data: { rating: newRatingO } });
 
-      await tx.user.update({ where: { id: requesterId }, data: { rating: newRatingR } });
-      await tx.user.update({ where: { id: opponentId }, data: { rating: newRatingO } });
-
-      await tx.match.create({
-        data: {
-          id: matchId,
-          status: "FINISHED",
-          winnerId,
-          startedAt,
-          endedAt,
-          participants: {
-            create: [
-              { userId: requesterId, ratingChange: ratingChangeR },
-              { userId: opponentId, ratingChange: ratingChangeO },
-            ],
-          },
-          questions: {
-            createMany: {
-              data: questions.map((q) => ({
-                questionId: q.questionData.id,
-                order: q.order,
-              })),
+          await tx.match.create({
+            data: {
+              id: matchId,
+              status: "FINISHED",
+              winnerId,
+              startedAt,
+              endedAt,
+              participants: {
+                create: [
+                  { userId: requesterId },
+                  { userId: opponentId },
+                ],
+              },
+              questions: {
+                createMany: {
+                  data: questions.map((q) => ({
+                    questionId: q.questionData.id,
+                    order: q.order,
+                  })),
+                },
+              },
             },
           });
 
