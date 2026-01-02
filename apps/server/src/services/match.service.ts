@@ -106,6 +106,7 @@ export interface MatchView {
   startedAt: string;
   duration: string;
   questions: any[];
+  opponent?: { id: string; name: string };
 }
 
 export async function getMatchForUser(
@@ -136,6 +137,12 @@ export async function getMatchForUser(
 
     const questions = data.questions ? JSON.parse(data.questions) : [];
 
+    const actualOpponentId = data.requesterId === userId ? data.opponentId : data.requesterId;
+    const opponentUser = await prisma.user.findUnique({
+      where: { id: actualOpponentId! },
+      select: { id: true, name: true },
+    });
+
     return {
       matchId,
       requesterId: data.requesterId!,
@@ -144,6 +151,7 @@ export async function getMatchForUser(
       startedAt: data.startedAt!,
       duration: data.duration!,
       questions,
+      opponent: opponentUser ? { id: opponentUser.id, name: opponentUser.name } : undefined,
     };
   } catch (err: any) {
     if (["NOT_FOUND", "NOT_RUNNING", "FORBIDDEN"].includes(err.code)) {

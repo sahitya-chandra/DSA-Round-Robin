@@ -31,8 +31,6 @@ export function setupChatSocket(io: Server) {
     socket.join(userId);
 
     console.log(`✅ Chat connected: user ${userId}, socket ${socket.id}`);
-
-    // ---- Send normal message ----
     socket.on("sendMessage", async ({ senderId, receiverId, content }) => {
       try {
         console.log(`💬 ${senderId} → ${receiverId}: ${content}`);
@@ -41,37 +39,22 @@ export function setupChatSocket(io: Server) {
           data: { senderId, receiverId, content },
         });
 
-        const receiverSocketId = chatUserSockets.get(receiverId);
-        if (receiverSocketId) {
-          io.of("/friends").to(receiverSocketId).emit("receiveMessage", msg);
-        }
+        io.of("/friends").to(receiverId).emit("receiveMessage", msg);
 
+        socket.to(senderId).emit("receiveMessage", msg);
+        
         io.of("/friends").to(socket.id).emit("messageSent", msg);
       } catch (err) {
         console.error("❌ Error saving chat message:", err);
       }
     });
-
-    // ---- Typing indicators ----
     socket.on("typing", ({ toUserId }) => {
-      const receiverSocketId = chatUserSockets.get(toUserId);
-      if (receiverSocketId) {
-        io.of("/friends")
-          .to(receiverSocketId)
-          .emit("typing", { fromUserId: userId });
-      }
+      io.of("/friends").to(toUserId).emit("typing", { fromUserId: userId });
     });
 
     socket.on("stopTyping", ({ toUserId }) => {
-      const receiverSocketId = chatUserSockets.get(toUserId);
-      if (receiverSocketId) {
-        io.of("/friends")
-          .to(receiverSocketId)
-          .emit("stopTyping", { fromUserId: userId });
-      }
+      io.of("/friends").to(toUserId).emit("stopTyping", { fromUserId: userId });
     });
-
-    // ---- Match invite ----
     socket.on("matchInvite", ({ fromUserId, fromUserName, toUserId }) => {
       console.log("🎯 matchInvite:", { fromUserId, fromUserName, toUserId });
 
@@ -117,8 +100,6 @@ export function setupChatSocket(io: Server) {
           });
       }, 30000);
     });
-
-    // ---- Respond to invite (accept / decline) ----
     socket.on(
       "respondInvite",
       async ({
@@ -224,8 +205,6 @@ export function setupChatSocket(io: Server) {
         }
       }
     );
-
-    // ---- Disconnect cleanup ----
     socket.on("disconnect", () => {
       const uId = chatSocketToUser.get(socket.id);
       if (uId) {
