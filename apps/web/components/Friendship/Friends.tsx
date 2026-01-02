@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { API_BASE_URL } from "@/lib/api";
 import { ListItemSkeleton } from "@/components/ui/skeleton";
+import { useFriendsListStore } from "@/stores/friendsListStore";
 
 interface Friend {
   id: string;
@@ -55,6 +56,8 @@ const Friends: React.FC<FriendsProps> = ({
     setCurrentChatterID(friend.id);
   };
 
+  const { onlineUsers, unreadMessages } = useFriendsListStore();
+
   return (
     <div className="flex-1 overflow-y-auto p-2 md:p-4 custom-scrollbar font-minecraft">
       <h3 className="font-semibold text-muted-foreground mb-2 md:mb-3 text-sm md:text-lg px-1 text-balance">
@@ -66,29 +69,48 @@ const Friends: React.FC<FriendsProps> = ({
       ) : friends.length === 0 ? (
         <p className="text-muted-foreground text-sm mt-2 px-1">No friends found.</p>
       ) : (
-        friends.map((friend, i) => (
-          <div
-            key={friend.id}
-            onClick={() => handleFriendClick(friend)}
-            className="flex items-center justify-between p-2 md:p-3 mb-2 bg-card border pixel-border hover:bg-muted hover:scale-[1.02] transition-all duration-200 cursor-pointer"
-          >
-            <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
-              <span
-                className={`w-2 h-2 md:w-3 md:h-3 rounded-full flex-shrink-0 ${
-                  i % 2 === 0 ? "bg-green-500" : "bg-gray-500"
-                }`}
-              ></span>
-              <div className="min-w-0 flex-1">
-                <p className="font-medium text-foreground text-sm md:text-base truncate">{friend.name}</p>
-                <p className="text-muted-foreground text-xs truncate">{friend.email}</p>
+        friends.map((friend) => {
+          const isOnline = onlineUsers.includes(friend.id);
+          const unreadCount = unreadMessages[friend.id] || 0;
+
+          return (
+            <div
+              key={friend.id}
+              onClick={() => handleFriendClick(friend)}
+              className="flex items-center justify-between p-2 md:p-3 mb-2 bg-card border pixel-border hover:bg-muted hover:scale-[1.02] transition-all duration-200 cursor-pointer"
+            >
+              <div className="flex items-center space-x-2 md:space-x-3 min-w-0 flex-1">
+                <span
+                  className={`w-2 h-2 md:w-3 md:h-3 rounded-full flex-shrink-0 transition-colors duration-300 ${
+                    isOnline ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]" : "bg-gray-500"
+                  }`}
+                ></span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-foreground text-sm md:text-base truncate">
+                    {friend.name}
+                  </p>
+                  <p className="text-muted-foreground text-xs truncate">
+                    {friend.email}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {unreadCount > 0 && (
+                  <div className="flex items-center justify-center min-w-[20px] h-5 bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 shadow-sm">
+                    {unreadCount}
+                  </div>
+                )}
+                <span className="text-muted-foreground text-base md:text-lg flex-shrink-0">
+                  💬
+                </span>
               </div>
             </div>
-            <span className="text-muted-foreground text-base md:text-lg ml-2 flex-shrink-0">💬</span>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );
 };
+
 
 export default Friends;

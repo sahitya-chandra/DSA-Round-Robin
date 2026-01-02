@@ -11,25 +11,31 @@ import {
   Network, 
   BarChart3, 
   MessageSquare,
-  Gamepad2
+  Gamepad2,
+  Users,
+  User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserNav } from "@/components/Dashboard/UserNav"; 
+import { useFriendsListStore } from "@/stores/friendsListStore"; 
 
 // Note: UserNav will be a simplified version or reuse existing user profile logic if available.
 // For now I'll stub it or use a simple avatar.
 
-const sidebarItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Puzzles", href: "/puzzles", icon: Puzzle },
-  { name: "Daily Challenge", href: "/daily-challenge", icon: Calendar },
-  { name: "Leaderboard", href: "/leaderboard", icon: BarChart3 },
-  { name: "Chats", href: "/friends", icon: MessageSquare },
-  { name: "Feedback", href: "/feedback", icon: MessageSquare }, // Keeping Feedback as requested, though icon duplicate
-];
-
 export function SidebarContent({ className, onItemClick }: { className?: string, onItemClick?: () => void }) {
   const pathname = usePathname();
+  const { pendingRequests, unreadMessages } = useFriendsListStore();
+
+  const totalUnreadInfo = Object.values(unreadMessages).reduce((a, b) => a + b, 0);
+
+  const sidebarItems = [
+    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Puzzles", href: "/puzzles", icon: Puzzle },
+    { name: "Daily Challenge", href: "/daily-challenge", icon: Calendar },
+    { name: "Leaderboard", href: "/leaderboard", icon: BarChart3 },
+    { name: "Chats", href: "/friends", icon: MessageSquare },
+    { name: "Feedback", href: "/feedback", icon: MessageSquare },
+  ];
 
   return (
     <div className={cn("flex flex-col h-full bg-sidebar border-r-2 border-sidebar-border minecraft-texture", className)}>
@@ -45,19 +51,26 @@ export function SidebarContent({ className, onItemClick }: { className?: string,
       <nav className="flex-1 px-4 space-y-2 py-4 overflow-y-auto custom-scrollbar">
         {sidebarItems.map((item) => {
           const isActive = pathname === item.href;
+          const hasNotification = item.name === "Chats" && (pendingRequests.length > 0 || totalUnreadInfo > 0);
+
           return (
             <Link
               key={item.href}
               href={item.href}
               onClick={onItemClick}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 transition-all duration-200 group pixel-border-outset active:pixel-border-inset",
+                "flex items-center gap-3 px-4 py-3 transition-all duration-200 group pixel-border-outset active:pixel-border-inset relative",
                 isActive 
                   ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium pixel-border-inset" 
                   : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
               )}
             >
-              <item.icon className={cn("w-5 h-5", isActive ? "text-sidebar-primary" : "group-hover:text-sidebar-primary")} />
+              <div className="relative">
+                <item.icon className={cn("w-5 h-5", isActive ? "text-sidebar-primary" : "group-hover:text-sidebar-primary")} />
+                {hasNotification && (
+                   <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full ring-1 ring-background" />
+                )}
+              </div>
               <span>{item.name}</span>
             </Link>
           );

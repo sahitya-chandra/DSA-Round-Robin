@@ -4,17 +4,24 @@ import React, { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { SidebarContent } from "@/components/Dashboard/Sidebar";
 import { cn } from "@/lib/utils";
+import { useFriendsListStore } from "@/stores/friendsListStore";
 
 export function MobileSidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { pendingRequests, unreadMessages } = useFriendsListStore();
+  
+  const totalUnreadInfo = Object.values(unreadMessages).reduce((a, b) => a + b, 0);
 
   return (
     <div className="md:hidden">
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 left-4 z-50 p-2 bg-sidebar border-2 border-sidebar-border pixel-border-outset active:pixel-border-inset"
+        className="fixed top-4 left-4 z-50 p-2 bg-sidebar border-2 border-sidebar-border pixel-border-outset active:pixel-border-inset relative"
       >
         <Menu className="w-6 h-6 text-sidebar-foreground" />
+        {(pendingRequests.length > 0 || totalUnreadInfo > 0) && (
+          <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-red-500 rounded-full ring-1 ring-background" />
+        )}
       </button>
 
       {isOpen && (
