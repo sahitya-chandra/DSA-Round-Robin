@@ -25,5 +25,29 @@ export const auth = betterAuth({
       sameSite: process.env.NODE_ENV === 'production' ? 'none': 'lax',
     },
   },
-	trustedOrigins: ["https://www.dsaroundrobin.fun", "http://localhost:3000"]
+	trustedOrigins: ["https://www.dsaroundrobin.fun", "http://localhost:3000"],
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          try {
+            await prisma.leaderboardEntry.create({
+              data: {
+                userId: user.id,
+                rating: 1200,
+                wins: 0,
+                losses: 0,
+                totalMatches: 0,
+                winStreak: 0,
+                bestWinStreak: 0,
+              },
+            });
+            console.log(`Created leaderboard entry for user ${user.id}`);
+          } catch (error) {
+            console.error(`Failed to create leaderboard entry for user ${user.id}:`, error);
+          }
+        },
+      },
+    },
+  },
 });

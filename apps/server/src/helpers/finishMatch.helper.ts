@@ -1,6 +1,7 @@
 import prisma from "@repo/db";
 import { publisherClient, connection as redis } from "@repo/queue";
 import { ACTIVE_MATCH_PREFIX, SUBMISSIONS_PREFIX, USER_MATCH_PREFIX } from "../utils/constants";
+import { getIo } from "../utils/socketInstance";
 
 export async function finishMatchById(matchId: string, opts: { reason?: string, winnerId?: string } = {}) {
   const key = `${ACTIVE_MATCH_PREFIX}${matchId}`;
@@ -129,6 +130,52 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
               createdAt: new Date(s.createdAt),
             })),
           });
+          // --- START LEADERBOARD UPDATES ---
+
+          const updateLeaderboard = async (userId: string, isWinner: boolean, newRating: number) => {
+            const entry = await tx.leaderboardEntry.findUnique({ where: { userId } });
+            
+            let winStreak = entry?.winStreak || 0;
+            if (isWinner) {
+              winStreak += 1;
+            } else {
+              winStreak = 0;
+            }
+
+            const bestWinStreak = Math.max(entry?.bestWinStreak || 0, winStreak);
+
+            await tx.leaderboardEntry.upsert({
+              where: { userId },
+              create: {
+                userId,
+                rating: newRating,
+                wins: isWinner ? 1 : 0,
+                losses: isWinner ? 0 : 1,
+                totalMatches: 1,
+                winStreak,
+                bestWinStreak,
+                lastMatchAt: endedAt,
+              },
+              update: {
+                rating: newRating,
+                wins: { increment: isWinner ? 1 : 0 },
+                losses: { increment: isWinner ? 0 : 1 },
+                totalMatches: { increment: 1 },
+                winStreak,
+                bestWinStreak,
+                lastMatchAt: endedAt,
+              },
+            });
+          };
+
+          // Update requester
+          await updateLeaderboard(requesterId, winnerId === requesterId, newRatingR);
+
+          // Update opponent
+          await updateLeaderboard(opponentId, winnerId === opponentId, newRatingO);
+
+          // --- END LEADERBOARD UPDATES ---
+
         }, {
           timeout: 20000,
         });
@@ -141,6 +188,13 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
 
         const payload = { event: "match_finished", data: { matchId, winnerId } };
         await publisherClient.publish("match_events", JSON.stringify(payload));
+
+        // Emit real-time leaderboard update
+        try {
+            getIo().emit("leaderboard_update");
+        } catch (e) {
+            console.error("Failed to emit leaderboard_update:", e);
+        }
 
         return { matchId, winnerId, rScore, oScore };
       } catch (err) {

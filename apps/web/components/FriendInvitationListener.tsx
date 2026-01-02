@@ -4,16 +4,26 @@ import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { useSocket } from "@/hooks/useSocket";
+import { API_BASE_URL } from "@/lib/api";
 import { MinecraftToast } from "./MinecraftToast";
 import { useRouter } from "next/navigation";
 import { useFriendsListStore } from "@/stores/friendsListStore";
-import { FriendRequestToast } from "./FriendRequestToast";
+import { useMatchListener } from "@/hooks/useMatchListener";
 export const FriendInvitationListener = () => {
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending } = authClient.useSession();
   const userId = session?.user?.id;
   const socket = useSocket(userId || "");
+
+  useEffect(() => {
+    if (userId) {
+      console.log("FriendInvitationListener active for user:", userId);
+    }
+  }, [userId]);
   const router = useRouter();
   const { addPendingRequest, removePendingRequest, setOnlineUsers } = useFriendsListStore();
+  
+  // ✅ Listen for match start events globally to handle redirects
+  useMatchListener();
 
   // const respondedInvitesRef = useRef<Set<string>>(new Set());
   // const markResponded = (inviterId: string) => {
@@ -22,7 +32,7 @@ export const FriendInvitationListener = () => {
 
   const handleAccept = async (requestId: string, t: string | number) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/social/accept`, {
+      const res = await fetch(`${API_BASE_URL}/api/social/accept`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ requestId }),
@@ -43,7 +53,7 @@ export const FriendInvitationListener = () => {
 
   const handleReject = async (requestId: string, t: string | number) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/social/reject`, {
+      const res = await fetch(`${API_BASE_URL}/api/social/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ requestId }),
@@ -78,17 +88,6 @@ export const FriendInvitationListener = () => {
         };
         
         addPendingRequest(newRequest);
-
-        toast.custom(
-            (t) => (
-                <FriendRequestToast
-                  requesterName={data.senderName}
-                  onAccept={() => handleAccept(data.requestId, t)}
-                  onReject={() => handleReject(data.requestId, t)}
-                />
-            ),
-            { duration: Infinity }
-        );
     };
 
     const handleOnlineUsers = (users: string[]) => {

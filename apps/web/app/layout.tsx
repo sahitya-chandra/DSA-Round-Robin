@@ -28,8 +28,8 @@ export default function RootLayout({
       <body className={`${inter.className} ${minecraftFont.variable}`}>
         <FriendInvitationListener />
         <GlobalChatListener />
-        <Toaster />
         {children}
+        <Toaster />
       </body>
     </html>
   );
