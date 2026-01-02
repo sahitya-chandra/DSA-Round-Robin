@@ -89,7 +89,12 @@ const App: React.FC = () => {
         }
         const data = await res.json();
         if (data.error || data.status === "finished") {
-          router.replace("/");
+          // If the match is already finished in the DB, but we haven't shown 
+          // the result yet, don't redirect yet. 
+          // However, if we are NOT in the match room anymore or it's totally gone, we should redirect.
+          if (!visible) {
+             router.replace("/");
+          }
           return;
         }
         setOpponent(data.opponent);
@@ -514,6 +519,7 @@ const App: React.FC = () => {
           userId={session?.user?.id}
           onReturnHome={() => {
             hideResult();
+            useMatchStore.getState().resetMatchData();
             router.replace("/");
           }}
         />

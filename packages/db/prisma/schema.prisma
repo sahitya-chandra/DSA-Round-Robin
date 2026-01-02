@@ -115,9 +115,10 @@ model Match {
 }
 
 model MatchParticipant {
-  matchId    String
-  userId     String
-  joinedAt   DateTime @default(now())
+  matchId      String
+  userId       String
+  joinedAt     DateTime @default(now())
+  ratingChange Int?
 
   match      Match @relation(fields: [matchId], references: [id])
   user       User  @relation(fields: [userId], references: [id])
