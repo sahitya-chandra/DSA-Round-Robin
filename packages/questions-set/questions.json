@@ -3,7 +3,7 @@
     "id": 1,
     "category": "math",
     "difficulty": "easy",
-    "question": "Return the same number that was given as input.",
+    "question": "Read a number and print it.",
     "testcases": [
       { "input": "5\n", "expected_output": "5\n" },
       { "input": "42\n", "expected_output": "42\n" },
@@ -14,7 +14,7 @@
     "id": 2,
     "category": "math",
     "difficulty": "easy",
-    "question": "Return the number plus 1.",
+    "question": "Print the number plus 1.",
     "testcases": [
       { "input": "1\n", "expected_output": "2\n" },
       { "input": "10\n", "expected_output": "11\n" },
@@ -25,18 +25,18 @@
     "id": 3,
     "category": "strings",
     "difficulty": "easy",
-    "question": "Return the same string given as input.",
+    "question": "Print the string given as input.",
     "testcases": [
-      { "input": "hello\n", "expected_output": "hello\n" },
+      { "input": "hi\n", "expected_output": "hi\n" },
       { "input": "abc\n", "expected_output": "abc\n" },
-      { "input": "\n", "expected_output": "\n" }
+      { "input": "test\n", "expected_output": "test\n" }
     ]
   },
   {
     "id": 4,
     "category": "logic",
     "difficulty": "easy",
-    "question": "Return true if the number is positive, otherwise false.",
+    "question": "Print true if positive, else false.",
     "testcases": [
       { "input": "5\n", "expected_output": "true\n" },
       { "input": "-1\n", "expected_output": "false\n" },
@@ -47,21 +47,21 @@
     "id": 5,
     "category": "arrays",
     "difficulty": "easy",
-    "question": "Return the length of the array.",
+    "question": "Print the length of the array N.",
     "testcases": [
       { "input": "3\n1 2 3\n", "expected_output": "3\n" },
       { "input": "0\n\n", "expected_output": "0\n" },
-      { "input": "1\n42\n", "expected_output": "1\n" }
+      { "input": "1\n9\n", "expected_output": "1\n" }
     ]
   },
   {
     "id": 6,
     "category": "math",
     "difficulty": "easy",
-    "question": "Return the square of the given number.",
+    "question": "Print the square of the number.",
     "testcases": [
-      { "input": "2\n", "expected_output": "4\n" },
-      { "input": "-3\n", "expected_output": "9\n" },
+      { "input": "3\n", "expected_output": "9\n" },
+      { "input": "-2\n", "expected_output": "4\n" },
       { "input": "0\n", "expected_output": "0\n" }
     ]
   },
@@ -69,18 +69,18 @@
     "id": 7,
     "category": "strings",
     "difficulty": "easy",
-    "question": "Return the length of the string.",
+    "question": "Print the length of the string.",
     "testcases": [
+      { "input": "cat\n", "expected_output": "3\n" },
       { "input": "hello\n", "expected_output": "5\n" },
-      { "input": "abc\n", "expected_output": "3\n" },
-      { "input": "\n", "expected_output": "0\n" }
+      { "input": "a\n", "expected_output": "1\n" }
     ]
   },
   {
     "id": 8,
     "category": "logic",
     "difficulty": "easy",
-    "question": "Return true if the number is even, otherwise false.",
+    "question": "Print true if even, else false.",
     "testcases": [
       { "input": "4\n", "expected_output": "true\n" },
       { "input": "7\n", "expected_output": "false\n" },
@@ -91,297 +91,112 @@
     "id": 9,
     "category": "arrays",
     "difficulty": "easy",
-    "question": "Return the sum of all elements in the array.",
+    "question": "Print the sum of array elements.",
     "testcases": [
       { "input": "3\n1 2 3\n", "expected_output": "6\n" },
-      { "input": "5\n0 0 0 0 0\n", "expected_output": "0\n" },
-      { "input": "4\n-1 -2 -3 -4\n", "expected_output": "-10\n" }
+      { "input": "2\n5 5\n", "expected_output": "10\n" },
+      { "input": "1\n-1\n", "expected_output": "-1\n" }
     ]
   },
   {
     "id": 10,
     "category": "math",
     "difficulty": "easy",
-    "question": "Return the factorial of the number.",
+    "question": "Print the factorial of n.",
     "testcases": [
       { "input": "3\n", "expected_output": "6\n" },
       { "input": "5\n", "expected_output": "120\n" },
       { "input": "0\n", "expected_output": "1\n" }
     ]
   },
-  {
-    "id": 11,
-    "category": "math",
-    "difficulty": "easy",
-    "question": "Return the absolute value of the number.",
-    "testcases": [
-      { "input": "-5\n", "expected_output": "5\n" },
-      { "input": "7\n", "expected_output": "7\n" },
-      { "input": "0\n", "expected_output": "0\n" }
-    ]
-  },
-  {
-    "id": 12,
-    "category": "strings",
-    "difficulty": "easy",
-    "question": "Return the string reversed.",
-    "testcases": [
-      { "input": "abc\n", "expected_output": "cba\n" },
-      { "input": "hello\n", "expected_output": "olleh\n" },
-      { "input": "a\n", "expected_output": "a\n" }
-    ]
-  },
-  {
-    "id": 13,
-    "category": "logic",
-    "difficulty": "easy",
-    "question": "Return true if the number is divisible by 3, otherwise false.",
-    "testcases": [
-      { "input": "9\n", "expected_output": "true\n" },
-      { "input": "10\n", "expected_output": "false\n" },
-      { "input": "-6\n", "expected_output": "true\n" }
-    ]
-  },
-  {
-    "id": 14,
-    "category": "arrays",
-    "difficulty": "easy",
-    "question": "Return the maximum element in the array.",
-    "testcases": [
-      { "input": "3\n1 2 3\n", "expected_output": "3\n" },
-      { "input": "4\n-1 -2 -3 -4\n", "expected_output": "-1\n" },
-      { "input": "1\n42\n", "expected_output": "42\n" }
-    ]
-  },
-  {
-    "id": 15,
-    "category": "arrays",
-    "difficulty": "easy",
-    "question": "Return the minimum element in the array.",
-    "testcases": [
-      { "input": "3\n1 2 3\n", "expected_output": "1\n" },
-      { "input": "4\n-1 -2 -3 -4\n", "expected_output": "-4\n" },
-      { "input": "1\n42\n", "expected_output": "42\n" }
-    ]
-  },
-  {
-    "id": 16,
-    "category": "math",
-    "difficulty": "easy",
-    "question": "Return the remainder when the number is divided by 2.",
-    "testcases": [
-      { "input": "5\n", "expected_output": "1\n" },
-      { "input": "10\n", "expected_output": "0\n" },
-      { "input": "-3\n", "expected_output": "-1\n" }
-    ]
-  },
-  {
-    "id": 17,
-    "category": "strings",
-    "difficulty": "easy",
-    "question": "Convert the string to uppercase.",
-    "testcases": [
-      { "input": "hello\n", "expected_output": "HELLO\n" },
-      { "input": "Abc\n", "expected_output": "ABC\n" },
-      { "input": "xyz\n", "expected_output": "XYZ\n" }
-    ]
-  },
-  {
-    "id": 18,
-    "category": "strings",
-    "difficulty": "easy",
-    "question": "Convert the string to lowercase.",
-    "testcases": [
-      { "input": "HELLO\n", "expected_output": "hello\n" },
-      { "input": "AbC\n", "expected_output": "abc\n" },
-      { "input": "xyz\n", "expected_output": "xyz\n" }
-    ]
-  },
-  {
-    "id": 19,
-    "category": "logic",
-    "difficulty": "easy",
-    "question": "Return true if the number is odd, otherwise false.",
-    "testcases": [
-      { "input": "7\n", "expected_output": "true\n" },
-      { "input": "4\n", "expected_output": "false\n" },
-      { "input": "0\n", "expected_output": "false\n" }
-    ]
-  },
-  {
-    "id": 20,
-    "category": "math",
-    "difficulty": "easy",
-    "question": "Return the cube of the number.",
-    "testcases": [
-      { "input": "2\n", "expected_output": "8\n" },
-      { "input": "-3\n", "expected_output": "-27\n" },
-      { "input": "0\n", "expected_output": "0\n" }
-    ]
-  },
-  {
-    "id": 21,
-    "category": "arrays",
-    "difficulty": "easy",
-    "question": "Return the first element of the array.",
-    "testcases": [
-      { "input": "3\n1 2 3\n", "expected_output": "1\n" },
-      { "input": "1\n42\n", "expected_output": "42\n" },
-      { "input": "4\n-1 5 7 9\n", "expected_output": "-1\n" }
-    ]
-  },
-  {
-    "id": 22,
-    "category": "arrays",
-    "difficulty": "easy",
-    "question": "Return the last element of the array.",
-    "testcases": [
-      { "input": "3\n1 2 3\n", "expected_output": "3\n" },
-      { "input": "1\n42\n", "expected_output": "42\n" },
-      { "input": "4\n-1 5 7 9\n", "expected_output": "9\n" }
-    ]
-  },
-  {
-    "id": 23,
-    "category": "logic",
-    "difficulty": "easy",
-    "question": "Return true if the number is zero, otherwise false.",
-    "testcases": [
-      { "input": "0\n", "expected_output": "true\n" },
-      { "input": "7\n", "expected_output": "false\n" },
-      { "input": "-3\n", "expected_output": "false\n" }
-    ]
-  },
-  {
-    "id": 24,
-    "category": "math",
-    "difficulty": "easy",
-    "question": "Return the sum of two numbers.",
-    "testcases": [
-      { "input": "2 3\n", "expected_output": "5\n" },
-      { "input": "-1 5\n", "expected_output": "4\n" },
-      { "input": "0 0\n", "expected_output": "0\n" }
-    ]
-  },
-  {
-    "id": 25,
-    "category": "math",
-    "difficulty": "easy",
-    "question": "Return the difference of two numbers (first - second).",
-    "testcases": [
-      { "input": "5 3\n", "expected_output": "2\n" },
-      { "input": "3 5\n", "expected_output": "-2\n" },
-      { "input": "0 0\n", "expected_output": "0\n" }
-    ]
-  },
-  {
-    "id": 26,
-    "category": "math",
-    "difficulty": "easy",
-    "question": "Return the product of two numbers.",
-    "testcases": [
-      { "input": "2 3\n", "expected_output": "6\n" },
-      { "input": "-2 5\n", "expected_output": "-10\n" },
-      { "input": "0 100\n", "expected_output": "0\n" }
-    ]
-  },
-  {
-    "id": 27,
-    "category": "math",
-    "difficulty": "easy",
-    "question": "Return the integer division result of the first number divided by the second.",
-    "testcases": [
-      { "input": "10 2\n", "expected_output": "5\n" },
-      { "input": "7 3\n", "expected_output": "2\n" },
-      { "input": "5 5\n", "expected_output": "1\n" }
-    ]
-  },
-  {
-    "id": 28,
-    "category": "math",
-    "difficulty": "easy",
-    "question": "Return the remainder when the first number is divided by the second.",
-    "testcases": [
-      { "input": "10 3\n", "expected_output": "1\n" },
-      { "input": "7 7\n", "expected_output": "0\n" },
-      { "input": "5 2\n", "expected_output": "1\n" }
-    ]
-  },
-  {
-    "id": 29,
-    "category": "strings",
-    "difficulty": "easy",
-    "question": "Return the first character of the string.",
-    "testcases": [
-      { "input": "hello\n", "expected_output": "h\n" },
-      { "input": "a\n", "expected_output": "a\n" },
-      { "input": "world\n", "expected_output": "w\n" }
-    ]
-  },
-  {
-    "id": 30,
-    "category": "strings",
-    "difficulty": "easy",
-    "question": "Return the last character of the string.",
-    "testcases": [
-      { "input": "hello\n", "expected_output": "o\n" },
-      { "input": "a\n", "expected_output": "a\n" },
-      { "input": "world\n", "expected_output": "d\n" }
-    ]
-  },
-  {
-    "id": 31,
-    "category": "strings",
-    "difficulty": "easy",
-    "question": "Concatenate two strings.",
-    "testcases": [
-      { "input": "hello world\n", "expected_output": "helloworld\n" },
-      { "input": "abc xyz\n", "expected_output": "abcxyz\n" },
-      { "input": "a b\n", "expected_output": "ab\n" }
-    ]
-  },
-  {
-    "id": 32,
-    "category": "logic",
-    "difficulty": "easy",
-    "question": "Return true if both numbers are equal, otherwise false.",
-    "testcases": [
-      { "input": "5 5\n", "expected_output": "true\n" },
-      { "input": "7 3\n", "expected_output": "false\n" },
-      { "input": "-1 -1\n", "expected_output": "true\n" }
-    ]
-  },
-  {
-    "id": 33,
-    "category": "logic",
-    "difficulty": "easy",
-    "question": "Return true if the first number is greater than the second.",
-    "testcases": [
-      { "input": "5 3\n", "expected_output": "true\n" },
-      { "input": "2 8\n", "expected_output": "false\n" },
-      { "input": "7 7\n", "expected_output": "false\n" }
-    ]
-  },
-  {
-    "id": 34,
-    "category": "logic",
-    "difficulty": "easy",
-    "question": "Return true if the first number is less than the second.",
-    "testcases": [
-      { "input": "3 5\n", "expected_output": "true\n" },
-      { "input": "9 2\n", "expected_output": "false\n" },
-      { "input": "4 4\n", "expected_output": "false\n" }
-    ]
-  },
-  {
-    "id": 35,
-    "category": "arrays",
-    "difficulty": "easy",
-    "question": "Return the average of all elements in the array (integer division).",
-    "testcases": [
-      { "input": "3\n1 2 3\n", "expected_output": "2\n" },
-      { "input": "4\n2 4 6 8\n", "expected_output": "5\n" },
-      { "input": "2\n-1 1\n", "expected_output": "0\n" }
-    ]
-  }
+  { "id": 11, "category": "math", "difficulty": "easy", "question": "Print absolute value.", "testcases": [{ "input": "-5\n", "expected_output": "5\n" }, { "input": "7\n", "expected_output": "7\n" }, { "input": "0\n", "expected_output": "0\n" }] },
+  { "id": 12, "category": "strings", "difficulty": "easy", "question": "Print string reversed.", "testcases": [{ "input": "abc\n", "expected_output": "cba\n" }, { "input": "hi\n", "expected_output": "ih\n" }, { "input": "z\n", "expected_output": "z\n" }] },
+  { "id": 13, "category": "logic", "difficulty": "easy", "question": "Print true if div by 3.", "testcases": [{ "input": "9\n", "expected_output": "true\n" }, { "input": "10\n", "expected_output": "false\n" }, { "input": "-6\n", "expected_output": "true\n" }] },
+  { "id": 14, "category": "arrays", "difficulty": "easy", "question": "Print max element.", "testcases": [{ "input": "3\n1 2 3\n", "expected_output": "3\n" }, { "input": "2\n-5 -1\n", "expected_output": "-1\n" }, { "input": "1\n10\n", "expected_output": "10\n" }] },
+  { "id": 15, "category": "arrays", "difficulty": "easy", "question": "Print min element.", "testcases": [{ "input": "3\n1 2 3\n", "expected_output": "1\n" }, { "input": "2\n-5 -1\n", "expected_output": "-5\n" }, { "input": "1\n10\n", "expected_output": "10\n" }] },
+  { "id": 16, "category": "math", "difficulty": "easy", "question": "Print remainder by 2.", "testcases": [{ "input": "5\n", "expected_output": "1\n" }, { "input": "10\n", "expected_output": "0\n" }, { "input": "-3\n", "expected_output": "-1\n" }] },
+  { "id": 17, "category": "strings", "difficulty": "easy", "question": "Print uppercase string.", "testcases": [{ "input": "hi\n", "expected_output": "HI\n" }, { "input": "Abc\n", "expected_output": "ABC\n" }, { "input": "wow\n", "expected_output": "WOW\n" }] },
+  { "id": 18, "category": "strings", "difficulty": "easy", "question": "Print lowercase string.", "testcases": [{ "input": "HI\n", "expected_output": "hi\n" }, { "input": "AbC\n", "expected_output": "abc\n" }, { "input": "XYZ\n", "expected_output": "xyz\n" }] },
+  { "id": 19, "category": "logic", "difficulty": "easy", "question": "Print true if odd.", "testcases": [{ "input": "7\n", "expected_output": "true\n" }, { "input": "4\n", "expected_output": "false\n" }, { "input": "0\n", "expected_output": "false\n" }] },
+  { "id": 20, "category": "math", "difficulty": "easy", "question": "Print the cube of n.", "testcases": [{ "input": "2\n", "expected_output": "8\n" }, { "input": "-3\n", "expected_output": "-27\n" }, { "input": "1\n", "expected_output": "1\n" }] },
+  { "id": 21, "category": "arrays", "difficulty": "easy", "question": "Print first element.", "testcases": [{ "input": "3\n1 2 3\n", "expected_output": "1\n" }, { "input": "1\n9\n", "expected_output": "9\n" }, { "input": "2\n7 8\n", "expected_output": "7\n" }] },
+  { "id": 22, "category": "arrays", "difficulty": "easy", "question": "Print last element.", "testcases": [{ "input": "3\n1 2 3\n", "expected_output": "3\n" }, { "input": "1\n9\n", "expected_output": "9\n" }, { "input": "2\n7 8\n", "expected_output": "8\n" }] },
+  { "id": 23, "category": "logic", "difficulty": "easy", "question": "Print true if zero.", "testcases": [{ "input": "0\n", "expected_output": "true\n" }, { "input": "5\n", "expected_output": "false\n" }, { "input": "-1\n", "expected_output": "false\n" }] },
+  { "id": 24, "category": "math", "difficulty": "easy", "question": "Print sum of A and B.", "testcases": [{ "input": "2 3\n", "expected_output": "5\n" }, { "input": "-1 5\n", "expected_output": "4\n" }, { "input": "0 0\n", "expected_output": "0\n" }] },
+  { "id": 25, "category": "math", "difficulty": "easy", "question": "Print A - B.", "testcases": [{ "input": "10 3\n", "expected_output": "7\n" }, { "input": "3 10\n", "expected_output": "-7\n" }, { "input": "5 5\n", "expected_output": "0\n" }] },
+  { "id": 26, "category": "math", "difficulty": "easy", "question": "Print product A * B.", "testcases": [{ "input": "2 4\n", "expected_output": "8\n" }, { "input": "-3 2\n", "expected_output": "-6\n" }, { "input": "0 5\n", "expected_output": "0\n" }] },
+  { "id": 27, "category": "math", "difficulty": "easy", "question": "Print A / B (int).", "testcases": [{ "input": "10 2\n", "expected_output": "5\n" }, { "input": "7 3\n", "expected_output": "2\n" }, { "input": "9 4\n", "expected_output": "2\n" }] },
+  { "id": 28, "category": "math", "difficulty": "easy", "question": "Print A % B.", "testcases": [{ "input": "10 3\n", "expected_output": "1\n" }, { "input": "7 7\n", "expected_output": "0\n" }, { "input": "5 2\n", "expected_output": "1\n" }] },
+  { "id": 29, "category": "strings", "difficulty": "easy", "question": "Print first char.", "testcases": [{ "input": "apple\n", "expected_output": "a\n" }, { "input": "b\n", "expected_output": "b\n" }, { "input": "hello\n", "expected_output": "h\n" }] },
+  { "id": 30, "category": "strings", "difficulty": "easy", "question": "Print last char.", "testcases": [{ "input": "apple\n", "expected_output": "e\n" }, { "input": "b\n", "expected_output": "b\n" }, { "input": "hello\n", "expected_output": "o\n" }] },
+  { "id": 31, "category": "strings", "difficulty": "easy", "question": "Concatenate A B.", "testcases": [{ "input": "hi way\n", "expected_output": "hiway\n" }, { "input": "a b\n", "expected_output": "ab\n" }, { "input": "dog cat\n", "expected_output": "dogcat\n" }] },
+  { "id": 32, "category": "logic", "difficulty": "easy", "question": "Print true if A == B.", "testcases": [{ "input": "5 5\n", "expected_output": "true\n" }, { "input": "5 4\n", "expected_output": "false\n" }, { "input": "-1 -1\n", "expected_output": "true\n" }] },
+  { "id": 33, "category": "logic", "difficulty": "easy", "question": "Print true if A > B.", "testcases": [{ "input": "10 5\n", "expected_output": "true\n" }, { "input": "5 10\n", "expected_output": "false\n" }, { "input": "5 5\n", "expected_output": "false\n" }] },
+  { "id": 34, "category": "logic", "difficulty": "easy", "question": "Print true if A < B.", "testcases": [{ "input": "3 8\n", "expected_output": "true\n" }, { "input": "8 3\n", "expected_output": "false\n" }, { "input": "4 4\n", "expected_output": "false\n" }] },
+  { "id": 35, "category": "arrays", "difficulty": "easy", "question": "Print array average (int).", "testcases": [{ "input": "3\n1 2 3\n", "expected_output": "2\n" }, { "input": "2\n10 20\n", "expected_output": "15\n" }, { "input": "3\n1 1 5\n", "expected_output": "2\n" }] },
+  { "id": 36, "category": "math", "difficulty": "easy", "question": "Print n^2.", "testcases": [{ "input": "4\n", "expected_output": "16\n" }, { "input": "5\n", "expected_output": "25\n" }, { "input": "10\n", "expected_output": "100\n" }] },
+  { "id": 37, "category": "math", "difficulty": "easy", "question": "Print double of n.", "testcases": [{ "input": "5\n", "expected_output": "10\n" }, { "input": "0\n", "expected_output": "0\n" }, { "input": "-2\n", "expected_output": "-4\n" }] },
+  { "id": 38, "category": "strings", "difficulty": "easy", "question": "Print string twice.", "testcases": [{ "input": "abc\n", "expected_output": "abcabc\n" }, { "input": "z\n", "expected_output": "zz\n" }, { "input": "12\n", "expected_output": "1212\n" }] },
+  { "id": 39, "category": "logic", "difficulty": "easy", "question": "Print true if 1 <= n <= 10.", "testcases": [{ "input": "5\n", "expected_output": "true\n" }, { "input": "11\n", "expected_output": "false\n" }, { "input": "1\n", "expected_output": "true\n" }] },
+  { "id": 40, "category": "math", "difficulty": "easy", "question": "Print area of square side s.", "testcases": [{ "input": "4\n", "expected_output": "16\n" }, { "input": "1\n", "expected_output": "1\n" }, { "input": "10\n", "expected_output": "100\n" }] },
+  { "id": 41, "category": "math", "difficulty": "easy", "question": "Print perimeter square side s.", "testcases": [{ "input": "5\n", "expected_output": "20\n" }, { "input": "2\n", "expected_output": "8\n" }, { "input": "10\n", "expected_output": "40\n" }] },
+  { "id": 42, "category": "arrays", "difficulty": "easy", "question": "Count even numbers in array.", "testcases": [{ "input": "3\n1 2 4\n", "expected_output": "2\n" }, { "input": "2\n1 3\n", "expected_output": "0\n" }, { "input": "1\n0\n", "expected_output": "1\n" }] },
+  { "id": 43, "category": "arrays", "difficulty": "easy", "question": "Count odd numbers in array.", "testcases": [{ "input": "3\n1 2 3\n", "expected_output": "2\n" }, { "input": "2\n2 4\n", "expected_output": "0\n" }, { "input": "1\n5\n", "expected_output": "1\n" }] },
+  { "id": 44, "category": "strings", "difficulty": "easy", "question": "True if starts with 'a'.", "testcases": [{ "input": "apple\n", "expected_output": "true\n" }, { "input": "bat\n", "expected_output": "false\n" }, { "input": "art\n", "expected_output": "true\n" }] },
+  { "id": 45, "category": "logic", "difficulty": "easy", "question": "Flip boolean input.", "testcases": [{ "input": "true\n", "expected_output": "false\n" }, { "input": "false\n", "expected_output": "true\n" }, { "input": "true\n", "expected_output": "false\n" }] },
+  { "id": 46, "category": "math", "difficulty": "easy", "question": "Print negative of n.", "testcases": [{ "input": "5\n", "expected_output": "-5\n" }, { "input": "-3\n", "expected_output": "3\n" }, { "input": "0\n", "expected_output": "0\n" }] },
+  { "id": 47, "category": "strings", "difficulty": "easy", "question": "Exclude first char.", "testcases": [{ "input": "hello\n", "expected_output": "ello\n" }, { "input": "abc\n", "expected_output": "bc\n" }, { "input": "hi\n", "expected_output": "i\n" }] },
+  { "id": 48, "category": "strings", "difficulty": "easy", "question": "Exclude last char.", "testcases": [{ "input": "hello\n", "expected_output": "hell\n" }, { "input": "abc\n", "expected_output": "ab\n" }, { "input": "hi\n", "expected_output": "h\n" }] },
+  { "id": 49, "category": "logic", "difficulty": "easy", "question": "True if mult of 5.", "testcases": [{ "input": "10\n", "expected_output": "true\n" }, { "input": "7\n", "expected_output": "false\n" }, { "input": "0\n", "expected_output": "true\n" }] },
+  { "id": 50, "category": "math", "difficulty": "easy", "question": "Print A * B + C.", "testcases": [{ "input": "2 3 4\n", "expected_output": "10\n" }, { "input": "1 1 1\n", "expected_output": "2\n" }, { "input": "0 5 2\n", "expected_output": "2\n" }] },
+  { "id": 51, "category": "arrays", "difficulty": "easy", "question": "True if contains zero.", "testcases": [{ "input": "2\n0 1\n", "expected_output": "true\n" }, { "input": "1\n5\n", "expected_output": "false\n" }, { "input": "3\n1 2 0\n", "expected_output": "true\n" }] },
+  { "id": 52, "category": "math", "difficulty": "easy", "question": "Sum digits of 2-digit num.", "testcases": [{ "input": "15\n", "expected_output": "6\n" }, { "input": "99\n", "expected_output": "18\n" }, { "input": "10\n", "expected_output": "1\n" }] },
+  { "id": 53, "category": "logic", "difficulty": "easy", "question": "True if A and B > 0.", "testcases": [{ "input": "1 2\n", "expected_output": "true\n" }, { "input": "-1 2\n", "expected_output": "false\n" }, { "input": "0 1\n", "expected_output": "false\n" }] },
+  { "id": 54, "category": "logic", "difficulty": "easy", "question": "True if A or B > 0.", "testcases": [{ "input": "1 -1\n", "expected_output": "true\n" }, { "input": "-1 -2\n", "expected_output": "false\n" }, { "input": "0 0\n", "expected_output": "false\n" }] },
+  { "id": 55, "category": "strings", "difficulty": "easy", "question": "Print 'Hello, Name'.", "testcases": [{ "input": "Bob\n", "expected_output": "Hello, Bob\n" }, { "input": "AI\n", "expected_output": "Hello, AI\n" }, { "input": "World\n", "expected_output": "Hello, World\n" }] },
+  { "id": 56, "category": "math", "difficulty": "easy", "question": "Print (A+B) * C.", "testcases": [{ "input": "1 2 3\n", "expected_output": "9\n" }, { "input": "2 2 2\n", "expected_output": "8\n" }, { "input": "0 1 5\n", "expected_output": "5\n" }] },
+  { "id": 57, "category": "arrays", "difficulty": "easy", "question": "Print second element.", "testcases": [{ "input": "3\n1 5 9\n", "expected_output": "5\n" }, { "input": "2\n0 1\n", "expected_output": "1\n" }, { "input": "4\n1 2 3 4\n", "expected_output": "2\n" }] },
+  { "id": 58, "category": "math", "difficulty": "easy", "question": "Print n / 10 (float).", "testcases": [{ "input": "5\n", "expected_output": "0.5\n" }, { "input": "20\n", "expected_output": "2.0\n" }, { "input": "1\n", "expected_output": "0.1\n" }] },
+  { "id": 59, "category": "logic", "difficulty": "easy", "question": "True if n >= 100.", "testcases": [{ "input": "100\n", "expected_output": "true\n" }, { "input": "99\n", "expected_output": "false\n" }, { "input": "1000\n", "expected_output": "true\n" }] },
+  { "id": 60, "category": "strings", "difficulty": "easy", "question": "Print 3rd char.", "testcases": [{ "input": "python\n", "expected_output": "t\n" }, { "input": "abc\n", "expected_output": "c\n" }, { "input": "hello\n", "expected_output": "l\n" }] },
+  { "id": 61, "category": "math", "difficulty": "easy", "question": "Smallest of 3 numbers.", "testcases": [{ "input": "1 2 3\n", "expected_output": "1\n" }, { "input": "5 3 4\n", "expected_output": "3\n" }, { "input": "9 9 1\n", "expected_output": "1\n" }] },
+  { "id": 62, "category": "math", "difficulty": "easy", "question": "Largest of 3 numbers.", "testcases": [{ "input": "1 2 3\n", "expected_output": "3\n" }, { "input": "5 3 10\n", "expected_output": "10\n" }, { "input": "0 0 0\n", "expected_output": "0\n" }] },
+  { "id": 63, "category": "arrays", "difficulty": "easy", "question": "Print array reversed.", "testcases": [{ "input": "3\n1 2 3\n", "expected_output": "3 2 1\n" }, { "input": "2\n5 9\n", "expected_output": "9 5\n" }, { "input": "1\n7\n", "expected_output": "7\n" }] },
+  { "id": 64, "category": "strings", "difficulty": "easy", "question": "Yes if 'z' in string.", "testcases": [{ "input": "lazy\n", "expected_output": "yes\n" }, { "input": "dog\n", "expected_output": "no\n" }, { "input": "zoo\n", "expected_output": "yes\n" }] },
+  { "id": 65, "category": "math", "difficulty": "easy", "question": "Print n - 1.", "testcases": [{ "input": "5\n", "expected_output": "4\n" }, { "input": "0\n", "expected_output": "-1\n" }, { "input": "-10\n", "expected_output": "-11\n" }] },
+  { "id": 66, "category": "logic", "difficulty": "easy", "question": "True if A != B.", "testcases": [{ "input": "5 5\n", "expected_output": "false\n" }, { "input": "5 4\n", "expected_output": "true\n" }, { "input": "0 1\n", "expected_output": "true\n" }] },
+  { "id": 67, "category": "math", "difficulty": "easy", "question": "Rectangle area L * W.", "testcases": [{ "input": "2 5\n", "expected_output": "10\n" }, { "input": "3 3\n", "expected_output": "9\n" }, { "input": "10 1\n", "expected_output": "10\n" }] },
+  { "id": 68, "category": "strings", "difficulty": "easy", "question": "True if length is even.", "testcases": [{ "input": "frog\n", "expected_output": "true\n" }, { "input": "cat\n", "expected_output": "false\n" }, { "input": "hi\n", "expected_output": "true\n" }] },
+  { "id": 69, "category": "arrays", "difficulty": "easy", "question": "Index of '7' or -1.", "testcases": [{ "input": "3\n1 7 3\n", "expected_output": "1\n" }, { "input": "2\n1 2\n", "expected_output": "-1\n" }, { "input": "3\n7 7 7\n", "expected_output": "0\n" }] },
+  { "id": 70, "category": "math", "difficulty": "easy", "question": "Median of 3 numbers.", "testcases": [{ "input": "1 5 10\n", "expected_output": "5\n" }, { "input": "10 2 5\n", "expected_output": "5\n" }, { "input": "3 9 7\n", "expected_output": "7\n" }] },
+  { "id": 71, "category": "arrays", "difficulty": "medium", "question": "Is sorted ascending?", "testcases": [{ "input": "3\n1 2 3\n", "expected_output": "true\n" }, { "input": "3\n3 2 1\n", "expected_output": "false\n" }, { "input": "2\n1 1\n", "expected_output": "true\n" }] },
+  { "id": 72, "category": "strings", "difficulty": "medium", "question": "Is palindrome?", "testcases": [{ "input": "racecar\n", "expected_output": "true\n" }, { "input": "hello\n", "expected_output": "false\n" }, { "input": "aba\n", "expected_output": "true\n" }] },
+  { "id": 73, "category": "arrays", "difficulty": "medium", "question": "Rotate array right by k.", "testcases": [{ "input": "3 1\n1 2 3\n", "expected_output": "3 1 2\n" }, { "input": "4 2\n1 2 3 4\n", "expected_output": "3 4 1 2\n" }, { "input": "2 0\n1 2\n", "expected_output": "1 2\n" }] },
+  { "id": 74, "category": "math", "difficulty": "medium", "question": "Find GCD of A and B.", "testcases": [{ "input": "12 8\n", "expected_output": "4\n" }, { "input": "7 3\n", "expected_output": "1\n" }, { "input": "10 5\n", "expected_output": "5\n" }] },
+  { "id": 75, "category": "strings", "difficulty": "medium", "question": "Reverse words in sentence.", "testcases": [{ "input": "hello world\n", "expected_output": "world hello\n" }, { "input": "a b c\n", "expected_output": "c b a\n" }, { "input": "test\n", "expected_output": "test\n" }] },
+  { "id": 76, "category": "arrays", "difficulty": "medium", "question": "Find missing num in [0, n].", "testcases": [{ "input": "3\n0 1 3\n", "expected_output": "2\n" }, { "input": "2\n0 1\n", "expected_output": "2\n" }, { "input": "1\n0\n", "expected_output": "1\n" }] },
+  { "id": 77, "category": "math", "difficulty": "medium", "question": "N-th Fibonacci number.", "testcases": [{ "input": "5\n", "expected_output": "5\n" }, { "input": "1\n", "expected_output": "1\n" }, { "input": "6\n", "expected_output": "8\n" }] },
+  { "id": 78, "category": "strings", "difficulty": "medium", "question": "Count vowels in string.", "testcases": [{ "input": "hello\n", "expected_output": "2\n" }, { "input": "sky\n", "expected_output": "0\n" }, { "input": "aeiou\n", "expected_output": "5\n" }] },
+  { "id": 79, "category": "arrays", "difficulty": "medium", "question": "Remove duplicates from sorted.", "testcases": [{ "input": "4\n1 2 2 3\n", "expected_output": "1 2 3\n" }, { "input": "3\n1 1 1\n", "expected_output": "1\n" }, { "input": "2\n1 2\n", "expected_output": "1 2\n" }] },
+  { "id": 80, "category": "math", "difficulty": "medium", "question": "Is prime number?", "testcases": [{ "input": "7\n", "expected_output": "true\n" }, { "input": "10\n", "expected_output": "false\n" }, { "input": "2\n", "expected_output": "true\n" }] },
+  { "id": 81, "category": "strings", "difficulty": "medium", "question": "Are anagrams?", "testcases": [{ "input": "listen silent\n", "expected_output": "true\n" }, { "input": "cat car\n", "expected_output": "false\n" }, { "input": "act tac\n", "expected_output": "true\n" }] },
+  { "id": 82, "category": "arrays", "difficulty": "medium", "question": "Find majority element.", "testcases": [{ "input": "3\n2 2 1\n", "expected_output": "2\n" }, { "input": "5\n1 1 1 2 2\n", "expected_output": "1\n" }, { "input": "1\n9\n", "expected_output": "9\n" }] },
+  { "id": 83, "category": "math", "difficulty": "medium", "question": "Binary of decimal n.", "testcases": [{ "input": "5\n", "expected_output": "101\n" }, { "input": "10\n", "expected_output": "1010\n" }, { "input": "0\n", "expected_output": "0\n" }] },
+  { "id": 84, "category": "sorting", "difficulty": "medium", "question": "K-th largest element.", "testcases": [{ "input": "3 2\n10 20 30\n", "expected_output": "20\n" }, { "input": "5 1\n1 5 2 4 3\n", "expected_output": "5\n" }, { "input": "2 2\n5 1\n", "expected_output": "1\n" }] },
+  { "id": 85, "category": "arrays", "difficulty": "medium", "question": "Move zeros to end.", "testcases": [{ "input": "4\n0 1 0 3\n", "expected_output": "1 3 0 0\n" }, { "input": "2\n0 0\n", "expected_output": "0 0\n" }, { "input": "3\n1 2 3\n", "expected_output": "1 2 3\n" }] },
+  { "id": 86, "category": "greedy", "difficulty": "medium", "question": "Max profit from 1 trade.", "testcases": [{ "input": "4\n1 2 10 3\n", "expected_output": "9\n" }, { "input": "3\n3 2 1\n", "expected_output": "0\n" }, { "input": "5\n7 1 5 3 6\n", "expected_output": "5\n" }] },
+  { "id": 87, "category": "math", "difficulty": "medium", "question": "Is perfect square?", "testcases": [{ "input": "16\n", "expected_output": "true\n" }, { "input": "20\n", "expected_output": "false\n" }, { "input": "1\n", "expected_output": "true\n" }] },
+  { "id": 88, "category": "strings", "difficulty": "medium", "question": "First unique character.", "testcases": [{ "input": "swiss\n", "expected_output": "w\n" }, { "input": "aabb\n", "expected_output": "-1\n" }, { "input": "abc\n", "expected_output": "a\n" }] },
+  { "id": 89, "category": "sorting", "difficulty": "medium", "question": "Merge two sorted arrays.", "testcases": [{ "input": "2\n1 3\n2\n2 4\n", "expected_output": "1 2 3 4\n" }, { "input": "1\n1\n1\n2\n", "expected_output": "1 2\n" }, { "input": "2\n1 5\n1\n2\n", "expected_output": "1 2 5\n" }] },
+  { "id": 90, "category": "math", "difficulty": "medium", "question": "LCM of A and B.", "testcases": [{ "input": "4 6\n", "expected_output": "12\n" }, { "input": "5 10\n", "expected_output": "10\n" }, { "input": "3 7\n", "expected_output": "21\n" }] },
+  { "id": 91, "category": "arrays", "difficulty": "hard", "question": "Find min in rotated sorted.", "testcases": [{ "input": "5\n3 4 5 1 2\n", "expected_output": "1\n" }, { "input": "4\n4 5 6 7\n", "expected_output": "4\n" }, { "input": "3\n2 3 1\n", "expected_output": "1\n" }] },
+  { "id": 92, "category": "strings", "difficulty": "hard", "question": "Longest substring no repeat.", "testcases": [{ "input": "abcabcbb\n", "expected_output": "3\n" }, { "input": "bbbbb\n", "expected_output": "1\n" }, { "input": "pwwkew\n", "expected_output": "3\n" }] },
+  { "id": 93, "category": "greedy", "difficulty": "hard", "question": "Can reach last index?", "testcases": [{ "input": "5\n2 3 1 1 4\n", "expected_output": "true\n" }, { "input": "5\n3 2 1 0 4\n", "expected_output": "false\n" }, { "input": "3\n1 0 1\n", "expected_output": "false\n" }] },
+  { "id": 94, "category": "arrays", "difficulty": "hard", "question": "Trapping Rain Water units.", "testcases": [{ "input": "6\n0 1 0 2 1 0\n", "expected_output": "1\n" }, { "input": "3\n2 0 2\n", "expected_output": "2\n" }, { "input": "4\n1 2 3 4\n", "expected_output": "0\n" }] },
+  { "id": 95, "category": "math", "difficulty": "hard", "question": "Solve N-Queens (count only).", "testcases": [{ "input": "4\n", "expected_output": "2\n" }, { "input": "1\n", "expected_output": "1\n" }, { "input": "8\n", "expected_output": "92\n" }] },
+  { "id": 96, "category": "sorting", "difficulty": "hard", "question": "Sort colors (0,1,2 only).", "testcases": [{ "input": "6\n2 0 2 1 1 0\n", "expected_output": "0 0 1 1 2 2\n" }, { "input": "3\n2 1 0\n", "expected_output": "0 1 2\n" }, { "input": "2\n1 1\n", "expected_output": "1 1\n" }] },
+  { "id": 97, "category": "strings", "difficulty": "hard", "question": "Minimum Window Substring len.", "testcases": [{ "input": "ADOBECODEBANC ABC\n", "expected_output": "4\n" }, { "input": "a a\n", "expected_output": "1\n" }, { "input": "aa aa\n", "expected_output": "2\n" }] },
+  { "id": 98, "category": "greedy", "difficulty": "hard", "question": "Minimum number of platforms.", "testcases": [{ "input": "3\n900 940 950\n910 1200 1120\n", "expected_output": "3\n" }, { "input": "2\n900 1000\n1100 1200\n", "expected_output": "1\n" }, { "input": "2\n900 930\n920 940\n", "expected_output": "2\n" }] },
+  { "id": 99, "category": "arrays", "difficulty": "hard", "question": "Product of array except self.", "testcases": [{ "input": "4\n1 2 3 4\n", "expected_output": "24 12 8 6\n" }, { "input": "3\n1 1 1\n", "expected_output": "1 1 1\n" }, { "input": "2\n5 2\n", "expected_output": "2 5\n" }] },
+  { "id": 100, "category": "math", "difficulty": "hard", "question": "Count Primes up to N.", "testcases": [{ "input": "10\n", "expected_output": "4\n" }, { "input": "0\n", "expected_output": "0\n" }, { "input": "2\n", "expected_output": "0\n" }] }
 ]

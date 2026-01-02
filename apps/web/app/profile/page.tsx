@@ -159,7 +159,7 @@ export default function ProfilePage() {
                 <div className="inline-block px-2 sm:px-3 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] sm:text-xs font-bold rounded-full uppercase tracking-widest">
                   Pro League Member
                 </div>
-                <h1 className="text-2xl sm:text-4xl lg:text-6xl font-black font-minecraft text-primary tracking-tight leading-none break-words">
+                <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black font-minecraft text-primary tracking-tight leading-none break-words line-clamp-2 overflow-hidden">
                   {profileData?.user.name || "Unknown Player"}
                 </h1>
                 <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground font-medium">
@@ -237,13 +237,13 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 
-                <div className="h-40 sm:h-48 flex items-end gap-1 sm:gap-2 px-1 sm:px-2 border-b-2 border-border pb-2">
+                <div className="h-40 sm:h-48 flex items-end gap-1.5 sm:gap-3 px-1 sm:px-2 border-b-2 border-border pb-2">
                   {activity.map((day: any, i: number) => (
                     <div key={i} className="flex-1 group relative h-full flex flex-col justify-end">
                       <motion.div 
                         initial={{ height: 0 }}
                         animate={{ height: `${(day.count / (Math.max(...activity.map((a:any)=>a.count)) || 1)) * 100}%` }}
-                        className={`w-full rounded-t-md transition-all ${i === activity.length -1 ? "bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" : "bg-accent/40 group-hover:bg-accent"}`}
+                        className={`w-full min-w-[6px] sm:min-w-[10px] rounded-t-md transition-all ${i === activity.length -1 ? "bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" : "bg-accent/40 group-hover:bg-accent"}`}
                       />
                       <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-popover border text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-20">
                         {day.date}: {day.count} matches

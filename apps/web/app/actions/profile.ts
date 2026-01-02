@@ -68,14 +68,14 @@ export async function getProfileData(session: { user: { id: string }} | null) {
   }
 
   // Format recent matches for UI
-  const recentMatches = matches.slice(0, 5).map((match) => {
+  const recentMatches = matches.map((match) => {
+    const participant = match.participants.find((p) => p.userId === userId);
     const opponent = match.participants.find((p) => p.userId !== userId)?.user.name || "Unknown";
     const isWin = match.winnerId === userId;
     
-    // Mock score and rating change for now as they are not in the schema explicitly per match
-    // In a real scenario, we'd need to store score and rating change in MatchParticipant or Match
+    // Use the stored ratingChange if available, otherwise fallback to ±10
+    const ratingChange = participant?.ratingChange ?? (isWin ? 10 : -10);
     const score = "N/A"; 
-    const ratingChange = isWin ? 10 : -10; // Placeholder logic
 
     return {
       id: match.id,
@@ -90,7 +90,7 @@ export async function getProfileData(session: { user: { id: string }} | null) {
   // Calculate activity (matches per day)
   const activityMap = new Map<string, number>();
   const today = new Date();
-  const daysToCheck = 84; // 12 weeks
+  const daysToCheck = 30; // Last 30 days
 
   // Initialize map with 0
   for (let i = 0; i < daysToCheck; i++) {
