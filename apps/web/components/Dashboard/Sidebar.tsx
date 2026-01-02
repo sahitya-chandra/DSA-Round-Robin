@@ -19,9 +19,6 @@ import { cn } from "@/lib/utils";
 import { UserNav } from "@/components/Dashboard/UserNav"; 
 import { useFriendsListStore } from "@/stores/friendsListStore"; 
 
-// Note: UserNav will be a simplified version or reuse existing user profile logic if available.
-// For now I'll stub it or use a simple avatar.
-
 export function SidebarContent({ className, onItemClick }: { className?: string, onItemClick?: () => void }) {
   const pathname = usePathname();
   const { pendingRequests, unreadMessages } = useFriendsListStore();
@@ -39,7 +36,6 @@ export function SidebarContent({ className, onItemClick }: { className?: string,
 
   return (
     <div className={cn("flex flex-col h-full bg-sidebar border-r-2 border-sidebar-border minecraft-texture", className)}>
-      {/* Logo */}
       <div className="p-6 flex items-center gap-2 border-b-2 border-sidebar-border">
         <div className="w-8 h-8 bg-primary pixel-border-outset flex items-center justify-center">
           <Gamepad2 className="w-5 h-5 text-primary-foreground" />
@@ -47,7 +43,6 @@ export function SidebarContent({ className, onItemClick }: { className?: string,
         <span className="text-xl font-bold text-sidebar-primary tracking-wider font-minecraft">DSA RR</span>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 px-4 space-y-2 py-4 overflow-y-auto custom-scrollbar">
         {sidebarItems.map((item) => {
           const isActive = pathname === item.href;
@@ -77,7 +72,6 @@ export function SidebarContent({ className, onItemClick }: { className?: string,
         })}
       </nav>
 
-      {/* User Profile (Bottom) */}
       <div className="p-4 border-t-2 border-sidebar-border">
          <UserNav />
       </div>

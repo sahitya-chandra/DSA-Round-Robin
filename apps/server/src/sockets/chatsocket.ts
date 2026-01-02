@@ -31,8 +31,6 @@ export function setupChatSocket(io: Server) {
     socket.join(userId);
 
     console.log(`✅ Chat connected: user ${userId}, socket ${socket.id}`);
-
-    // ---- Send normal message ----
     socket.on("sendMessage", async ({ senderId, receiverId, content }) => {
       try {
         console.log(`💬 ${senderId} → ${receiverId}: ${content}`);
@@ -50,8 +48,6 @@ export function setupChatSocket(io: Server) {
         console.error("❌ Error saving chat message:", err);
       }
     });
-
-    // ---- Typing indicators ----
     socket.on("typing", ({ toUserId }) => {
       io.of("/friends").to(toUserId).emit("typing", { fromUserId: userId });
     });
@@ -59,8 +55,6 @@ export function setupChatSocket(io: Server) {
     socket.on("stopTyping", ({ toUserId }) => {
       io.of("/friends").to(toUserId).emit("stopTyping", { fromUserId: userId });
     });
-
-    // ---- Match invite ----
     socket.on("matchInvite", ({ fromUserId, fromUserName, toUserId }) => {
       console.log("🎯 matchInvite:", { fromUserId, fromUserName, toUserId });
 
@@ -106,8 +100,6 @@ export function setupChatSocket(io: Server) {
           });
       }, 30000);
     });
-
-    // ---- Respond to invite (accept / decline) ----
     socket.on(
       "respondInvite",
       async ({
@@ -213,8 +205,6 @@ export function setupChatSocket(io: Server) {
         }
       }
     );
-
-    // ---- Disconnect cleanup ----
     socket.on("disconnect", () => {
       const uId = chatSocketToUser.get(socket.id);
       if (uId) {

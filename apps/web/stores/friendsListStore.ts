@@ -10,7 +10,7 @@ interface FriendRequest {
   id: string;
   fromUser: Friend;
   toUser?: Friend;
-  createdAt?: string; // Optional if needed
+  createdAt?: string;
 }
 
 interface FriendsListState {

@@ -26,13 +26,11 @@ export function MobileSidebar() {
 
       {isOpen && (
         <div className="fixed inset-0 z-50 flex">
-          {/* Overlay */}
-          <div 
+          <div  
             className="fixed inset-0 bg-black/50 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
           />
           
-          {/* Sidebar Panel */}
           <div className="relative z-50 w-64 h-full animate-in slide-in-from-left duration-300">
              <button 
                 onClick={() => setIsOpen(false)}

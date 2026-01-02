@@ -49,7 +49,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     if (currentChatterID) {
       clearUnread(currentChatterID);
     }
-  }, [currentChatterID, messages]); // Clear when opening or receiving new messages while open
+  }, [currentChatterID, messages]);
 
   const { data: session } = authClient.useSession();
   const userId = session?.user?.id;
@@ -65,9 +65,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
   }, [messages, incomingInvite, isTyping]);
 
 
-  // ... (rest of the code until typing indicator) ...
-
-      {/* Typing indicator (Fixed Position) */}
       <AnimatePresence>
         {isTyping && (
           <motion.div
@@ -87,10 +84,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Invite modal */}
-
-  // ---- Chat Socket (/friends) for Messaging and Typing ----
   useEffect(() => {
     if (!userId) return;
 
@@ -125,7 +118,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     };
   }, [userId, currentChatterID]);
 
-  // ---- Root Socket for Invitations (Friend Duel) ----
   useEffect(() => {
     if (!rootSocket || !userId) return;
 
@@ -142,7 +134,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     };
   }, [rootSocket, userId]);
 
-  // ---- Load chat history ----
   useEffect(() => {
     if (!currentChatterID || !userId) return;
     const fetchMessages = async () => {
@@ -197,13 +188,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
       handleSend();
     }
   };
-
-  // Invite cool-down state (harmonized with dashboard) -> Keeping for incoming invites maybe? 
-  // actually incoming invite logic doesn't use these specific states, they were for SENDING.
-  // We can remove sending logic. Use `incomingInvite` and `handleInviteResponse` are still needed for RECEIVING.
-  
-  // Removed handleInvite logic block
-
   const handleInviteResponse = async (accepted: boolean) => {
     if (!rootSocket || !incomingInvite) return;
 
@@ -229,7 +213,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
 
   return (
     <div className="flex flex-col flex-1 bg-background text-foreground font-minecraft">
-      {/* Header */}
       <div className="flex items-center justify-between border-b border-border p-2 sm:p-3">
         <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 min-w-0 flex-1">
           <button
@@ -254,7 +237,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
         </button>
       </div>
 
-      {/* Messages */}
       <div className="flex-1 overflow-y-auto p-5 space-y-3 custom-scrollbar relative pb-20">
         <AnimatePresence>
           {messages.length ? (
@@ -293,10 +275,6 @@ const Chatarea: React.FC<ChatAreaProps> = ({
         </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Typing indicator (Moved above input) */}
-
-      {/* Invite modal */}
       <AnimatePresence>
         {incomingInvite && (
           <motion.div
@@ -330,7 +308,7 @@ const Chatarea: React.FC<ChatAreaProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Input area */}
+
       {currentChatterID && (
         <div className="p-1.5 sm:p-3 bg-secondary border-t border-border flex items-center gap-1 sm:gap-2 sticky bottom-0 z-10 transition-colors relative">
            <AnimatePresence>
