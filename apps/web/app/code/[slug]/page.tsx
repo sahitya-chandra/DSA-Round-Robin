@@ -435,9 +435,12 @@ const App: React.FC = () => {
                 <AlertCircle className="w-4 h-4" />
                 Problem Statement
               </h3>
-              <p className="text-card-foreground leading-relaxed text-[15px]">
-                {currentQuestion.questionData.question}
-              </p>
+              <div
+                className="text-card-foreground leading-relaxed prose prose-invert max-w-none text-base"
+                dangerouslySetInnerHTML={{
+                  __html: currentQuestion.questionData.question,
+                }}
+              />
             </div>
 
             <div className="bg-card p-5 border-2 border-border pixel-border-outset minecraft-texture">
@@ -452,17 +455,17 @@ const App: React.FC = () => {
                       Test {i + 1}
                     </div>
                     <div className="space-y-2 font-mono text-sm">
-                      <div className="flex gap-3">
-                        <span className="text-muted-foreground font-semibold min-w-[65px]">
-                          Input:
-                        </span>
-                        <span className="text-accent-foreground font-medium">{t.input}</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-muted-foreground font-semibold">Input:</span>
+                        <pre className="whitespace-pre-wrap break-all bg-background/50 p-2 rounded text-accent-foreground border border-border/50">
+                          {t.input}
+                        </pre>
                       </div>
-                      <div className="flex gap-3">
-                        <span className="text-muted-foreground font-semibold min-w-[65px]">
-                          Output:
-                        </span>
-                        <span className="text-primary font-medium">{t.expected_output}</span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-muted-foreground font-semibold">Output:</span>
+                        <pre className="whitespace-pre-wrap break-all bg-background/50 p-2 rounded text-primary border border-border/50">
+                          {t.expected_output}
+                        </pre>
                       </div>
                     </div>
                   </div>
