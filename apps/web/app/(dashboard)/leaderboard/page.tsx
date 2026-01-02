@@ -142,11 +142,11 @@ export default function LeaderboardPage() {
                <div className="h-8 w-8 md:h-10 md:w-10 bg-primary/20 border-2 border-primary pixel-border-outset flex items-center justify-center">
                   <Trophy className="h-5 w-5 md:h-6 md:w-6 text-black fill-black" />
                </div>
-               <h1 className="text-3xl md:text-5xl font-minecraft font-bold text-white tracking-tight drop-shadow-md">
+               <h1 className="text-xl md:text-5xl font-minecraft font-bold text-white tracking-tight drop-shadow-md">
                  Leaderboard
                </h1>
             </motion.div>
-            <p className="text-xs md:text-sm font-minecraft text-muted-foreground mt-1 pl-1">
+            <p className="text-[10px] md:text-sm font-minecraft text-muted-foreground mt-1 pl-1">
               Battle for glory in the arena
             </p>
           </div>
@@ -241,7 +241,7 @@ export default function LeaderboardPage() {
                   >
                      <div className="grid grid-cols-12 gap-2 md:gap-4 px-3 md:px-6 py-2.5 items-center">
                         {/* Rank */}
-                        <div className="col-span-2 md:col-span-1 text-center font-minecraft font-bold text-muted-foreground group-hover:text-foreground text-sm md:text-base">
+                        <div className="col-span-2 md:col-span-1 text-center font-minecraft font-bold text-muted-foreground group-hover:text-foreground text-[10px] md:text-base">
                           {isSelf ? <span className="text-primary drop-shadow-[2px_2px_0_rgba(0,0,0,1)]">#{entry.rank}</span> : `#${entry.rank}`}
                         </div>
 
@@ -256,7 +256,7 @@ export default function LeaderboardPage() {
                            
                            <div className="flex flex-col min-w-0">
                               <div className="flex items-center gap-2">
-                                 <span className={cn("font-minecraft font-bold text-sm truncate text-foreground/90", isSelf && "text-primary")}>
+                                 <span className={cn("font-minecraft font-bold text-[10px] md:text-sm truncate text-foreground/90", isSelf && "text-primary")}>
                                    {entry.user.name}
                                  </span>
                                  {isOnline && (
@@ -266,7 +266,7 @@ export default function LeaderboardPage() {
                                  )}
                               </div>
                               {/* Mobile Stats Row */}
-                              <div className="md:hidden flex items-center gap-2 text-[10px] text-muted-foreground font-mono">
+                              <div className="md:hidden flex items-center gap-2 text-[8px] text-muted-foreground font-mono">
                                  <span className="text-yellow-500">{entry.rating}</span>
                                  <span>•</span>
                                  <span>{entry.wins}W</span>
@@ -315,7 +315,7 @@ export default function LeaderboardPage() {
                            {entry.winStreak > 0 && (
                               <div className="flex items-center gap-1 bg-orange-500/10 px-1.5 py-0.5 border border-orange-500/30">
                                  <Flame className="h-3 w-3 text-orange-500 fill-orange-500 animate-pulse" />
-                                 <span className="text-orange-500 text-xs font-minecraft">{entry.winStreak}</span>
+                                 <span className="text-orange-500 text-[10px] font-minecraft">{entry.winStreak}</span>
                               </div>
                            )}
                         </div>
@@ -343,7 +343,7 @@ function StatsItem({ label, value }: { label: string, value: number }) {
   return (
     <div className="flex flex-col items-center md:items-end">
       <span className="text-[10px] font-minecraft uppercase text-muted-foreground/70 tracking-widest mb-0.5">{label}</span>
-      <span className="text-lg md:text-2xl font-minecraft font-bold text-white drop-shadow-sm leading-none">{value.toLocaleString()}</span>
+      <span className="text-sm md:text-2xl font-minecraft font-bold text-white drop-shadow-sm leading-none">{value.toLocaleString()}</span>
     </div>
   )
 }
@@ -396,7 +396,7 @@ function PodiumCard({ entry, rank, isOnline, isFriend, isSelf, userId, handleAdd
           </div>
           
           <div className="mt-2 text-center">
-             <div className="font-minecraft font-bold text-xs md:text-sm text-white drop-shadow-md truncate max-w-[80px] md:max-w-[120px]">
+             <div className="font-minecraft font-bold text-[10px] md:text-sm text-white drop-shadow-md truncate max-w-[80px] md:max-w-[120px]">
                 {entry.user.name}
              </div>
              <div className="flex items-center justify-center gap-1 mt-0.5">
@@ -429,7 +429,7 @@ function PodiumCard({ entry, rank, isOnline, isFriend, isSelf, userId, handleAdd
          config.color,
          config.border
        )}>
-          <span className="font-minecraft font-black text-4xl md:text-6xl text-white/20 select-none absolute bottom-2">
+          <span className="font-minecraft font-black text-2xl md:text-6xl text-white/20 select-none absolute bottom-2">
              {rank}
           </span>
        </div>
