@@ -1,3 +1,4 @@
+import prisma from "@repo/db";
 import { publisherClient, connection as redis } from "@repo/queue";
 import { ACTIVE_MATCH_PREFIX, SUBMISSIONS_PREFIX, USER_MATCH_PREFIX } from "../utils/constants";
 import { getIo } from "../utils/socketInstance";

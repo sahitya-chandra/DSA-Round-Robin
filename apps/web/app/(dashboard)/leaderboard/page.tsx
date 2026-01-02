@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { Crown, Trophy, TrendingUp, Flame, Swords, Shield, Zap, BarChart3, RefreshCw, UserPlus, Check, UserCheck } from "lucide-react";
+import { Crown, Medal , Trophy, TrendingUp, Flame, Swords, Shield, Zap, BarChart3, RefreshCw, UserPlus, Check, UserCheck } from "lucide-react";
 import { useSocket } from "@/hooks/useSocket";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
