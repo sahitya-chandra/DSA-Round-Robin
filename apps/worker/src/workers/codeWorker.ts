@@ -12,6 +12,50 @@ createCodeWorker(async (job) => {
   const { code, language, testcases, submissionId, matchId, userId, questionId } = job.data;
   if (!code || !language || !testcases) throw new Error("Missing data");
 
+  if (language === "cpp" && /#include\s*<bits\/stdc\+\+\.h>/.test(code)) {
+    const summaryResult = {
+      passed: false,
+      passedCount: 0,
+      total: testcases.length,
+      timeMs: 0,
+      error: "Using #include <bits/stdc++.h> is not allowed. Please include specific headers like <iostream>, <vector>, etc.",
+    };
+
+    const subHashKey = `${SUBMISSIONS_PREFIX}${matchId}:${userId}`;
+    const stored = await redis.hget(subHashKey, submissionId);
+    if (stored) {
+      const s = JSON.parse(stored);
+      s.status = "DONE";
+      s.result = summaryResult;
+      s.detailedResults = testcases.map((tc: any) => ({
+        input: tc.input || "",
+        expected: tc.expected_output || "",
+        output: "Restriction: bits/stdc++.h is not allowed",
+        passed: false,
+      }));
+      await redis.hset(subHashKey, submissionId, JSON.stringify(s));
+    }
+
+    publisherClient.publish("match_events", JSON.stringify({
+      event: "submission_result",
+      data: {
+        matchId,
+        userId,
+        submissionId,
+        questionId,
+        result: summaryResult,
+        details: testcases.map((tc: any) => ({
+          input: tc.input || "",
+          expected: tc.expected_output || "",
+          output: "Restriction: bits/stdc++.h is not allowed",
+          passed: false,
+        })),
+      },
+    }));
+
+    return summaryResult;
+  }
+
   const tempDir = path.join(String(process.env.HOME_DIR), "docker_temp", `job-${job.id}`);
   await fs.mkdir(tempDir, { recursive: true });
 
