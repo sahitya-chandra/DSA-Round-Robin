@@ -2,7 +2,7 @@ import { connection as redis } from "@repo/queue";
 import { finishMatchById } from "../helpers/finishMatch.helper";
 import { ACTIVE_MATCH_PREFIX } from "../utils/constants";
 
-const SWEEP_INTERVAL_MS = 20_000;
+const SWEEP_INTERVAL_MS = 10_000;
 
 export function matchSweeper() {
 	setInterval(async () => {

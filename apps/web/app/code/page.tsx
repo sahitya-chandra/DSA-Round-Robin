@@ -46,7 +46,7 @@ type CodeMap = {
 const getDefaultCode = (lang: string): string => {
   switch (lang) {
     case "javascript":
-      return `function solve(input) {\n    console.log("DSA RoundRobin");\n    return input;\n}\n`;
+      return `console.log("DSA RoundRobin");`;
     case "python":
       return `print("DSA RoundRobin")`;
     case "cpp":
