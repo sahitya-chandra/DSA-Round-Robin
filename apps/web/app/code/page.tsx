@@ -48,7 +48,7 @@ const getDefaultCode = (lang: string): string => {
     case "javascript":
       return `function solve(input) {\n    console.log("DSA RoundRobin");\n    return input;\n}\n`;
     case "python":
-      return `def solve(input):\n    print("DSA RoundRobin")\n    return input\n`;
+      return `def solve():\n    s = int(input().strip())\n    print("DSA RoundRobin")\n\nsolve()`;
     case "cpp":
     default:
       return `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "DSA RoundRobin" << endl;\n    return 0;\n}`;
@@ -56,7 +56,7 @@ const getDefaultCode = (lang: string): string => {
 };
 
 const DsaPracticeApp: React.FC = () => {
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending: isAuthLoading } = authClient.useSession();
   const userId = session?.user?.id ?? "";
   const router = useRouter();
 
@@ -183,6 +183,33 @@ const DsaPracticeApp: React.FC = () => {
     }
   }, [submissions, submissionStatus, currentQId]);
 
+  if (loadingQuestions || isAuthLoading) {
+    return (
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-background text-foreground minecraft-texture">
+        <div className="flex flex-col items-center gap-6 p-10 bg-card border-4 border-border pixel-border-outset shadow-2xl">
+          {/* Minecraft Steve Thinking */}
+          <div className="pixel-border-inset bg-muted p-4">
+            <Image
+              src="/minecraft-steve-thinking.png"
+              alt="Steve Thinking"
+              width={200}
+              height={200}
+              className="pixelated animate-bounce"
+              priority
+            />
+          </div>
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="tracking-widest text-foreground font-minecraft font-bold text-lg">
+            LOADING QUESTIONS...
+          </p>
+          <p className="text-muted-foreground text-sm font-minecraft">
+            Steve is thinking hard about your challenges
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (!userId) {
     return (
       <div className="h-screen w-full flex items-center justify-center bg-background text-foreground minecraft-texture">
@@ -215,33 +242,6 @@ const DsaPracticeApp: React.FC = () => {
           <div className="w-full h-1 bg-border pixel-border-inset"></div>
           <p className="text-xs text-muted-foreground font-minecraft text-center">
             Steve is thinking... where did you go?
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (loadingQuestions) {
-    return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-background text-foreground minecraft-texture">
-        <div className="flex flex-col items-center gap-6 p-10 bg-card border-4 border-border pixel-border-outset shadow-2xl">
-          {/* Minecraft Steve Thinking */}
-          <div className="pixel-border-inset bg-muted p-4">
-            <Image
-              src="/minecraft-steve-thinking.png"
-              alt="Steve Thinking"
-              width={200}
-              height={200}
-              className="pixelated animate-bounce"
-              priority
-            />
-          </div>
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="tracking-widest text-foreground font-minecraft font-bold text-lg">
-            LOADING QUESTIONS...
-          </p>
-          <p className="text-muted-foreground text-sm font-minecraft">
-            Steve is thinking hard about your challenges
           </p>
         </div>
       </div>
