@@ -8,6 +8,8 @@ import dotenv from "dotenv";
 dotenv.config({ path: "../../.env" });
 const SUBMISSIONS_PREFIX = "match_submissions:";
 
+const IS_VM_MODE = Boolean(process.env.VM_SECRET);
+
 createCodeWorker(async (job) => {
   const { code, language, testcases, submissionId, matchId, userId, questionId } = job.data;
   if (!code || !language || !testcases) throw new Error("Missing data");
@@ -36,22 +38,25 @@ createCodeWorker(async (job) => {
       await redis.hset(subHashKey, submissionId, JSON.stringify(s));
     }
 
-    publisherClient.publish("match_events", JSON.stringify({
-      event: "submission_result",
-      data: {
-        matchId,
-        userId,
-        submissionId,
-        questionId,
-        result: summaryResult,
-        details: testcases.map((tc: any) => ({
-          input: tc.input || "",
-          expected: tc.expected_output || "",
-          output: "Restriction: bits/stdc++.h is not allowed",
-          passed: false,
-        })),
-      },
-    }));
+    publisherClient.publish(
+      "match_events",
+      JSON.stringify({
+        event: "submission_result",
+        data: {
+          matchId,
+          userId,
+          submissionId,
+          questionId,
+          result: summaryResult,
+          details: testcases.map((tc: any) => ({
+            input: tc.input || "",
+            expected: tc.expected_output || "",
+            output: "Restriction: bits/stdc++.h is not allowed",
+            passed: false,
+          })),
+        },
+      })
+    );
 
     return summaryResult;
   }
@@ -62,10 +67,10 @@ createCodeWorker(async (job) => {
   console.log("Mount directory:", tempDir);
 
   const fileExtMap: Record<string, string> = { cpp: "cpp", python: "py", javascript: "js" };
-  const dockerImageMap: Record<string, string> = { 
-    cpp: "gcc:latest", 
-    python: "python:3.11-alpine", 
-    javascript: "node:18-alpine" 
+  const dockerImageMap: Record<string, string> = {
+    cpp: "gcc:latest",
+    python: "python:3.11-alpine",
+    javascript: "node:18-alpine",
   };
 
   const fileExt = fileExtMap[language];
@@ -77,24 +82,48 @@ createCodeWorker(async (job) => {
   await fs.writeFile(filePath, code);
 
   for (let i = 0; i < testcases.length; i++) {
-    const input = testcases[i]?.input || "";
-    await fs.writeFile(path.join(tempDir, `input_${i}.txt`), input);
+    await fs.writeFile(path.join(tempDir, `input_${i}.txt`), testcases[i]?.input || "");
   }
 
   console.log(`Source file created at: ${filePath}`);
 
-let runCmd = "";
+  let runCmd = "";
 
   if (language === "cpp") {
-    runCmd = `g++ /code/${sourceFilename} -o /code/main && `;
-    runCmd += `i=0; while [ \\$i -lt ${testcases.length} ]; do /code/main < /code/input_\\$i.txt > /code/output_\\$i.txt; i=\\$((i+1)); done`;
+    runCmd =
+      `g++ /code/${sourceFilename} -o /code/main && ` +
+      `i=0; while [ \\$i -lt ${testcases.length} ]; do ` +
+      `/code/main < /code/input_\\$i.txt > /code/output_\\$i.txt; ` +
+      `i=\\$((i+1)); done`;
   } else if (language === "python") {
-    runCmd = `i=0; while [ \\$i -lt ${testcases.length} ]; do python /code/${sourceFilename} < /code/input_\\$i.txt > /code/output_\\$i.txt; i=\\$((i+1)); done`;
+    runCmd =
+      `i=0; while [ \\$i -lt ${testcases.length} ]; do ` +
+      `python /code/${sourceFilename} < /code/input_\\$i.txt > /code/output_\\$i.txt; ` +
+      `i=\\$((i+1)); done`;
   } else if (language === "javascript") {
-    runCmd = `i=0; while [ \\$i -lt ${testcases.length} ]; do node /code/${sourceFilename} < /code/input_\\$i.txt > /code/output_\\$i.txt; i=\\$((i+1)); done`;
+    runCmd =
+      `i=0; while [ \\$i -lt ${testcases.length} ]; do ` +
+      `node /code/${sourceFilename} < /code/input_\\$i.txt > /code/output_\\$i.txt; ` +
+      `i=\\$((i+1)); done`;
   }
 
-  const dockerCmd = `docker run --rm --init -i -v ${tempDir}:/code --memory=128m --cpus=0.5 --network none ${dockerImage} sh -c "${runCmd}"`;
+  const vmSecurityFlags = IS_VM_MODE
+    ? [
+        "--user 65534:65534",
+        "--read-only",
+        "--cap-drop ALL",
+        "--security-opt no-new-privileges",
+        "--pids-limit 64",
+        "--tmpfs /tmp:rw,noexec,nosuid,size=16m",
+      ].join(" ")
+    : "";
+
+  const dockerCmd =
+    `docker run --rm --init -i ` +
+    `-v ${tempDir}:/code ` +
+    `--memory=128m --cpus=0.5 --network none ` +
+    `${vmSecurityFlags} ` +
+    `${dockerImage} sh -c "${runCmd}"`;
 
   const detailedResults: {
     input: string;
@@ -110,12 +139,9 @@ let runCmd = "";
   try {
     let dockerStderr = "";
     console.log("Executing batch docker command...");
-    await new Promise<void>((resolve, reject) => {
-      exec(dockerCmd, { timeout: 10000 }, (err, stdout, stderr) => {
+    await new Promise<void>((resolve) => {
+      exec(dockerCmd, { timeout: 10000 }, (_err, _stdout, stderr) => {
         dockerStderr = stderr;
-        if (err) {
-          console.error("Docker execution failed:", stderr);
-        }
         resolve();
       });
     });
@@ -126,9 +152,10 @@ let runCmd = "";
 
       const expected = (tc.expected_output || "").trim();
       let output = "";
+
       try {
         output = (await fs.readFile(path.join(tempDir, `output_${i}.txt`), "utf-8")).trim();
-      } catch (e) {
+      } catch {
         const parsed = parseError(dockerStderr, language);
         output = `Error: ${parsed.type}${parsed.line ? ` (Line ${parsed.line})` : ""}\n${parsed.message}`;
       }
@@ -144,8 +171,7 @@ let runCmd = "";
       });
     }
 
-    const endTime = Date.now();
-    const timeMs = endTime - startTime;
+    const timeMs = Date.now() - startTime;
 
     const summaryResult = {
       passed: passedCount === total,
@@ -164,20 +190,22 @@ let runCmd = "";
       await redis.hset(subHashKey, submissionId, JSON.stringify(s));
     }
 
-    publisherClient.publish("match_events", JSON.stringify({
-      event: "submission_result",
-      data: {
-        matchId,
-        userId,
-        submissionId,
-        questionId,
-        result: summaryResult,
-        details: detailedResults,
-      },
-    }));
+    publisherClient.publish(
+      "match_events",
+      JSON.stringify({
+        event: "submission_result",
+        data: {
+          matchId,
+          userId,
+          submissionId,
+          questionId,
+          result: summaryResult,
+          details: detailedResults,
+        },
+      })
+    );
 
     return summaryResult;
-
   } catch (err) {
     console.error("Error during execution:", err);
     return {
@@ -191,7 +219,7 @@ let runCmd = "";
     try {
       await fs.rm(tempDir, { recursive: true, force: true });
       console.log("Cleaned up temp directory:", tempDir);
-    } catch (e) {
+    } catch {
       console.warn("Failed to cleanup temp directory:", tempDir);
     }
   }
