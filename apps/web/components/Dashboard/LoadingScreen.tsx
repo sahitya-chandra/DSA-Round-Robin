@@ -36,7 +36,7 @@ export function LoadingScreen({ isLoading }: { isLoading: boolean }) {
       {isLoading && (
         <motion.div
             key="global-loader"
-            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background minecraft-texture"
+            className="!fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background minecraft-texture h-screen w-screen"
             variants={overlayVariants}
             initial="hidden"
             animate="visible"
