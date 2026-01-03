@@ -48,7 +48,7 @@ const getDefaultCode = (lang: string): string => {
     case "javascript":
       return `function solve(input) {\n    console.log("DSA RoundRobin");\n    return input;\n}\n`;
     case "python":
-      return `def solve():\n    s = int(input().strip())\n    print("DSA RoundRobin")\n\nsolve()`;
+      return `print("DSA RoundRobin")`;
     case "cpp":
     default:
       return `#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "DSA RoundRobin" << endl;\n    return 0;\n}`;
