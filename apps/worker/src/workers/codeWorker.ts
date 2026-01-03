@@ -95,7 +95,7 @@ createCodeWorker(async (job) => {
   }
 
   const dockerCmd =
-    `docker run --rm --init -i --user 1000:1000 ` +
+    `docker run --rm --init -i --user $(id -u):$(id -g) ` +
     `-v ${tempDir}:/code --memory=128m --cpus=0.5 --network none ` +
     `${dockerImage} sh -c "${runCmd}"`;
 
