@@ -62,10 +62,10 @@ createCodeWorker(async (job) => {
   console.log("Mount directory:", tempDir);
 
   const fileExtMap: Record<string, string> = { cpp: "cpp", python: "py", javascript: "js" };
-  const dockerImageMap: Record<string, string> = { 
-    cpp: "gcc:latest", 
-    python: "python:3.11-alpine", 
-    javascript: "node:18-alpine" 
+  const dockerImageMap: Record<string, string> = {
+    cpp: "gcc:latest",
+    python: "python:3.11-alpine",
+    javascript: "node:18-alpine"
   };
 
   const fileExt = fileExtMap[language];
@@ -83,7 +83,7 @@ createCodeWorker(async (job) => {
 
   console.log(`Source file created at: ${filePath}`);
 
-let runCmd = "";
+  let runCmd = "";
 
   if (language === "cpp") {
     runCmd = `g++ /code/${sourceFilename} -o /code/main && `;
@@ -94,7 +94,10 @@ let runCmd = "";
     runCmd = `i=0; while [ \\$i -lt ${testcases.length} ]; do node /code/${sourceFilename} < /code/input_\\$i.txt > /code/output_\\$i.txt; i=\\$((i+1)); done`;
   }
 
-  const dockerCmd = `docker run --rm --init -i -v ${tempDir}:/code --memory=128m --cpus=0.5 --network none ${dockerImage} sh -c "${runCmd}"`;
+  const dockerCmd =
+    `docker run --rm --init -i --user 1000:1000 ` +
+    `-v ${tempDir}:/code --memory=128m --cpus=0.5 --network none ` +
+    `${dockerImage} sh -c "${runCmd}"`;
 
   const detailedResults: {
     input: string;
@@ -110,12 +113,9 @@ let runCmd = "";
   try {
     let dockerStderr = "";
     console.log("Executing batch docker command...");
-    await new Promise<void>((resolve, reject) => {
-      exec(dockerCmd, { timeout: 10000 }, (err, stdout, stderr) => {
+    await new Promise<void>((resolve) => {
+      exec(dockerCmd, { timeout: 10000 }, (_err, _stdout, stderr) => {
         dockerStderr = stderr;
-        if (err) {
-          console.error("Docker execution failed:", stderr);
-        }
         resolve();
       });
     });
@@ -128,7 +128,7 @@ let runCmd = "";
       let output = "";
       try {
         output = (await fs.readFile(path.join(tempDir, `output_${i}.txt`), "utf-8")).trim();
-      } catch (e) {
+      } catch {
         const parsed = parseError(dockerStderr, language);
         output = `Error: ${parsed.type}${parsed.line ? ` (Line ${parsed.line})` : ""}\n${parsed.message}`;
       }
@@ -144,8 +144,7 @@ let runCmd = "";
       });
     }
 
-    const endTime = Date.now();
-    const timeMs = endTime - startTime;
+    const timeMs = Date.now() - startTime;
 
     const summaryResult = {
       passed: passedCount === total,
@@ -183,16 +182,11 @@ let runCmd = "";
     return {
       passed: false,
       passedCount: 0,
-      total: testcases.length,
+      total,
       timeMs: 0,
       error: String(err),
     };
   } finally {
-    try {
-      await fs.rm(tempDir, { recursive: true, force: true });
-      console.log("Cleaned up temp directory:", tempDir);
-    } catch (e) {
-      console.warn("Failed to cleanup temp directory:", tempDir);
-    }
+    await fs.rm(tempDir, { recursive: true, force: true });
   }
 });
