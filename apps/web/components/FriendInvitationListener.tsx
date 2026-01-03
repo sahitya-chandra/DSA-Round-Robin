@@ -8,7 +8,6 @@ import { API_BASE_URL } from "@/lib/api";
 import { MinecraftToast } from "./MinecraftToast";
 import { useRouter } from "next/navigation";
 import { useFriendsListStore } from "@/stores/friendsListStore";
-import { useMatchListener } from "@/hooks/useMatchListener";
 export const FriendInvitationListener = () => {
   const { data: session, isPending } = authClient.useSession();
   const userId = session?.user?.id;
@@ -21,9 +20,6 @@ export const FriendInvitationListener = () => {
   }, [userId]);
   const router = useRouter();
   const { addPendingRequest, removePendingRequest, setOnlineUsers } = useFriendsListStore();
-  
-  // ✅ Listen for match start events globally to handle redirects
-  useMatchListener();
 
   // const respondedInvitesRef = useRef<Set<string>>(new Set());
   // const markResponded = (inviterId: string) => {
