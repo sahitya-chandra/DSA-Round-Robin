@@ -1,21 +1,23 @@
 import { connection as redis } from "@repo/queue";
 import { finishMatchById } from "../helpers/finishMatch.helper";
-import { ACTIVE_MATCH_PREFIX, MATCH_EXPIRY_SET } from "../utils/constants";
+import { ACTIVE_MATCH_PREFIX } from "../utils/constants";
 
 const SWEEP_INTERVAL_MS = 10_000;
 
 export function matchSweeper() {
 	setInterval(async () => {
 		try {
-      const now = Date.now();
-      
-      // Optimization: Get expired matches from Sorted Set (O(log(N)))
-      const expiredMatchIds = await redis.zrangebyscore(MATCH_EXPIRY_SET, "-inf", now);
-
-			for (const matchId of expiredMatchIds) {
-          console.log(`Sweeper: finishing expired match ${matchId}`);
-          // finishMatchById will handle ZREM from the set
+			const keys = await redis.keys(`${ACTIVE_MATCH_PREFIX}*`);
+			const now = new Date()
+			for (const key of keys) {
+				const raw = await redis.hgetall(key)
+				if (!raw || !raw.expiresAt) continue
+				const expiresAt = new Date(raw.expiresAt).getTime()
+				if (expiresAt <= Number(now) && raw.status === "RUNNING") {
+					const matchId = key.replace(ACTIVE_MATCH_PREFIX, "")
+					console.log(`Sweeper: finishing expired match ${matchId}`);
           await finishMatchById(matchId, { reason: "timeout" });
+				}
 			}
 		} catch (err) {
 			console.error("Match sweeper error:", err);

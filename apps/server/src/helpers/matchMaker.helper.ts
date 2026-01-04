@@ -7,7 +7,6 @@ import {
   USER_MATCH_PREFIX,
   MATCH_DURATION_SECONDS,
   MATCH_TTL,
-  MATCH_EXPIRY_SET,
 } from "../utils/constants";
 
 export interface CreatedMatch {
@@ -133,7 +132,6 @@ export async function createMatch(
         expiresAt
       )
       .expire(`${ACTIVE_MATCH_PREFIX}${matchId}`, MATCH_TTL)
-      .zadd(MATCH_EXPIRY_SET, new Date(expiresAt).getTime(), matchId)
       .exec();
 
     console.log(`Match created: ${matchId}`);
