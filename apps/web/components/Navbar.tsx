@@ -2,11 +2,12 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
-import { Menu, X, Code2, MessageSquare, User, LogOut, ChevronDown } from "lucide-react";
+import { Menu, X, Code2, MessageSquare, User, LogOut, ChevronDown, Gamepad2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +44,7 @@ export const Navbar = () => {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 bg-primary pixel-border-outset flex items-center justify-center text-primary-foreground font-bold shadow-lg group-hover:brightness-110 active:pixel-border-inset transition-all font-minecraft text-xs">
-              RR
+              <Gamepad2 className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-foreground font-bold text-lg tracking-tight font-minecraft">DSA Round_Robin</span>
           </Link>
