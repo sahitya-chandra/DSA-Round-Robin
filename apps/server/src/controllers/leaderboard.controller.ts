@@ -34,8 +34,8 @@ export const getLeaderboard = async (req: Request, res: Response) => {
       rank: index + 1,
     }));
 
-    // Cache for 10 seconds to prevent read storms
-    await redis.set(cacheKey, JSON.stringify(formattedLeaderboard), "EX", 10);
+    // Cache for 30 seconds to prevent read storms
+    await redis.set(cacheKey, JSON.stringify(formattedLeaderboard), "EX", 30);
 
     return res.status(200).json(formattedLeaderboard);
   } catch (error) {
