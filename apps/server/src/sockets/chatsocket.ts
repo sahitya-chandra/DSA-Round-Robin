@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { chatUserSockets, chatSocketToUser } from "../utils/utils";
 import prisma from "@repo/db";
-import fetch from "node-fetch";
+import { createManualMatch } from "../services/match.service";
 
 interface AuthSocket extends Socket {
   userId?: string;
@@ -134,28 +134,17 @@ export function setupChatSocket(io: Server) {
         }
 
         try {
-          // ✅ Create match on backend once — central authority
+          // ✅ Create match on backend directly
           console.log("⚙ Creating match:", {
             requesterId: fromUserId,
             opponentId: accepterId,
           });
 
-          const res = await fetch("http://localhost:5000/api/match/create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              requesterId: fromUserId,
-              opponentId: accepterId,
-            }),
-          });
+          // call service directly
+          const match = await createManualMatch(fromUserId, accepterId);
 
-          const data = (await res.json()) as MatchCreateResponse;
-          console.log("✅ Match creation response:", data);
-
-          const matchId = data.matchId ?? null;
-
-          if (!res.ok || matchId == null) {
-            console.error("❌ Match creation failed:", data);
+          if (!match) {
+            console.error("❌ Match creation failed (returned null)");
             io.of("/friends")
               .to(socket.id)
               .emit("receiveMessage", {
@@ -168,6 +157,8 @@ export function setupChatSocket(io: Server) {
               });
             return;
           }
+
+          const { matchId } = match;
 
           console.log(
             `🏁 Match created [${matchId}] between ${fromUserId} & ${accepterId}`

@@ -15,9 +15,15 @@ export function Skeleton({ className, ...props }: SkeletonProps) {
 }
 
 // Card Skeleton for profile cards, friend cards, etc.
-export function CardSkeleton() {
+export function CardSkeleton({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className="p-4 sm:p-6 bg-card border-2 border-border pixel-border-outset minecraft-texture">
+    <div 
+      className={cn(
+        "p-4 sm:p-6 bg-card border-2 border-border pixel-border-outset minecraft-texture",
+        className
+      )}
+      {...props}
+    >
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <Skeleton className="w-12 h-12 rounded-full" />

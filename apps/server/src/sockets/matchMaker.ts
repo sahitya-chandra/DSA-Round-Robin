@@ -14,6 +14,13 @@ export function startMatchMaker(io: Server) {
 
     while (true) {
       try {
+        // Optimization: Check if there are enough users to make a match
+        const queueLength = await redis.llen(WAITING_LIST);
+        if (queueLength < 2) {
+          await sleep(2000);
+          continue;
+        }
+
         const result = await blockingRedis.brpop(WAITING_LIST, 0);
         if (!result) continue;
 

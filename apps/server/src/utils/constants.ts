@@ -5,3 +5,4 @@ export const SUBMISSIONS_PREFIX = "match_submissions:";
 export const LOCK_KEY = "matchmaker_lock";
 export const MATCH_DURATION_SECONDS = 10 * 60;
 export const MATCH_TTL = MATCH_DURATION_SECONDS + 30;
+export const MATCH_EXPIRY_SET = "matches:expiry";

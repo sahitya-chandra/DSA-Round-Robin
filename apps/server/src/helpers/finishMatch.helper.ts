@@ -1,6 +1,6 @@
 import prisma from "@repo/db";
 import { publisherClient, connection as redis } from "@repo/queue";
-import { ACTIVE_MATCH_PREFIX, SUBMISSIONS_PREFIX, USER_MATCH_PREFIX } from "../utils/constants";
+import { ACTIVE_MATCH_PREFIX, SUBMISSIONS_PREFIX, USER_MATCH_PREFIX, MATCH_EXPIRY_SET } from "../utils/constants";
 import { getIo } from "../utils/socketInstance";
 
 export async function finishMatchById(matchId: string, opts: { reason?: string, winnerId?: string } = {}) {
@@ -185,6 +185,7 @@ export async function finishMatchById(matchId: string, opts: { reason?: string, 
         await redis.del(`${USER_MATCH_PREFIX}${opponentId}`);
         await redis.del(rSubKey);
         await redis.del(oSubKey);
+        await redis.zrem(MATCH_EXPIRY_SET, matchId);
 
         const payload = { event: "match_finished", data: { matchId, winnerId } };
         await publisherClient.publish("match_events", JSON.stringify(payload));
