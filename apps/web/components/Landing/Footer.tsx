@@ -40,6 +40,7 @@ const FooterModal = ({
               <button
                 onClick={onClose}
                 className="p-1 hover:bg-destructive hover:text-destructive-foreground transition-colors rounded pixel-border-outset active:pixel-border-inset"
+                aria-label="Close modal"
               >
                 <X size={18} />
               </button>
@@ -79,7 +80,7 @@ export const Footer = () => {
               <span className="text-muted-foreground text-[10px] leading-tight group-hover:text-primary transition-colors">
                 © {new Date().getFullYear()}
               </span>
-              <span className="text-foreground font-bold tracking-tight">DSA Round_Robin</span>
+              <span className="text-foreground font-bold tracking-tight">DSA Round Robin</span>
             </div>
           </div>
 
