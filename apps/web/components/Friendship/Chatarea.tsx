@@ -152,10 +152,18 @@ const Chatarea: React.FC<ChatAreaProps> = ({
     fetchMessages();
   }, [currentChatterID, userId]);
 
+  const lastTypingEmit = useRef<number>(0);
+
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMsg(e.target.value);
     if (chatSocket && currentChatterID) {
-      chatSocket.emit("typing", { toUserId: currentChatterID });
+      const now = Date.now();
+      // Throttle: Only emit "typing" once per second
+      if (now - lastTypingEmit.current > 1000) {
+        chatSocket.emit("typing", { toUserId: currentChatterID });
+        lastTypingEmit.current = now;
+      }
+      
       clearTimeout((window as any).typingTimeout);
       (window as any).typingTimeout = setTimeout(() => {
         chatSocket?.emit("stopTyping", { toUserId: currentChatterID });

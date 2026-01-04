@@ -50,7 +50,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [activeSendIds, setActiveSendIds] = useState<string[]>([]);
   const [showRequests, setShowRequests] = useState(false);
   
-  const { pendingRequests, setPendingRequests, removePendingRequest } = useFriendsListStore();
+  const { pendingRequests, setPendingRequests, removePendingRequest, onlineUsers } = useFriendsListStore();
 
   // ✅ Helper for safe fetch + JSON parsing
   const safeFetch = async (url: string, options?: RequestInit) => {
@@ -228,7 +228,21 @@ const Sidebar: React.FC<SidebarProps> = ({
               >
                 <div className="flex-1 min-w-0">
                   <p className="truncate text-sidebar-foreground">{user.name}</p>
-                  <p className="truncate text-sidebar-foreground/70 text-sm">{user.email}</p>
+                  <p className="flex items-center gap-1.5 mt-0.5">
+                     {!isFriend ? (
+                        <span className="text-xs text-muted-foreground truncate">{user.email}</span>
+                     ) : onlineUsers.includes(user.id) ? (
+                        <>
+                           <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_4px_rgba(34,197,94,0.5)]" />
+                           <span className="text-[10px] font-bold text-green-500 tracking-wide">ONLINE</span>
+                        </>
+                     ) : (
+                        <>
+                           <span className="w-1.5 h-1.5 rounded-full bg-sidebar-muted-foreground/30" />
+                           <span className="text-[10px] font-bold text-sidebar-foreground/50 tracking-wide">OFFLINE</span>
+                        </>
+                     )}
+                  </p>
                 </div>
 
                 <button

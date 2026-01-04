@@ -89,9 +89,11 @@ const Friends: React.FC<FriendsProps> = ({
                   <p className="font-medium text-foreground text-sm md:text-base truncate">
                     {friend.name}
                   </p>
-                  <p className="text-muted-foreground text-xs truncate">
-                    {friend.email}
-                  </p>
+                  <div className="flex mt-1">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-[3px] pixel-border-outset ${isOnline ? "bg-green-500/20 text-green-600 border-green-500/30" : "bg-muted text-muted-foreground/70 border-border"}`}>
+                      {isOnline ? "ONLINE" : "OFFLINE"}
+                    </span>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2">

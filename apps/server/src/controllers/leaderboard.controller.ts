@@ -1,8 +1,16 @@
 import { Request, Response } from "express";
 import prisma from "@repo/db";
+import { connection as redis } from "@repo/queue";
 
 export const getLeaderboard = async (req: Request, res: Response) => {
   try {
+    const cacheKey = "leaderboard_data";
+    const cached = await redis.get(cacheKey);
+
+    if (cached) {
+      return res.status(200).json(JSON.parse(cached));
+    }
+
     const leaderboard = await prisma.leaderboardEntry.findMany({
       take: 100,
       orderBy: [
@@ -25,6 +33,9 @@ export const getLeaderboard = async (req: Request, res: Response) => {
       ...entry,
       rank: index + 1,
     }));
+
+    // Cache for 30 seconds to prevent read storms
+    await redis.set(cacheKey, JSON.stringify(formattedLeaderboard), "EX", 30);
 
     return res.status(200).json(formattedLeaderboard);
   } catch (error) {

@@ -82,12 +82,21 @@ export default function LeaderboardPage() {
 
   useEffect(() => {
     if (!socket) return;
+    
+    let timeoutId: NodeJS.Timeout;
+    
     const handleUpdate = () => {
-        fetchLeaderboard();
+        // Debounce: Wait 2s after last update event before fetching
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+            fetchLeaderboard();
+        }, 2000);
     };
+    
     socket.on("leaderboard_update", handleUpdate);
     return () => {
         socket.off("leaderboard_update", handleUpdate);
+        clearTimeout(timeoutId);
     };
   }, [socket]);
 
