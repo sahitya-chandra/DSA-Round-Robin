@@ -128,7 +128,7 @@ export const Features = () => {
             viewport={{ once: true }}
             className="text-4xl md:text-6xl font-bold text-foreground mb-6 font-minecraft tracking-tight"
           >
-            Everything you need to <span className="text-primary italic">excel</span>
+            How <span className="text-primary italic">DSA Round Robin</span> Works
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -137,7 +137,7 @@ export const Features = () => {
             viewport={{ once: true }}
             className="text-muted-foreground text-lg md:text-xl font-medium"
           >
-            A complete platform designed to help you master coding interviews and competitive programming.
+            Play with random or challenge a friend, and code in real-time. See who solves it faster!
           </motion.p>
         </div>
 

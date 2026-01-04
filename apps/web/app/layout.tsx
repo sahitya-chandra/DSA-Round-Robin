@@ -17,10 +17,10 @@ const minecraftFont = Press_Start_2P({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://www.dsaroundrobin.fun"),
   title: {
-    default: "DSA Round Robin | Real-time Coding Battles",
+    default: "DSA Round Robin – Real-time 1v1 DSA Coding Battles",
     template: "%s | DSA Round Robin"
   },
-  description: "Experience real-time coding battles, competitive programming, and 1v1 coding challenges. Improve your DSA skills, climb the leaderboard, and become a top developer.",
+  description: "DSA Round Robin is a real-time multiplayer coding battleground. Practice DSA, challenge friends to 1v1 battles, and master algorithms in a competitive environment.",
   keywords: [
     "DSA",
     "Data Structures",
@@ -57,8 +57,8 @@ export const metadata: Metadata = {
   creator: "Divyanshu Chandra & Sahitya Chandra",
   publisher: "DSA Round Robin",
   openGraph: {
-    title: "DSA Round Robin | Real-time Coding Battles",
-    description: "Battle against friends or strangers in real-time coding challenges. Master Data Structures and Algorithms in a fun, competitive environment.",
+    title: "DSA Round Robin – Real-time 1v1 DSA Coding Battles",
+    description: "DSA Round Robin is a real-time multiplayer coding battleground. Practice DSA, challenge friends to 1v1 battles, and master algorithms in a competitive environment.",
     url: "https://www.dsaroundrobin.fun",
     siteName: "DSA Round Robin",
     locale: "en_US",
@@ -74,8 +74,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "DSA Round Robin | Real-time Coding Battles",
-    description: "Join the ultimate coding battleground. Real-time 1v1 challenges, leaderboards, and more.",
+    title: "DSA Round Robin – Real-time 1v1 DSA Coding Battles",
+    description: "DSA Round Robin is a real-time multiplayer coding battleground. Practice DSA, challenge friends to 1v1 battles, and master algorithms in a competitive environment.",
     images: ["/custom-favicon.png"],
   },
   icons: {
@@ -121,6 +121,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               "name": "DSA Round Robin",
+              "url": "https://www.dsaroundrobin.fun",
               "image": "https://www.dsaroundrobin.fun/custom-favicon.png",
               "applicationCategory": "EducationalApplication",
               "operatingSystem": "Web",
@@ -130,7 +131,7 @@ export default function RootLayout({
                 "priceCurrency": "USD",
                 "availability": "https://schema.org/InStock"
               },
-              "description": "A free real-time competitive programming platform for developers to practice Data Structures and Algorithms.",
+              "description": "DSA Round Robin is a real-time multiplayer coding battleground. Practice DSA, challenge friends to 1v1 battles, and master algorithms in a competitive environment.",
               "author": [
                 {
                   "@type": "Person",
