@@ -61,7 +61,7 @@ export const Hero: React.FC = () => {
         >
           <div style={{ transform: "translateZ(20px)" }} className="flex items-center gap-2">
             <Sparkles className="w-4 h-4" />
-            <span>The Ultimate DSA Battleground</span>
+            <span>DSA Round Robin – Real-time 1v1 DSA Coding Battles</span>
           </div>
         </motion.div>
 
@@ -69,11 +69,11 @@ export const Hero: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-foreground mb-6 font-minecraft"
+          className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-foreground mb-6 font-minecraft"
         >
-          Master Algorithms <br />
+          DSA Round Robin <br />
           <span className="text-primary">
-            In Real-Time
+            Real-time 1v1 Battles
           </span>
         </motion.h1>
 
@@ -83,8 +83,8 @@ export const Hero: React.FC = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
         >
-          Challenge friends, solve complex problems, and level up your coding skills
-          in an immersive, multiplayer environment designed for developers.
+          DSA Round Robin is the ultimate platform for DSA learners and competitive programmers. 
+          Challenge friends to real-time 1v1 coding battles, practice for interviews, and improve your skills in a multiplayer environment.
         </motion.p>
       </div>
 

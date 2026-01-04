@@ -46,7 +46,7 @@ export const Navbar = () => {
             <div className="w-8 h-8 bg-primary pixel-border-outset flex items-center justify-center text-primary-foreground font-bold shadow-lg group-hover:brightness-110 active:pixel-border-inset transition-all font-minecraft text-xs">
               <Gamepad2 className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-foreground font-bold text-lg tracking-tight font-minecraft">DSA Round_Robin</span>
+            <span className="text-foreground font-bold text-lg tracking-tight font-minecraft">DSA Round Robin</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -71,7 +71,7 @@ export const Navbar = () => {
             {session ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/10">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/10" aria-label="User menu">
                     <Avatar className="h-9 w-9 border border-white/10">
                       <AvatarImage src={session.user.image || ""} alt={session.user.name} />
                       <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-purple-500 text-white">
@@ -123,6 +123,7 @@ export const Navbar = () => {
           <button
             className="md:hidden p-2 text-slate-400 hover:text-white"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle mobile menu"
           >
             {isMobileMenuOpen ? <X /> : <Menu />}
           </button>
