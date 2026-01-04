@@ -5,6 +5,7 @@ import {
   createManualMatch,
   finishMatchForUser,
   getMatchForUser,
+  getActiveMatchForUser,
   queueUserForMatch,
 } from "../services/match.service";
 
@@ -56,13 +57,17 @@ export const finishMatchController = async (req: AuthRequest, res: Response) => 
 };
 
 export const getMatch = async (req: AuthRequest, res: Response) => {
-  const { matchId } = req.params;
+  let { matchId } = req.params;
   const userId = req.user?.id;
 
-  if (!userId || !matchId)
-    return res.status(400).json({ error: "bad request" });
+  if (!userId) return res.status(401).json({ error: "unauthenticated" });
 
   try {
+    if (!matchId) {
+      const match = await getActiveMatchForUser(userId);
+      return res.json(match);
+    }
+
     const match = await getMatchForUser(matchId, userId);
     return res.json(match);
   } catch (err: any) {

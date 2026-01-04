@@ -119,8 +119,13 @@ export function Loader({ isOpen, onCancel, mode = "BLITZ duel" }: LoaderProps) {
             <h2 className="text-3xl font-black text-foreground mb-4 font-minecraft tracking-tight">
               MATCHMAKING
             </h2>
-            <p className="text-muted-foreground text-center mb-10 max-w-[280px] leading-relaxed">
-              Establishing connection... Finding a worthy challenger for your level.
+            <p className="text-muted-foreground text-center mb-10 leading-relaxed">
+              <span className="block whitespace-nowrap">
+                Establishing connection...
+              </span>
+              <span className="block whitespace-nowrap">
+                Finding a worthy challenger for your level.
+              </span>
             </p>
 
             <Button 

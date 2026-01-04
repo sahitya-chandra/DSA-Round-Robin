@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Zap, Code2, Moon, Upload, TrendingUp, Users } from "lucide-react";
+import { Zap, Code2, Moon, Upload, TrendingUp, Users, Eye } from "lucide-react";
 import { MatchCard } from "@/components/Dashboard/MatchCard";
 import { FloatingFriendCard } from "@/components/Dashboard/FloatingFriendCard";
 import { useMatchMaker } from "@/hooks/useMatchMaker";
@@ -35,8 +35,8 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
         <MatchCard
-          title="BLITZ DUEL"
-          description="10-min speed round"
+          title="QUICK MATCH"
+          description="Instant 1v1 coding battle"
           icon={Zap}
           colorClass="text-orange-500 bg-orange-500/10"
           tag="vs Random"
@@ -56,14 +56,34 @@ export default function DashboardPage() {
           description="Private battle with your buddy"
           icon={Upload}
           colorClass="text-pink-500 bg-pink-500/10"
+          tag="vs Friend"
           onClick={() => setFriendsCardOpen(true)}
         />
 
         <MatchCard
+          title="CUSTOM LOBBY"
+          description="Create private contests with custom rules"
+          icon={Users}
+          colorClass="text-cyan-500 bg-cyan-500/10"
+          tag="Upcoming"
+          locked={true}
+        />
+
+        <MatchCard
           title="ALGORITHM DUELS"
-          description="Topic specific battles"
+          description="Test your algorithmic skills"
           icon={TrendingUp}
           colorClass="text-purple-500 bg-purple-500/10"
+          locked={true}
+          tag="Upcoming"
+        />
+
+        <MatchCard
+          title="SPECTATE MODE"
+          description="Watch live coding battles"
+          icon={Eye}
+          colorClass="text-rose-500 bg-rose-500/10"
+          tag="Upcoming"
           locked={true}
         />
       </div>

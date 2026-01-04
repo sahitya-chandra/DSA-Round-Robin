@@ -5,6 +5,7 @@ import { isActiveSession } from "../middleware/middleware"
 const router: express.Router = express.Router()
 
 router.get("/getmatch/:matchId",isActiveSession, getMatch);
+router.get("/active", isActiveSession, getMatch);
 router.post("/", isActiveSession, matchController)
 router.post("/finish/:matchId", isActiveSession, finishMatchController);
 router.post("/cancel", isActiveSession, cancelMatchController);

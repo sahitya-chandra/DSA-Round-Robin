@@ -51,9 +51,9 @@ export function MatchCard({
               {tag}
             </span>
           )}
-          {locked && (
+          {/* {locked && (
             <Lock className="w-5 h-5 text-muted-foreground mr-1" />
-          )}
+          )} */}
         </div>
       </div>
 

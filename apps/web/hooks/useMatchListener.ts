@@ -27,7 +27,7 @@ export const useMatchListener = () => {
                 opponentId: data.opponentId,
                 questions: data.questions,
             });
-            setTiming(data.startedAt, data.duration);
+            setTiming(data.startedAt, Number(data.duration));
 
             toast.success("MATCH FOUND!", {
                 description: "Redirecting to your coding arena...",

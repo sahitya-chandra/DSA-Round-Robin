@@ -5,13 +5,51 @@ import { toast } from "sonner";
 import { authClient } from "@/lib/auth-client";
 import { useSocket } from "@/hooks/useSocket";
 import { API_BASE_URL } from "@/lib/api";
-import { MinecraftToast } from "./MinecraftToast";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useFriendsListStore } from "@/stores/friendsListStore";
+import { RejoinMatchToast } from "./RejoinMatchToast";
+import { MinecraftToast } from "./MinecraftToast";
+
 export const FriendInvitationListener = () => {
+  const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession();
   const userId = session?.user?.id;
-  const socket = useSocket(userId || "");
+
+  const handleMatchFound = (data: any) => {
+    if (pathname.startsWith("/code/")) return;
+
+    toast.custom((t) => (
+      <RejoinMatchToast
+        opponentName={data.opponent?.name || "Unknown"}
+        onRejoin={() => {
+          router.push(`/code/${data.matchId}`);
+          toast.dismiss(t);
+        }}
+        onGiveUp={async () => {
+          try {
+            await fetch(`${API_BASE_URL}/api/match/finish/${data.matchId}`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({}),
+              });
+              toast.success("Match ended");
+          } catch (err) {
+            console.error("Error finishing match:", err);
+            toast.error("Failed to end match");
+          } finally {
+            toast.dismiss(t);
+          }
+        }}
+        duration={10000}
+      />
+    ), {
+        duration: 10000,
+        id: `rejoin-${data.matchId}`
+    });
+  };
+
+  const socket = useSocket(userId || "", undefined, handleMatchFound);
 
   useEffect(() => {
     if (userId) {

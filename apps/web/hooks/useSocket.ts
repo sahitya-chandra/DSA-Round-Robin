@@ -8,9 +8,9 @@ import { useMatchResultStore } from "@/stores/matchResultStore";
 import { API_BASE_URL } from "@/lib/api";
 import { useFriendsListStore } from "@/stores/friendsListStore";
 
-export function useSocket(userId: string, slug?: string) {
+export function useSocket(userId: string, slug?: string, onMatchFound?: (data: any) => void) {
   const router = useRouter();
-  const { resetMatchData } = useMatchStore.getState();
+  const { setMatchData, setTiming, resetMatchData } = useMatchStore.getState();
   const { updateSubmission, resetSubmissions} = useSubmissionsStore.getState()
   const { markSolved, resetProgress } = useMatchProgressStore.getState();
   const { setResult } = useMatchResultStore.getState()
@@ -59,21 +59,33 @@ export function useSocket(userId: string, slug?: string) {
     };
 
     const joinExistingMatch = async () => {
-      if (!slug) return;
+      const url = slug 
+        ? `${API_BASE_URL}/api/match/getmatch/${slug}`
+        : `${API_BASE_URL}/api/match/active`;
 
       try {
-        const res = await fetch(`${API_BASE_URL}/api/match/getmatch/${slug}`, {
+        const res = await fetch(url, {
           credentials: "include",
         });
         const data = await res.json();
 
         if (data.matchId) {
           s.emit("join_match", { matchId: data.matchId });
-          console.log("Rejoined match:", data.matchId);
+          setMatchData({
+            matchId: data.matchId,
+            opponentId: data.opponentId,
+            questions: data.questions,
+            opponent: data.opponent,
+          });
+          setTiming(data.startedAt, Number(data.duration));
+          
+          if (onMatchFound) onMatchFound(data);
+          return data;
         }
       } catch (err) {
-        console.error("Failed to rejoin match:", err);
+        console.error("Failed to check/rejoin match:", err);
       }
+      return null;
     };
 
     const handleConnect = () => {

@@ -36,7 +36,6 @@ interface Question {
 interface QuestionData {
   questionData: Question;
 }
-type SubmissionStatus = "idle" | "running" | "complete";
 type CodeMap = {
   [questionId: string]: {
     [language: string]: string;
@@ -71,11 +70,14 @@ const DsaPracticeApp: React.FC = () => {
   const [currentQIndex, setCurrentQIndex] = useState(0);
   const [selectedLang, setSelectedLang] = useState("cpp");
   const [codeMap, setCodeMap] = useState<CodeMap>({});
-  const [submissionStatus, setSubmissionStatus] = useState<SubmissionStatus>("idle");
-
+  const [submissionStatus, setSubmissionStatus] = useState(false);
   const currentQuestion = questionData[currentQIndex];
   const currentQId = currentQuestion?.questionData.id ?? "";
   const currentCode = codeMap[currentQId]?.[selectedLang] ?? getDefaultCode(selectedLang);
+  
+  useEffect(() => {
+    setSubmissionStatus(false);
+  }, [submissions]);
 
   const handleSetCode = useCallback(
     (newCode: string) => {
@@ -93,11 +95,11 @@ const DsaPracticeApp: React.FC = () => {
   );
 
   const handleSubmit = useCallback(async () => {
-    if (!currentQId || !userId || submissionStatus === "running") {
+    if (!currentQId || !userId) {
       return;
     }
 
-    setSubmissionStatus("running");
+    setSubmissionStatus(true);
 
     try {
       await fetch(`${API_BASE_URL}/api/submit/solo`, {
@@ -114,7 +116,7 @@ const DsaPracticeApp: React.FC = () => {
       });
     } catch (err) {
       console.error("Submit error:", err);
-      setSubmissionStatus("idle");
+      setSubmissionStatus(false);
       alert("Submission failed. Please check network and server status.");
     }
   }, [currentQId, userId, submissionStatus, currentCode, selectedLang, practiceMatchId]);
@@ -165,7 +167,7 @@ const DsaPracticeApp: React.FC = () => {
   }, [userId]);
 
   useEffect(() => {
-    setSubmissionStatus("idle");
+    setSubmissionStatus(false);
     if (currentQId) {
       const storedCode = codeMap[currentQId]?.[selectedLang];
       if (storedCode === undefined) {
@@ -175,13 +177,6 @@ const DsaPracticeApp: React.FC = () => {
     }
   }, [currentQId, selectedLang, handleSetCode, codeMap]);
 
-  useEffect(() => {
-    if (submissionStatus !== "running" || !currentQId) return;
-
-    if (submissions[currentQId]?.result) {
-      setSubmissionStatus("complete");
-    }
-  }, [submissions, submissionStatus, currentQId]);
 
   if (loadingQuestions || isAuthLoading) {
     return (
@@ -410,7 +405,7 @@ const DsaPracticeApp: React.FC = () => {
         code: currentCode,
         setCode: handleSetCode,
         onSubmit: handleSubmit,
-        isLoading: submissionStatus === "running",
+        isLoading: submissionStatus,
         onReset: () => handleSetCode(getDefaultCode(selectedLang)),
         editorComponent: (
           <CodeEditor code={currentCode} setCode={handleSetCode} language={selectedLang} />
@@ -418,7 +413,7 @@ const DsaPracticeApp: React.FC = () => {
       }}
       resultsPanel={{
         submissionResult: curQuesSub?.result,
-        status: submissionStatus,
+        status: submissionStatus ? "running" : "idle",
         details: curQuesSub?.details ?? [],
       }}
     />

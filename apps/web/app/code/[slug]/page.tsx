@@ -28,21 +28,17 @@ const getDefaultCode = (lang: string): string => {
   }
 };
 
-
-
-
-
-
-
 const App: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const { questions, hydrated, startedAt, duration } = useMatchStore();
+  const { questions, hydrated, startedAt, duration, opponent, codeMap, updateCode } = useMatchStore();
   const { visible, winnerId, hideResult } = useMatchResultStore();
-
+  const { data: session } = authClient.useSession();
+  useSocket(session?.user?.id as string, params.slug as string);
   const calculateTimeLeft = () => {
     if (!startedAt || !duration) return 0;
-    const start = new Date(startedAt).getTime();
+    const startNum = Number(startedAt);
+    const start = isNaN(startNum) ? new Date(startedAt).getTime() : startNum;
     const end = start + duration * 1000;
     const now = Date.now();
     return Math.max(0, Math.floor((end - now) / 1000));
@@ -52,67 +48,30 @@ const App: React.FC = () => {
   const submissions = useSubmissionsStore((state) => state.submissions);
   const myProgress = useMatchProgressStore((state) => state.myProgress);
   const opponentProgress = useMatchProgressStore((state) => state.opponentProgress);
-  const [questionData, setQuestionData] = useState<any[]>(questions);
   const [selectedLang, setSelectedLang] = useState("cpp");
   const [loading, setLoading] = useState(false);
   const [currentQIndex, setCurrentQIndex] = useState(0);
-  const [opponent, setOpponent] = useState<{ name: string } | null>(null);
-  const { data: session } = authClient.useSession();
-  useSocket(session?.user?.id as string, params.slug as string);
-  const [codeMap, setCodeMap] = useState<Record<string, string>>({
-    cpp: getDefaultCode("cpp"),
-  });
-  const code = codeMap[selectedLang] || getDefaultCode(selectedLang);
+  const currentQuestion = questions[currentQIndex];
+  const questionId = currentQuestion?.questionData?.id;
+  const codeKey = questionId ? `${params.slug}:${questionId}:${selectedLang}` : null;
+
+  const code = (codeKey && codeMap[codeKey]) || getDefaultCode(selectedLang);
   const setCode = (newCode: string) => {
-    setCodeMap(prev => ({ ...prev, [selectedLang]: newCode }));
+    if (!codeKey) return;
+    updateCode(codeKey, newCode);
   };
 
-  const [loadingQuestions, setLoadingQuestions] = useState(true);
-
-  const isHeaderLoading = !hydrated || loadingQuestions;
+  const isHeaderLoading = !hydrated || questions.length === 0;
 
   useEffect(() => {
     setLoading(false);
   }, [submissions]);
 
   useEffect(() => {
-    if (!hydrated || questions.length === 0) return;
-
-    const fetchMatch = async () => {
-      try {
-        const res = await fetch(`${API_BASE_URL}/api/match/getmatch/${params.slug}`, {
-          credentials: "include",
-        });
-        if (!res.ok) {
-          router.push("/");
-          return;
-        }
-        const data = await res.json();
-        if (data.error || data.status === "finished") {
-          // If the match is already finished in the DB, but we haven't shown 
-          // the result yet, don't redirect yet. 
-          // However, if we are NOT in the match room anymore or it's totally gone, we should redirect.
-          if (!visible) {
-             router.replace("/");
-          }
-          return;
-        }
-        setOpponent(data.opponent);
-        setQuestionData(data.questions);
-      } catch (err) {
-        console.error("Failed to fetch questions", err);
-      } finally {
-        setLoadingQuestions(false);
-      }
-    };
-
-    fetchMatch();
-  }, [hydrated, questions, params.slug, router]);
-
-  useEffect(() => {
     if (!startedAt || !duration) return;
 
-    const start = new Date(startedAt).getTime();
+    const startNum = Number(startedAt);
+    const start = isNaN(startNum) ? new Date(startedAt).getTime() : startNum;
     const end = start + duration * 1000;
 
     const tick = () => {
@@ -127,7 +86,6 @@ const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [startedAt, duration]);
 
-  const currentQuestion = questionData[currentQIndex];
   const curQuesSub =
     Object.values(submissions).find(
       (sub) => sub.questionId === currentQuestion?.questionData.id
@@ -285,7 +243,7 @@ const App: React.FC = () => {
                           YOU
                         </div>
                         <div className="flex gap-0.5 md:gap-1.5">
-                          {questionData.map((q, i) => {
+                          {questions.map((q, i) => {
                             const solved = myProgress[q.questionData.id] ?? false;
                             return (
                               <div
@@ -339,7 +297,7 @@ const App: React.FC = () => {
                           {opponent?.name || "Opponent"}
                         </span>
                         <div className="flex gap-0.5 md:gap-1.5">
-                          {questionData.map((q, i) => {
+                          {questions.map((q, i) => {
                             const oppSolved = opponentProgress[q.questionData.id] ?? false;
                             return (
                               <div
@@ -392,13 +350,13 @@ const App: React.FC = () => {
         title: `Problem ${currentQIndex + 1}`,
         difficulty: currentQuestion?.questionData.difficulty || "Unknown",
         difficultyStyles: getDifficultyStyles(currentQuestion?.questionData.difficulty),
-        navigation: questionData.length > 1 && (
+        navigation: questions.length > 1 && (
           <div className="flex items-center gap-2">
             <motion.button
               whileHover={{ x: -4 }}
               whileTap={{ scale: 0.95 }}
               onClick={() =>
-                setCurrentQIndex((i) => (i > 0 ? i - 1 : questionData.length - 1))
+                setCurrentQIndex((i) => (i > 0 ? i - 1 : questions.length - 1))
               }
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/80 transition-all border-2 border-border pixel-border-outset active:pixel-border-inset group"
             >
@@ -407,13 +365,13 @@ const App: React.FC = () => {
             </motion.button>
             <div className="px-4 py-2.5 bg-accent/20 border-2 border-accent pixel-border-outset text-center min-w-[80px]">
               <span className="text-sm font-bold text-accent-foreground font-minecraft">
-                {currentQIndex + 1} / {questionData.length}
+                {currentQIndex + 1} / {questions.length}
               </span>
             </div>
             <motion.button
               whileHover={{ x: 4 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setCurrentQIndex((i) => (i + 1) % questionData.length)}
+              onClick={() => setCurrentQIndex((i) => (i + 1) % questions.length)}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary hover:bg-secondary/80 transition-all border-2 border-border pixel-border-outset active:pixel-border-inset group"
             >
               <span className="text-sm font-semibold text-secondary-foreground">Next</span>
@@ -422,7 +380,7 @@ const App: React.FC = () => {
           </div>
 
         ),
-        content: loadingQuestions ? (
+        content: isHeaderLoading ? (
           <div className="space-y-4">
             <div className="h-4 bg-slate-800 rounded animate-pulse"></div>
             <div className="h-4 bg-slate-800 rounded w-5/6 animate-pulse"></div>

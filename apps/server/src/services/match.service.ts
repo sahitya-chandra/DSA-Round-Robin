@@ -109,6 +109,18 @@ export interface MatchView {
   opponent?: { id: string; name: string };
 }
 
+export async function getActiveMatchForUser(
+  userId: string
+): Promise<MatchView> {
+  const activeMatchId = await redis.get(`${USER_MATCH_PREFIX}${userId}`);
+  if (!activeMatchId) {
+    const err: any = new Error("no active match found");
+    err.code = "NOT_FOUND";
+    throw err;
+  }
+  return getMatchForUser(activeMatchId, userId);
+}
+
 export async function getMatchForUser(
   matchId: string,
   userId: string
@@ -175,8 +187,8 @@ export async function createManualMatch(
     requesterId,
     opponentId,
     status: "RUNNING",
-    startedAt: Date.now().toString(),
-    duration: "600000",
+    startedAt: new Date().toISOString(),
+    duration: "600",
   };
 
   await redis.hmset(matchKey, matchData);
