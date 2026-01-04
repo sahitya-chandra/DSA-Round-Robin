@@ -57,7 +57,25 @@ export const FriendInvitationListener = () => {
     }
   }, [userId]);
   const router = useRouter();
-  const { addPendingRequest, removePendingRequest, setOnlineUsers } = useFriendsListStore();
+  const { addPendingRequest, removePendingRequest, setOnlineUsers, setPendingRequests } = useFriendsListStore();
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const fetchPendingRequests = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/social/requests?userId=${userId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setPendingRequests(data || []);
+        }
+      } catch (error) {
+        console.error("Failed to fetch pending requests:", error);
+      }
+    };
+
+    fetchPendingRequests();
+  }, [userId, setPendingRequests]);
 
   // const respondedInvitesRef = useRef<Set<string>>(new Set());
   // const markResponded = (inviterId: string) => {

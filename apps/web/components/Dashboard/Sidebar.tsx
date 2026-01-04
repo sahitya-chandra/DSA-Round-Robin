@@ -62,7 +62,7 @@ export function SidebarContent({ className, onItemClick, onClose }: { className?
       <nav className="flex-1 px-4 space-y-2 py-4 overflow-y-auto custom-scrollbar">
         {sidebarItems.map((item) => {
           const isActive = pathname === item.href;
-          const hasNotification = item.name === "Chats" && (pendingRequests.length > 0 || totalUnreadInfo > 0);
+          const hasNotification = item.name === "Friends" && (pendingRequests.length > 0 || totalUnreadInfo > 0);
           const isFriendsItem = item.name === "Friends";
 
           return (
