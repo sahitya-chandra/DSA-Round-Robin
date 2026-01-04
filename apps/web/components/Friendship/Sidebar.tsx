@@ -30,6 +30,8 @@ interface SidebarProps {
   setCurrentChatterID: (id: string | null) => void;
 }
 
+import { X } from "lucide-react";
+
 const API_BASE = `${API_BASE_URL}/api/social`;
 
 const Sidebar: React.FC<SidebarProps> = ({
@@ -187,7 +189,7 @@ const Sidebar: React.FC<SidebarProps> = ({
           onClick={() => setIsSidebarOpen(false)}
           className="md:hidden text-sidebar-foreground hover:text-sidebar-primary transition"
         >
-          ✖
+          <X className="w-6 h-6" />
         </button>
       </div>
 

@@ -13,7 +13,7 @@ export function MobileSidebar() {
   const totalUnreadInfo = Object.values(unreadMessages).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="md:hidden">
+    <div className="md:hidden absolute">
       <button 
         onClick={() => setIsOpen(true)}
         className="fixed top-4 left-4 z-50 p-2 bg-sidebar border-2 border-sidebar-border pixel-border-outset active:pixel-border-inset relative"
@@ -32,13 +32,10 @@ export function MobileSidebar() {
           />
           
           <div className="relative z-50 w-64 h-full animate-in slide-in-from-left duration-300">
-             <button 
-                onClick={() => setIsOpen(false)}
-                className="absolute top-2 right-[-3rem] p-2 bg-sidebar border-2 border-sidebar-border pixel-border-outset active:pixel-border-inset text-sidebar-foreground"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            <SidebarContent onItemClick={() => setIsOpen(false)} />
+            <SidebarContent 
+              onItemClick={() => setIsOpen(false)} 
+              onClose={() => setIsOpen(false)}
+            />
           </div>
         </div>
       )}
