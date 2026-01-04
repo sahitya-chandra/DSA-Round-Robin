@@ -226,18 +226,28 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 
-                <div className="h-32 sm:h-48 flex items-end gap-1 sm:gap-3 px-1 sm:px-2 border-b-2 border-border pb-2">
-                  {activity.map((day: any, i: number) => (
-                    <div key={i} className="flex-1 group relative h-full flex flex-col justify-end">
-                      <motion.div 
-                        initial={{ height: 0 }}
-                        animate={{ height: `${(day.count / (Math.max(...activity.map((a:any)=>a.count)) || 1)) * 100}%` }}
-                        className={`w-full min-w-[4px] sm:min-w-[10px] rounded-t-md transition-all ${i === activity.length -1 ? "bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" : "bg-accent/40 group-hover:bg-accent"}`}
-                      />
+                <div className="h-32 sm:h-48 lg:h-40 xl:h-48 flex items-end gap-1 sm:gap-2 lg:gap-1.5 xl:gap-3 px-1 sm:px-2 border-b-2 border-border pb-2">
+                  {activity.length === 0 ? (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-[10px] sm:text-xs font-minecraft opacity-50">
+                      No Activity Data
                     </div>
-                  ))}
+                  ) : (
+                    activity.map((day: any, i: number) => (
+                      <div key={i} className="flex-1 group relative h-full flex flex-col justify-end">
+                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-popover border-2 border-border text-popover-foreground text-[10px] font-minecraft px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-20 shadow-md">
+                          On {day.date} total matched played:
+                          <span className="text-primary ml-1 font-bold">{day.count}</span>
+                        </div>
+                        <motion.div 
+                          initial={{ height: 0 }}
+                          animate={{ height: `${Math.max((day.count / (Math.max(...activity.map((a:any)=>a.count)) || 1)) * 100, 5)}%` }}
+                          className={`w-full min-w-[4px] sm:min-w-[8px] rounded-t-sm transition-all ${i === activity.length -1 ? "bg-primary shadow-[0_0_10px_rgba(var(--primary),0.6)]" : "bg-primary/40 hover:bg-primary/60"}`}
+                        />
+                      </div>
+                    ))
+                  )}
                 </div>
-                <div className="flex justify-between mt-2 sm:mt-3 text-[9px] sm:text-[10px] font-minecraft text-muted-foreground uppercase tracking-widest">
+                <div className="flex justify-between mt-1.5 sm:mt-2 text-[8px] sm:text-[10px] font-minecraft text-muted-foreground uppercase tracking-widest">
                   <span>30 Days</span>
                   <span>Today</span>
                 </div>
