@@ -44,7 +44,7 @@ export default function DashboardLayout({
       <Loader 
         isOpen={queued} 
         onCancel={cancelMatch} 
-        mode="BLITZ DUEL" 
+        mode="QUICK MATCH" 
       />
     </div>
   );

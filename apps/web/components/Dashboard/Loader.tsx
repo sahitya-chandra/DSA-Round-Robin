@@ -11,7 +11,7 @@ interface LoaderProps {
   mode?: string;
 }
 
-export function Loader({ isOpen, onCancel, mode = "BLITZ duel" }: LoaderProps) {
+export function Loader({ isOpen, onCancel, mode = "QUICK MATCH" }: LoaderProps) {
   // Variants for the container (orchestrates children)
   const overlayVariants = {
     hidden: { opacity: 0 },
