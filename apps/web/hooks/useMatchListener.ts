@@ -21,7 +21,7 @@ export const useMatchListener = () => {
 
         const handleMatchStarted = (data: any) => {
             console.log("match_started → redirecting to", data.matchId);
-            setMatchFound(true);
+            // setMatchFound(true);
             setMatchData({
                 matchId: data.matchId,
                 opponentId: data.opponentId,
