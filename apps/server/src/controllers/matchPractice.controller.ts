@@ -4,13 +4,12 @@ import { v4 as uuidv4 } from "uuid";
 import prisma from "@repo/db";
 import { connection as redis, codeQueue } from "@repo/queue";
 import { AuthRequest } from "../types/types";
-import { MATCH_TTL, SUBMISSIONS_PREFIX } from "../utils/constants";
+import { workerManager } from "../utils/WorkerManager";
 
 export const submitPracticeController = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
   const { questionId, code, language } = req.body;
 
-  // 1. Enforce auth + input validation (same standard as 1v1)
   if (!userId) {
     return res.status(401).json({ error: "unauthenticated" });
   }
@@ -44,14 +43,12 @@ export const submitPracticeController = async (req: AuthRequest, res: Response) 
       result: null,
     };
 
-    // 2. Use a predictable key per user for practice submissions
-    const subHashKey = `${SUBMISSIONS_PREFIX}practice:${userId}`;
-    await redis.hset(subHashKey, submissionId, JSON.stringify(submission));
-    await redis.expire(subHashKey, MATCH_TTL);
+    // const subHashKey = `${SUBMISSIONS_PREFIX}practice:${userId}`;
+    // await redis.hset(subHashKey, submissionId, JSON.stringify(submission));
+    // await redis.expire(subHashKey, MATCH_TTL);
 
-    // 3. Enqueue job with enough info for worker to:
-    //    - know it's practice mode
-    //    - know which user/room to emit to
+    await workerManager.incrementBusy();
+
     const job = await codeQueue.add(
       "code-execution",
       {
@@ -59,7 +56,7 @@ export const submitPracticeController = async (req: AuthRequest, res: Response) 
         language: lang,
         testcases: (question as any).testcases ?? [],
         submissionId,
-        matchId: "",             
+        matchId: "practice",             
         userId,
         questionId: Number(questionId),
       },

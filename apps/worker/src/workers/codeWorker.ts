@@ -1,4 +1,4 @@
-import { createCodeWorker, publisherClient, connection as redis } from "@repo/queue";
+import { Worker, createCodeWorker, publisherClient, connection as redis, subscriberClient } from "@repo/queue";
 import { parseError } from "../utils/errorParser";
 import { exec } from "child_process";
 import fs from "fs/promises";
@@ -8,7 +8,7 @@ import dotenv from "dotenv";
 dotenv.config({ path: "../../.env" });
 const SUBMISSIONS_PREFIX = "match_submissions:";
 
-createCodeWorker(async (job) => {
+const worker: Worker = createCodeWorker(async (job) => {
   const { code, language, testcases, submissionId, matchId, userId, questionId } = job.data;
   if (!code || !language || !testcases) throw new Error("Missing data");
 
@@ -21,19 +21,21 @@ createCodeWorker(async (job) => {
       error: "Using #include <bits/stdc++.h> is not allowed. Please include specific headers like <iostream>, <vector>, etc.",
     };
 
-    const subHashKey = `${SUBMISSIONS_PREFIX}${matchId}:${userId}`;
-    const stored = await redis.hget(subHashKey, submissionId);
-    if (stored) {
-      const s = JSON.parse(stored);
-      s.status = "DONE";
-      s.result = summaryResult;
-      s.detailedResults = testcases.map((tc: any) => ({
-        input: tc.input || "",
-        expected: tc.expected_output || "",
-        output: "Restriction: bits/stdc++.h is not allowed",
-        passed: false,
-      }));
-      await redis.hset(subHashKey, submissionId, JSON.stringify(s));
+    if (matchId !== "practice") {
+      const subHashKey = `${SUBMISSIONS_PREFIX}${matchId}:${userId}`;
+      const stored = await redis.hget(subHashKey, submissionId);
+      if (stored) {
+        const s = JSON.parse(stored);
+        s.status = "DONE";
+        s.result = summaryResult;
+        s.detailedResults = testcases.map((tc: any) => ({
+          input: tc.input || "",
+          expected: tc.expected_output || "",
+          output: "Restriction: bits/stdc++.h is not allowed",
+          passed: false,
+        }));
+        await redis.hset(subHashKey, submissionId, JSON.stringify(s));
+      }
     }
 
     publisherClient.publish("match_events", JSON.stringify({
@@ -56,7 +58,8 @@ createCodeWorker(async (job) => {
     return summaryResult;
   }
 
-  const tempDir = path.join(String(process.env.HOME_DIR), "docker_temp", `job-${job.id}`);
+  const homeDir = String(process.env.HOME_DIR);
+  const tempDir = path.join(homeDir, "docker_temp", `job-${job.id}`);
   await fs.mkdir(tempDir, { recursive: true });
 
   console.log("Mount directory:", tempDir);
@@ -99,13 +102,7 @@ createCodeWorker(async (job) => {
     `-v ${tempDir}:/code --memory=128m --cpus=0.5 --network none ` +
     `${dockerImage} sh -c "${runCmd}"`;
 
-  const detailedResults: {
-    input: string;
-    expected: string;
-    output: string;
-    passed: boolean;
-  }[] = [];
-
+  const detailedResults: any[] = [];
   let passedCount = 0;
   const total = testcases.length;
   const startTime = Date.now();
@@ -127,40 +124,39 @@ createCodeWorker(async (job) => {
       const expected = (tc.expected_output || "").trim();
       let output = "";
       try {
-        output = (await fs.readFile(path.join(tempDir, `output_${i}.txt`), "utf-8")).trim();
+        const outPath = path.join(tempDir, `output_${i}.txt`);
+        output = (await fs.readFile(outPath, "utf-8")).trim();
       } catch {
         const parsed = parseError(dockerStderr, language);
         output = `Error: ${parsed.type}${parsed.line ? ` (Line ${parsed.line})` : ""}\n${parsed.message}`;
       }
 
-      const passed = output === expected;
-      if (passed) passedCount++;
-
+      if (output === expected) passedCount++;
       detailedResults.push({
         input: tc.input || "",
         expected,
         output,
-        passed,
+        passed: output === expected,
       });
     }
-
-    const timeMs = Date.now() - startTime;
 
     const summaryResult = {
       passed: passedCount === total,
       passedCount,
       total,
-      timeMs,
+      timeMs: Date.now() - startTime,
     };
 
-    const subHashKey = `${SUBMISSIONS_PREFIX}${matchId}:${userId}`;
-    const stored = await redis.hget(subHashKey, submissionId);
-    if (stored) {
-      const s = JSON.parse(stored);
-      s.status = "DONE";
-      s.result = summaryResult;
-      s.detailedResults = detailedResults;
-      await redis.hset(subHashKey, submissionId, JSON.stringify(s));
+    if (matchId !== "practice") {
+      const subHashKey = `${SUBMISSIONS_PREFIX}${matchId}:${userId}`;
+      const stored = await redis.hget(subHashKey, submissionId);
+      if (stored) {
+        const s = JSON.parse(stored);
+        s.status = "DONE";
+        s.result = summaryResult;
+        s.detailedResults = detailedResults;
+        await redis.hset(subHashKey, submissionId, JSON.stringify(s));
+      }
     }
 
     publisherClient.publish("match_events", JSON.stringify({
@@ -190,3 +186,35 @@ createCodeWorker(async (job) => {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
 });
+
+async function setupWorkerSignals() {
+  const BUSY_COUNT_KEY = "global_busy_count";
+  const WORKER_SIGNAL_CHANNEL = "worker_signal";
+
+  try {
+    const busyCount = await redis.get(BUSY_COUNT_KEY);
+    if (!busyCount || parseInt(busyCount) <= 0) {
+      console.log("CodeWorker: No active matches. Pausing on startup.");
+      await worker.pause();
+    }
+
+    await subscriberClient.subscribe(WORKER_SIGNAL_CHANNEL);
+    subscriberClient.on("message", async (channel, message) => {
+      if (channel === WORKER_SIGNAL_CHANNEL) {
+        if (message === "RESUME") {
+          console.log("CodeWorker: Signal received -> RESUMING");
+          await worker.resume();
+        } else if (message === "PAUSE") {
+          console.log("CodeWorker: Signal received -> PAUSING");
+          await worker.pause();
+        }
+      }
+    });
+  } catch (err) {
+    console.error("CodeWorker: Failed to setup signals", err);
+  }
+}
+
+setupWorkerSignals();
+
+export default worker;

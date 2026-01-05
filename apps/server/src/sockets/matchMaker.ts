@@ -23,7 +23,7 @@ export function startMatchMaker(io: Server) {
 
         if (!opponentId) {
           await redis.rpush(WAITING_LIST, requesterId);
-          await sleep(500); 
+          await sleep(5000); 
           continue;
         }
 

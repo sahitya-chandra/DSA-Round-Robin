@@ -2,11 +2,14 @@ import { v4 as uuidv4 } from "uuid";
 import prisma from "@repo/db";
 import type { Question } from "@repo/db";
 import { connection as redis } from "@repo/queue";
+import { expirationManager } from "../utils/ExpirationManager";
+import { workerManager } from "../utils/WorkerManager";
 import {
   ACTIVE_MATCH_PREFIX,
   USER_MATCH_PREFIX,
   MATCH_DURATION_SECONDS,
   MATCH_TTL,
+  MATCH_EXPIRATIONS_KEY,
 } from "../utils/constants";
 
 export interface CreatedMatch {
@@ -131,8 +134,12 @@ export async function createMatch(
         "expiresAt",
         expiresAt
       )
+      .zadd(MATCH_EXPIRATIONS_KEY, new Date(expiresAt).getTime(), matchId)
       .expire(`${ACTIVE_MATCH_PREFIX}${matchId}`, MATCH_TTL)
       .exec();
+
+    expirationManager.schedule(matchId, MATCH_DURATION_SECONDS);
+    await workerManager.incrementBusy();
 
     console.log(`Match created: ${matchId}`);
 

@@ -1,10 +1,10 @@
 import { Server, Socket } from "socket.io";
 import { userSockets, socketToUser } from "../utils/utils";
-import { subscriberClient } from "@repo/queue";
+import { connection as redis, subscriberClient } from "@repo/queue";
 import { startMatchMaker } from "./matchMaker";
 import { createMatch } from "../helpers/matchMaker.helper";
 import { finishMatchById } from "../helpers/finishMatch.helper";
-import { connection as redis } from "@repo/queue";
+import { workerManager } from "../utils/WorkerManager";
 import {
   ACTIVE_MATCH_PREFIX,
   USER_MATCH_PREFIX,
@@ -214,6 +214,10 @@ export function setupSockets(io: Server) {
         result,
         details,
       });
+
+      if (matchId === "practice") {
+        await workerManager.decrementBusy();
+      }
 
       // console.log(
       //   `Forwarded submission_result for match ${matchId}, user ${userId} → ${result.passedCount}/${result.total} passed`
