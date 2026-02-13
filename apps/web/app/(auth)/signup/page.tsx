@@ -156,6 +156,7 @@ export default function Page() {
                 className={`w-full bg-primary text-primary-foreground hover:brightness-110 font-minecraft
                   ${isLoading ? "cursor-not-allowed" : "cursor-pointer"}
                 `}
+                >
                 {isLoading ? (
                   <>
                     <InlineSpinner className="mr-2" />
