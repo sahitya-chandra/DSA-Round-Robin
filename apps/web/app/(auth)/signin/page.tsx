@@ -146,7 +146,9 @@ export default function SignInPage() {
               {/* Submit Button */}
               <Button 
                 type="submit" 
-                className="w-full bg-primary text-primary-foreground hover:brightness-110 font-minecraft" 
+                className={`w-full bg-primary text-primary-foreground hover:brightness-110 font-minecraft ${
+                  isLoading ? "cursor-not-allowed" : "cursor-pointer"
+                }`}
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -178,7 +180,7 @@ export default function SignInPage() {
             
             <Button 
               variant="outline" 
-              className="w-full"
+              className="w-full cursor-pointer"
               type="button"
               onClick={async () => {
                 await authClient.signIn.social({
