@@ -153,9 +153,9 @@ export default function Page() {
               {/* Submit Button */}
               <Button 
                 type="submit" 
-                className="w-full bg-primary text-primary-foreground hover:brightness-110 font-minecraft" 
-                disabled={isLoading}
-              >
+                className={`w-full bg-primary text-primary-foreground hover:brightness-110 font-minecraft
+                  ${isLoading ? "cursor-not-allowed" : "cursor-pointer"}
+                `}
                 {isLoading ? (
                   <>
                     <InlineSpinner className="mr-2" />
@@ -185,7 +185,7 @@ export default function Page() {
             
             <Button 
               variant="outline" 
-              className="w-full"
+              className="w-full cursor-pointer"
               type="button"
               onClick={async () => {
                 await authClient.signIn.social({
