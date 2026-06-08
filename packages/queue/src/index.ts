@@ -30,7 +30,6 @@ const WORKER_OPTIONS = {
   connection,
   lockDuration: 300_000,   // 5 minutes
   stalledInterval: 300_000, // 5 minutes
-  drainDelay: 0,          // instant processing when resumed
 };
  
 export function createCodeWorker(
