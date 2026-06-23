@@ -33,6 +33,7 @@ export function SidebarContent({ className, onItemClick, onClose }: { className?
 
   const sidebarItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Compete", href: "/compete", icon: Trophy },
     { name: "Puzzles", href: "/puzzles", icon: Puzzle },
     { name: "Daily Challenge", href: "/daily-challenge", icon: Calendar },
     { name: "Leaderboard", href: "/leaderboard", icon: BarChart3 },
