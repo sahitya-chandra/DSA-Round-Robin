@@ -5,6 +5,7 @@ import { startMatchMaker } from "./matchMaker";
 import { createMatch } from "../helpers/matchMaker.helper";
 import { finishMatchById } from "../helpers/finishMatch.helper";
 import { workerManager } from "../utils/WorkerManager";
+import { registerLobbyHandlers, handleLobbyDisconnect } from "./lobby";
 import {
   ACTIVE_MATCH_PREFIX,
   USER_MATCH_PREFIX,
@@ -41,11 +42,15 @@ export function setupSockets(io: Server) {
       console.log(`Socket ${socket.id} rejoined match: ${matchId}`);
     });
 
+    // Custom lobby (custom rooms) handlers.
+    registerLobbyHandlers(io, socket);
+
     socket.on("disconnect", async () => {
       const userId = socketToUser.get(socket.id);
       if (userId) {
         userSockets.delete(userId);
         socketToUser.delete(socket.id);
+        await handleLobbyDisconnect(io, userId);
         try {
           await redis.lrem(WAITING_LIST, 0, userId);
 

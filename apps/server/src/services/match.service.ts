@@ -4,12 +4,19 @@ import { finishMatchById } from "../helpers/finishMatch.helper";
 import {
   ACTIVE_MATCH_PREFIX,
   USER_MATCH_PREFIX,
+  SUBMISSIONS_PREFIX,
   WAITING_LIST,
 } from "../utils/constants";
 import {
   createMatch as createMatchHelper,
   CreatedMatch,
 } from "../helpers/matchMaker.helper";
+import {
+  getParticipantIds,
+  getCustomParticipants,
+  MatchPlayer,
+} from "../helpers/participants.helper";
+import { getIo } from "../utils/socketInstance";
 
 export type QueueStatus =
   | { status: "already_in_match"; matchId: string }
@@ -80,10 +87,16 @@ export async function finishMatchForUser(
       throw err;
     }
 
-    if (raw.requesterId !== userId && raw.opponentId !== userId) {
+    if (!getParticipantIds(raw).includes(userId)) {
       const err: any = new Error("not a participant");
       err.code = "FORBIDDEN";
       throw err;
+    }
+
+    // Custom (N-player) match: "give up" forfeits just this player.
+    if (raw.mode === "custom") {
+      await forfeitCustomMatch(matchId, userId, raw);
+      return;
     }
 
     const winnerId =
@@ -107,6 +120,55 @@ export interface MatchView {
   duration: string;
   questions: any[];
   opponent?: { id: string; name: string };
+  mode?: "custom";
+  hostId?: string;
+  participants?: MatchPlayer[];
+}
+
+/**
+ * Forfeits a single player in a custom match. If fewer than 2 players remain
+ * afterwards, the whole match is finished; otherwise the leaver is removed and
+ * the remaining players keep playing.
+ */
+export async function forfeitCustomMatch(
+  matchId: string,
+  userId: string,
+  raw: Record<string, string>
+): Promise<void> {
+  const participants = getCustomParticipants(raw);
+  const remaining = participants.filter((p) => p.id !== userId);
+
+  // Persist the reduced participant list so finish/scoring ignores the leaver.
+  await redis.hset(
+    `${ACTIVE_MATCH_PREFIX}${matchId}`,
+    "participants",
+    JSON.stringify(remaining)
+  );
+
+  // Release the leaver's match/submission state.
+  await redis.del(`${USER_MATCH_PREFIX}${userId}`);
+  await redis.del(`${SUBMISSIONS_PREFIX}${matchId}:${userId}`);
+
+  if (remaining.length < 2) {
+    // Not enough players to continue — end the match.
+    await finishMatchById(matchId);
+  } else {
+    // Tell the remaining players that someone left.
+    try {
+      getIo().to(matchId).emit("participant_left", { matchId, userId });
+    } catch (e) {
+      console.error("Failed to emit participant_left:", e);
+    }
+  }
+
+  // Send the leaver to the results screen.
+  try {
+    getIo()
+      .to(userId)
+      .emit("match:finished", { matchId, winnerId: null, reason: "forfeit" });
+  } catch (e) {
+    console.error("Failed to emit forfeit match:finished:", e);
+  }
 }
 
 export async function getActiveMatchForUser(
@@ -141,13 +203,36 @@ export async function getMatchForUser(
       throw err;
     }
 
-    if (data.requesterId !== userId && data.opponentId !== userId) {
+    if (!getParticipantIds(data).includes(userId)) {
       const err: any = new Error("forbidden");
       err.code = "FORBIDDEN";
       throw err;
     }
 
     const questions = data.questions ? JSON.parse(data.questions) : [];
+
+    // Custom N-player match: derive opponent info from the stored participants.
+    if (data.mode === "custom") {
+      const participants = getCustomParticipants(data);
+      const others = participants.filter((p) => p.id !== userId);
+      const firstOther = others[0];
+
+      return {
+        matchId,
+        requesterId: data.hostId ?? userId,
+        opponentId: firstOther?.id ?? "",
+        status: data.status,
+        startedAt: data.startedAt!,
+        duration: data.duration!,
+        questions,
+        opponent: firstOther
+          ? { id: firstOther.id, name: firstOther.name }
+          : undefined,
+        mode: "custom",
+        hostId: data.hostId,
+        participants,
+      };
+    }
 
     const actualOpponentId = data.requesterId === userId ? data.opponentId : data.requesterId;
     const opponentUser = await prisma.user.findUnique({

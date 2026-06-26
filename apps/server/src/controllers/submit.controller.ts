@@ -3,6 +3,7 @@ import { connection as redis, codeQueue } from "@repo/queue";
 import { v4 as uuidv4 } from "uuid";
 import { AuthRequest } from "../types/types";
 import { ACTIVE_MATCH_PREFIX, MATCH_TTL, SUBMISSIONS_PREFIX } from "../utils/constants";
+import { getParticipantIds } from "../helpers/participants.helper";
 
 export const submitMatchController = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
@@ -18,7 +19,7 @@ export const submitMatchController = async (req: AuthRequest, res: Response) => 
     const raw = await redis.hgetall(`${ACTIVE_MATCH_PREFIX}${safeMatchId}`);
     if (!raw || raw.status !== "RUNNING") return res.status(400).json({ error: "match not running" });
 
-    if (raw.requesterId !== userId && raw.opponentId !== userId) {
+    if (!getParticipantIds(raw).includes(userId)) {
       return res.status(403).json({ error: "not a participant" });
     }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Zap, Code2, Moon, Upload, TrendingUp, Users, Eye } from "lucide-react";
 import { MatchCard } from "@/components/Dashboard/MatchCard";
 import { FloatingFriendCard } from "@/components/Dashboard/FloatingFriendCard";
@@ -9,6 +10,7 @@ import { API_BASE_URL } from "@/lib/api";
 
 export default function DashboardPage() {
   const { startMatch } = useMatchMaker();
+  const router = useRouter();
   const [isFriendsCardOpen, setFriendsCardOpen] = useState(false);
 
   useEffect(() => {
@@ -62,11 +64,11 @@ export default function DashboardPage() {
 
         <MatchCard
           title="CUSTOM LOBBY"
-          description="Create private contests with custom rules"
+          description="Create a private room and battle many players"
           icon={Users}
           colorClass="text-cyan-500 bg-cyan-500/10"
-          tag="Upcoming"
-          locked={true}
+          tag="New"
+          onClick={() => router.push("/compete")}
         />
 
         <MatchCard
